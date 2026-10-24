@@ -13,7 +13,15 @@ or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases
 The release includes USB and SD-card installation instructions and
 checksums. No compiling needed.
 
-![Mystic Balloon gameplay](MysticBalloon/docs/gameplay.gif)
+| Color — Pastel Island (default) | Original B&W |
+|:---:|:---:|
+| ![Mystic Balloon in Color](MysticBalloon/docs/gameplay.gif) | ![Mystic Balloon in Original B&W](MysticBalloon/docs/gameplay-original.gif) |
+
+| Game Boy DMG | Amber |
+|:---:|:---:|
+| ![Mystic Balloon in Game Boy DMG](MysticBalloon/docs/gameplay-dmg.gif) | ![Mystic Balloon in Amber](MysticBalloon/docs/gameplay-amber.gif) |
+
+The same title screen and gameplay sequence are shown in all four modes.
 
 The default **Pastel Island** color palette is inspired by Yoshi's Island.
 CONF also offers **Original B&W**, **Game Boy DMG** and **Amber**, with live
