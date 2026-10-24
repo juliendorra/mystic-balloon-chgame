@@ -1,0 +1,63 @@
+{
+  "version": "1.2.8",
+  "date": "2026-10-24",
+  "target": "local builds, deterministic CHGame host and physical CHGame Rev0",
+  "firmware": {
+    "release": {
+      "bytes": 42612,
+      "crc32": "0x909C57E2",
+      "sha256": "cb9c6a2030be8527759a026a245a67c6c9b453e19ff4b3e50fd396b70c9dc6cf",
+      "static_ram_bytes": 17800
+    },
+    "debug": {
+      "bytes": 48048,
+      "crc32": "0x63BDB65C",
+      "sha256": "fc69e80328a7d5661a61c33fbcb2df89e6a521a1f8052aca15c0c504d8e03c3c",
+      "static_ram_bytes": 18072
+    }
+  },
+  "platform_references": {
+    "full_frame": 1648,
+    "direct_atlas": 68,
+    "total": 1716,
+    "tile_variants": 16,
+    "scroll_phases": 16,
+    "maps": 39,
+    "palettes": 4
+  },
+  "player_composites": 320,
+  "host_player_protocol_frames": 64,
+  "physical_player_protocol_frames": 64,
+  "diagnostic_sprite_and_particle_cases": 88,
+  "upstream_arrays_unchanged": 81,
+  "checks": [
+    "complete local check and UBSan passed",
+    "platform corner cutouts preserve exact parallax and joined tile edges in Color, DMG and Amber",
+    "Original B&W pixels unchanged",
+    "all player/inhale poses retain zero visible exterior tint",
+    "Amber body fill matches the light head",
+    "64 host and 64 physical player/inhale frames match independent native references",
+    "cartridge verified with exact release binary"
+  ],
+  "physical_validation": {
+    "status": "passed; normal release installed and running",
+    "timing_scenarios": 45,
+    "fps_min": 59.66,
+    "fps_max": 60.56,
+    "max_work_us": 14126,
+    "late_frames": 0,
+    "stack_high_water_bytes": 1232,
+    "evidence": "device-performance-platforms.json",
+    "player_evidence": "device-player-1.2.8.json",
+    "uploaded": true,
+    "scrolling_cases": 12,
+    "scrolling_timing_scenarios": 6,
+    "scrolling_evidence": "device-scrolling-1.2.8.json",
+    "saved_checkpoint_and_preferences_restored": true,
+    "upload_log": "upload-1.2.8.txt",
+    "installed_release_version": "1.2.8",
+    "installed_crc32": "0x909C57E2",
+    "flash_verification": "bootloader END verifies the image CRC in flash",
+    "independent_flash_readback": "not available on bootloader v3"
+  }
+}

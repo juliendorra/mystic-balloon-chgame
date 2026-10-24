@@ -1,0 +1,565 @@
+{
+  "target": "physical CHGame Rev0",
+  "default": "Pastel Island",
+  "performance": [
+    {
+      "mode": "Pastel Island",
+      "seconds": 5.005648165999446,
+      "fps": 60.13,
+      "stages": {
+        "n": 301,
+        "game": 4270,
+        "gmax": 5144,
+        "wait": 8,
+        "wmax": 11,
+        "expand": 2587,
+        "emax": 2682,
+        "color": 2858,
+        "cmax": 3348,
+        "submit": 106,
+        "work": 9830,
+        "max": 10615,
+        "interval": 16665,
+        "imax": 16705
+      },
+      "perf": {
+        "rnd": 5451,
+        "max": 5994,
+        "late": 0,
+        "frames": 301,
+        "stk": 1216
+      },
+      "state": {
+        "state": 7,
+        "level": 6,
+        "x": 196,
+        "y": 401,
+        "sy": -96,
+        "balloons": 0,
+        "coins": 6,
+        "total": 0,
+        "key": 0,
+        "score": 0,
+        "spikes": 4,
+        "maxheight": 8,
+        "fans": 6,
+        "walkers": 6,
+        "saved": 3,
+        "sound": 1,
+        "camx": 150,
+        "camy": 256,
+        "view": 128,
+        "palette": 0,
+        "draws": 48,
+        "dropped": 0
+      },
+      "palette": [
+        [
+          68,
+          51,
+          85
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          153,
+          221,
+          238
+        ],
+        [
+          102,
+          153,
+          136
+        ],
+        [
+          153,
+          221,
+          153
+        ],
+        [
+          221,
+          255,
+          187
+        ],
+        [
+          255,
+          102,
+          136
+        ],
+        [
+          255,
+          187,
+          221
+        ],
+        [
+          255,
+          238,
+          119
+        ],
+        [
+          204,
+          153,
+          68
+        ],
+        [
+          187,
+          153,
+          238
+        ],
+        [
+          153,
+          119,
+          102
+        ],
+        [
+          102,
+          136,
+          238
+        ],
+        [
+          238,
+          255,
+          255
+        ],
+        [
+          255,
+          221,
+          204
+        ],
+        [
+          255,
+          255,
+          255
+        ]
+      ]
+    },
+    {
+      "mode": "Original B&W",
+      "seconds": 2.008718625002075,
+      "fps": 60.24,
+      "stages": {
+        "n": 121,
+        "game": 3813,
+        "gmax": 4730,
+        "wait": 7,
+        "wmax": 11,
+        "expand": 1569,
+        "emax": 1574,
+        "color": 5,
+        "cmax": 6,
+        "submit": 105,
+        "work": 5502,
+        "max": 6419,
+        "interval": 16665,
+        "imax": 16672
+      },
+      "perf": {
+        "rnd": 1580,
+        "max": 1585,
+        "late": 0,
+        "frames": 121,
+        "stk": 1216
+      },
+      "state": {
+        "state": 7,
+        "level": 6,
+        "x": 178,
+        "y": 339,
+        "sy": -24,
+        "balloons": 3,
+        "coins": 6,
+        "total": 0,
+        "key": 0,
+        "score": 0,
+        "spikes": 4,
+        "maxheight": 8,
+        "fans": 6,
+        "walkers": 6,
+        "saved": 3,
+        "sound": 1,
+        "camx": 132,
+        "camy": 256,
+        "view": 128,
+        "palette": 1,
+        "draws": 47,
+        "dropped": 0
+      },
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ],
+        [
+          255,
+          255,
+          255
+        ]
+      ]
+    },
+    {
+      "mode": "DMG",
+      "seconds": 2.0018644580050022,
+      "fps": 59.94,
+      "stages": {
+        "n": 121,
+        "game": 4116,
+        "gmax": 5140,
+        "wait": 8,
+        "wmax": 11,
+        "expand": 2468,
+        "emax": 2643,
+        "color": 2764,
+        "cmax": 3311,
+        "submit": 106,
+        "work": 9464,
+        "max": 10555,
+        "interval": 16662,
+        "imax": 16704
+      },
+      "perf": {
+        "rnd": 5243,
+        "max": 5958,
+        "late": 0,
+        "frames": 120,
+        "stk": 1216
+      },
+      "state": {
+        "state": 7,
+        "level": 6,
+        "x": 178,
+        "y": 339,
+        "sy": -24,
+        "balloons": 3,
+        "coins": 6,
+        "total": 0,
+        "key": 0,
+        "score": 0,
+        "spikes": 4,
+        "maxheight": 8,
+        "fans": 6,
+        "walkers": 6,
+        "saved": 3,
+        "sound": 1,
+        "camx": 132,
+        "camy": 256,
+        "view": 128,
+        "palette": 2,
+        "draws": 53,
+        "dropped": 0
+      },
+      "palette": [
+        [
+          17,
+          51,
+          17
+        ],
+        [
+          153,
+          187,
+          17
+        ],
+        [
+          51,
+          102,
+          51
+        ],
+        [
+          51,
+          102,
+          51
+        ],
+        [
+          136,
+          170,
+          17
+        ],
+        [
+          153,
+          187,
+          17
+        ],
+        [
+          136,
+          170,
+          17
+        ],
+        [
+          153,
+          187,
+          17
+        ],
+        [
+          153,
+          187,
+          17
+        ],
+        [
+          51,
+          102,
+          51
+        ],
+        [
+          136,
+          170,
+          17
+        ],
+        [
+          51,
+          102,
+          51
+        ],
+        [
+          136,
+          170,
+          17
+        ],
+        [
+          153,
+          187,
+          17
+        ],
+        [
+          153,
+          187,
+          17
+        ],
+        [
+          153,
+          187,
+          17
+        ]
+      ]
+    },
+    {
+      "mode": "Amber",
+      "seconds": 2.0114116669938085,
+      "fps": 60.16,
+      "stages": {
+        "n": 121,
+        "game": 4135,
+        "gmax": 5142,
+        "wait": 7,
+        "wmax": 9,
+        "expand": 2464,
+        "emax": 2643,
+        "color": 2742,
+        "cmax": 3321,
+        "submit": 106,
+        "work": 9455,
+        "max": 10574,
+        "interval": 16665,
+        "imax": 16705
+      },
+      "perf": {
+        "rnd": 5212,
+        "max": 5969,
+        "late": 0,
+        "frames": 121,
+        "stk": 1216
+      },
+      "state": {
+        "state": 7,
+        "level": 6,
+        "x": 177,
+        "y": 337,
+        "sy": -15,
+        "balloons": 3,
+        "coins": 6,
+        "total": 0,
+        "key": 0,
+        "score": 0,
+        "spikes": 4,
+        "maxheight": 8,
+        "fans": 6,
+        "walkers": 6,
+        "saved": 3,
+        "sound": 1,
+        "camx": 131,
+        "camy": 256,
+        "view": 128,
+        "palette": 3,
+        "draws": 54,
+        "dropped": 0
+      },
+      "palette": [
+        [
+          34,
+          17,
+          0
+        ],
+        [
+          255,
+          221,
+          102
+        ],
+        [
+          102,
+          51,
+          0
+        ],
+        [
+          102,
+          51,
+          0
+        ],
+        [
+          187,
+          119,
+          0
+        ],
+        [
+          255,
+          221,
+          102
+        ],
+        [
+          187,
+          119,
+          0
+        ],
+        [
+          255,
+          221,
+          102
+        ],
+        [
+          255,
+          221,
+          102
+        ],
+        [
+          102,
+          51,
+          0
+        ],
+        [
+          187,
+          119,
+          0
+        ],
+        [
+          102,
+          51,
+          0
+        ],
+        [
+          187,
+          119,
+          0
+        ],
+        [
+          255,
+          221,
+          102
+        ],
+        [
+          255,
+          221,
+          102
+        ],
+        [
+          255,
+          221,
+          102
+        ]
+      ]
+    }
+  ],
+  "checks": [
+    "Pastel Island is the boot/default color palette, including the expanded splash",
+    "No device fault; all four menu display modes retain their expected palette"
+  ],
+  "hello": "MYBL 1.2.1",
+  "date": "2026-10-24",
+  "defaultColorVariant": 1,
+  "scope": "Focused palette/default verification and level 6 with sound enabled; renderer and game logic unchanged from the recorded 1.2.0 45-scenario validation.",
+  "rendererCoverage": "device-performance-color.json",
+  "firmware": {
+    "debug": {
+      "version": "1.2.1",
+      "bytes": 43688,
+      "crc32": "0xCD3039FA",
+      "sha256": "d1b863c53549b618232e79fe267b6e6d42fe17e90c705f98abdf24bf57e447f7"
+    },
+    "release": {
+      "version": "1.2.1",
+      "bytes": 38688,
+      "crc32": "0x051A08E4",
+      "sha256": "f9df4ff9f984c325955ba2b11b85d00ec24393b3ebf6e0d00219f9bec6dec179"
+    }
+  }
+}

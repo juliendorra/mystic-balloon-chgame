@@ -9,6 +9,7 @@ Upstream commit: 58743b6b52f1aa9f7bc39efd807034a83ebed9a6
 
 The CHGame adaptation replaces Arduboy hardware services, EEPROM and AVR
 pointer handling, adds native pause/mute controls, expands the scrolling
-viewport to 128x128, and corrects fixed-width arithmetic and the all-coins
-badge total. Original game artwork, 39-level order, physics, enemies and
-scoring are retained.
+viewport to 128x128, adds selectable color palettes and a continuous splash
+illustration derived from the original title artwork,
+and corrects fixed-width arithmetic and the all-coins badge total. Original
+sprite shapes, 39-level order, physics, enemies and scoring are retained.

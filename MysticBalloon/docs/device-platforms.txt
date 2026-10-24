@@ -1,0 +1,329 @@
+PASS: sound is enabled during performance measurements
+PASS: no recorded device fault
+level 01 moving and floating: 60.48 fps, work 8751 us avg / 9961 us max, late=0
+PASS: level 01 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 01 moving and floating stays inside the frame budget
+PASS: level 01 moving and floating fits the 2 KiB stack
+PASS: level 01 moving and floating remains in gameplay
+PASS: level 01 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 01 moving and floating retains every color overlay
+level 02 moving and floating: 60.29 fps, work 9113 us avg / 10637 us max, late=0
+PASS: level 02 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 02 moving and floating stays inside the frame budget
+PASS: level 02 moving and floating fits the 2 KiB stack
+PASS: level 02 moving and floating remains in gameplay
+PASS: level 02 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 02 moving and floating retains every color overlay
+level 03 moving and floating: 60.17 fps, work 11715 us avg / 12431 us max, late=0
+PASS: level 03 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 03 moving and floating stays inside the frame budget
+PASS: level 03 moving and floating fits the 2 KiB stack
+PASS: level 03 moving and floating remains in gameplay
+PASS: level 03 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 03 moving and floating retains every color overlay
+level 04 moving and floating: 60.34 fps, work 9368 us avg / 10183 us max, late=0
+PASS: level 04 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 04 moving and floating stays inside the frame budget
+PASS: level 04 moving and floating fits the 2 KiB stack
+PASS: level 04 moving and floating remains in gameplay
+PASS: level 04 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 04 moving and floating retains every color overlay
+level 05 moving and floating: 59.82 fps, work 9810 us avg / 10611 us max, late=0
+PASS: level 05 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 05 moving and floating stays inside the frame budget
+PASS: level 05 moving and floating fits the 2 KiB stack
+PASS: level 05 moving and floating remains in gameplay
+PASS: level 05 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 05 moving and floating retains every color overlay
+level 06 moving and floating: 60.41 fps, work 9453 us avg / 10530 us max, late=0
+PASS: level 06 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 06 moving and floating stays inside the frame budget
+PASS: level 06 moving and floating fits the 2 KiB stack
+PASS: level 06 moving and floating remains in gameplay
+PASS: level 06 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 06 moving and floating retains every color overlay
+level 07 moving and floating: 60.29 fps, work 9898 us avg / 11244 us max, late=0
+PASS: level 07 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 07 moving and floating stays inside the frame budget
+PASS: level 07 moving and floating fits the 2 KiB stack
+PASS: level 07 moving and floating remains in gameplay
+PASS: level 07 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 07 moving and floating retains every color overlay
+level 08 moving and floating: 60.56 fps, work 7652 us avg / 8614 us max, late=0
+PASS: level 08 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 08 moving and floating stays inside the frame budget
+PASS: level 08 moving and floating fits the 2 KiB stack
+PASS: level 08 moving and floating remains in gameplay
+PASS: level 08 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 08 moving and floating retains every color overlay
+level 09 moving and floating: 60.30 fps, work 7959 us avg / 9190 us max, late=0
+PASS: level 09 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 09 moving and floating stays inside the frame budget
+PASS: level 09 moving and floating fits the 2 KiB stack
+PASS: level 09 moving and floating remains in gameplay
+PASS: level 09 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 09 moving and floating retains every color overlay
+level 10 moving and floating: 59.95 fps, work 9692 us avg / 12779 us max, late=0
+PASS: level 10 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 10 moving and floating stays inside the frame budget
+PASS: level 10 moving and floating fits the 2 KiB stack
+PASS: level 10 moving and floating remains in gameplay
+PASS: level 10 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 10 moving and floating retains every color overlay
+level 11 moving and floating: 60.36 fps, work 10417 us avg / 11814 us max, late=0
+PASS: level 11 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 11 moving and floating stays inside the frame budget
+PASS: level 11 moving and floating fits the 2 KiB stack
+PASS: level 11 moving and floating remains in gameplay
+PASS: level 11 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 11 moving and floating retains every color overlay
+level 12 moving and floating: 60.25 fps, work 11538 us avg / 12644 us max, late=0
+PASS: level 12 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 12 moving and floating stays inside the frame budget
+PASS: level 12 moving and floating fits the 2 KiB stack
+PASS: level 12 moving and floating remains in gameplay
+PASS: level 12 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 12 moving and floating retains every color overlay
+level 13 moving and floating: 60.20 fps, work 10065 us avg / 11015 us max, late=0
+PASS: level 13 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 13 moving and floating stays inside the frame budget
+PASS: level 13 moving and floating fits the 2 KiB stack
+PASS: level 13 moving and floating remains in gameplay
+PASS: level 13 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 13 moving and floating retains every color overlay
+level 14 moving and floating: 60.42 fps, work 12358 us avg / 13851 us max, late=0
+PASS: level 14 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 14 moving and floating stays inside the frame budget
+PASS: level 14 moving and floating fits the 2 KiB stack
+PASS: level 14 moving and floating remains in gameplay
+PASS: level 14 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 14 moving and floating retains every color overlay
+level 15 moving and floating: 60.14 fps, work 8771 us avg / 9737 us max, late=0
+PASS: level 15 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 15 moving and floating stays inside the frame budget
+PASS: level 15 moving and floating fits the 2 KiB stack
+PASS: level 15 moving and floating remains in gameplay
+PASS: level 15 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 15 moving and floating retains every color overlay
+level 16 moving and floating: 60.21 fps, work 12300 us avg / 13138 us max, late=0
+PASS: level 16 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 16 moving and floating stays inside the frame budget
+PASS: level 16 moving and floating fits the 2 KiB stack
+PASS: level 16 moving and floating remains in gameplay
+PASS: level 16 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 16 moving and floating retains every color overlay
+level 17 moving and floating: 59.94 fps, work 10426 us avg / 12014 us max, late=0
+PASS: level 17 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 17 moving and floating stays inside the frame budget
+PASS: level 17 moving and floating fits the 2 KiB stack
+PASS: level 17 moving and floating remains in gameplay
+PASS: level 17 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 17 moving and floating retains every color overlay
+level 18 moving and floating: 60.27 fps, work 11439 us avg / 12162 us max, late=0
+PASS: level 18 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 18 moving and floating stays inside the frame budget
+PASS: level 18 moving and floating fits the 2 KiB stack
+PASS: level 18 moving and floating remains in gameplay
+PASS: level 18 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 18 moving and floating retains every color overlay
+level 19 moving and floating: 60.32 fps, work 9238 us avg / 10466 us max, late=0
+PASS: level 19 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 19 moving and floating stays inside the frame budget
+PASS: level 19 moving and floating fits the 2 KiB stack
+PASS: level 19 moving and floating remains in gameplay
+PASS: level 19 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 19 moving and floating retains every color overlay
+level 20 moving and floating: 59.66 fps, work 7885 us avg / 10034 us max, late=0
+PASS: level 20 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 20 moving and floating stays inside the frame budget
+PASS: level 20 moving and floating fits the 2 KiB stack
+PASS: level 20 moving and floating remains in gameplay
+PASS: level 20 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 20 moving and floating retains every color overlay
+level 21 moving and floating: 60.46 fps, work 9154 us avg / 10575 us max, late=0
+PASS: level 21 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 21 moving and floating stays inside the frame budget
+PASS: level 21 moving and floating fits the 2 KiB stack
+PASS: level 21 moving and floating remains in gameplay
+PASS: level 21 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 21 moving and floating retains every color overlay
+level 22 moving and floating: 60.36 fps, work 11510 us avg / 12906 us max, late=0
+PASS: level 22 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 22 moving and floating stays inside the frame budget
+PASS: level 22 moving and floating fits the 2 KiB stack
+PASS: level 22 moving and floating remains in gameplay
+PASS: level 22 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 22 moving and floating retains every color overlay
+level 23 moving and floating: 60.14 fps, work 9895 us avg / 10297 us max, late=0
+PASS: level 23 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 23 moving and floating stays inside the frame budget
+PASS: level 23 moving and floating fits the 2 KiB stack
+PASS: level 23 moving and floating remains in gameplay
+PASS: level 23 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 23 moving and floating retains every color overlay
+level 24 moving and floating: 60.24 fps, work 11558 us avg / 12987 us max, late=0
+PASS: level 24 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 24 moving and floating stays inside the frame budget
+PASS: level 24 moving and floating fits the 2 KiB stack
+PASS: level 24 moving and floating remains in gameplay
+PASS: level 24 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 24 moving and floating retains every color overlay
+level 25 moving and floating: 59.86 fps, work 8401 us avg / 8811 us max, late=0
+PASS: level 25 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 25 moving and floating stays inside the frame budget
+PASS: level 25 moving and floating fits the 2 KiB stack
+PASS: level 25 moving and floating remains in gameplay
+PASS: level 25 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 25 moving and floating retains every color overlay
+level 26 moving and floating: 60.43 fps, work 10615 us avg / 12053 us max, late=0
+PASS: level 26 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 26 moving and floating stays inside the frame budget
+PASS: level 26 moving and floating fits the 2 KiB stack
+PASS: level 26 moving and floating remains in gameplay
+PASS: level 26 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 26 moving and floating retains every color overlay
+level 27 moving and floating: 60.19 fps, work 11267 us avg / 13138 us max, late=0
+PASS: level 27 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 27 moving and floating stays inside the frame budget
+PASS: level 27 moving and floating fits the 2 KiB stack
+PASS: level 27 moving and floating remains in gameplay
+PASS: level 27 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 27 moving and floating retains every color overlay
+level 28 moving and floating: 60.21 fps, work 9121 us avg / 11036 us max, late=0
+PASS: level 28 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 28 moving and floating stays inside the frame budget
+PASS: level 28 moving and floating fits the 2 KiB stack
+PASS: level 28 moving and floating remains in gameplay
+PASS: level 28 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 28 moving and floating retains every color overlay
+level 29 moving and floating: 60.37 fps, work 10586 us avg / 12797 us max, late=0
+PASS: level 29 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 29 moving and floating stays inside the frame budget
+PASS: level 29 moving and floating fits the 2 KiB stack
+PASS: level 29 moving and floating remains in gameplay
+PASS: level 29 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 29 moving and floating retains every color overlay
+level 30 moving and floating: 60.22 fps, work 12098 us avg / 12967 us max, late=0
+PASS: level 30 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 30 moving and floating stays inside the frame budget
+PASS: level 30 moving and floating fits the 2 KiB stack
+PASS: level 30 moving and floating remains in gameplay
+PASS: level 30 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 30 moving and floating retains every color overlay
+level 31 moving and floating: 59.84 fps, work 9020 us avg / 10479 us max, late=0
+PASS: level 31 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 31 moving and floating stays inside the frame budget
+PASS: level 31 moving and floating fits the 2 KiB stack
+PASS: level 31 moving and floating remains in gameplay
+PASS: level 31 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 31 moving and floating retains every color overlay
+level 32 moving and floating: 60.17 fps, work 11102 us avg / 11777 us max, late=0
+PASS: level 32 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 32 moving and floating stays inside the frame budget
+PASS: level 32 moving and floating fits the 2 KiB stack
+PASS: level 32 moving and floating remains in gameplay
+PASS: level 32 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 32 moving and floating retains every color overlay
+level 33 moving and floating: 60.28 fps, work 11175 us avg / 12174 us max, late=0
+PASS: level 33 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 33 moving and floating stays inside the frame budget
+PASS: level 33 moving and floating fits the 2 KiB stack
+PASS: level 33 moving and floating remains in gameplay
+PASS: level 33 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 33 moving and floating retains every color overlay
+level 34 moving and floating: 60.39 fps, work 9814 us avg / 10788 us max, late=0
+PASS: level 34 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 34 moving and floating stays inside the frame budget
+PASS: level 34 moving and floating fits the 2 KiB stack
+PASS: level 34 moving and floating remains in gameplay
+PASS: level 34 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 34 moving and floating retains every color overlay
+level 35 moving and floating: 59.96 fps, work 9416 us avg / 10498 us max, late=0
+PASS: level 35 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 35 moving and floating stays inside the frame budget
+PASS: level 35 moving and floating fits the 2 KiB stack
+PASS: level 35 moving and floating remains in gameplay
+PASS: level 35 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 35 moving and floating retains every color overlay
+level 36 moving and floating: 59.94 fps, work 9374 us avg / 10497 us max, late=0
+PASS: level 36 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 36 moving and floating stays inside the frame budget
+PASS: level 36 moving and floating fits the 2 KiB stack
+PASS: level 36 moving and floating remains in gameplay
+PASS: level 36 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 36 moving and floating retains every color overlay
+level 37 moving and floating: 60.32 fps, work 8934 us avg / 9474 us max, late=0
+PASS: level 37 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 37 moving and floating stays inside the frame budget
+PASS: level 37 moving and floating fits the 2 KiB stack
+PASS: level 37 moving and floating remains in gameplay
+PASS: level 37 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 37 moving and floating retains every color overlay
+level 38 moving and floating: 60.39 fps, work 11209 us avg / 14126 us max, late=0
+PASS: level 38 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 38 moving and floating stays inside the frame budget
+PASS: level 38 moving and floating fits the 2 KiB stack
+PASS: level 38 moving and floating remains in gameplay
+PASS: level 38 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 38 moving and floating retains every color overlay
+level 39 moving and floating: 60.26 fps, work 10420 us avg / 11397 us max, late=0
+PASS: level 39 moving and floating sustains 60 fps within serial measurement tolerance
+PASS: level 39 moving and floating stays inside the frame budget
+PASS: level 39 moving and floating fits the 2 KiB stack
+PASS: level 39 moving and floating remains in gameplay
+PASS: level 39 moving and floating uses the full viewport and retains the camera bottom cap
+PASS: level 39 moving and floating retains every color overlay
+level 01 sustained walking: 60.13 fps, work 8246 us avg / 8399 us max, late=0
+PASS: level 01 sustained walking sustains 60 fps within serial measurement tolerance
+PASS: level 01 sustained walking stays inside the frame budget
+PASS: level 01 sustained walking fits the 2 KiB stack
+PASS: level 01 sustained walking remains in gameplay
+PASS: level 01 sustained walking uses the full viewport and retains the camera bottom cap
+PASS: level 01 sustained walking retains every color overlay
+level 06 sustained jumping: 60.15 fps, work 9894 us avg / 10721 us max, late=0
+PASS: level 06 sustained jumping sustains 60 fps within serial measurement tolerance
+PASS: level 06 sustained jumping stays inside the frame budget
+PASS: level 06 sustained jumping fits the 2 KiB stack
+PASS: level 06 sustained jumping remains in gameplay
+PASS: level 06 sustained jumping uses the full viewport and retains the camera bottom cap
+PASS: level 06 sustained jumping retains every color overlay
+level 39 sustained inhaling: 60.14 fps, work 12408 us avg / 12539 us max, late=0
+PASS: level 39 sustained inhaling sustains 60 fps within serial measurement tolerance
+PASS: level 39 sustained inhaling stays inside the frame budget
+PASS: level 39 sustained inhaling fits the 2 KiB stack
+PASS: level 39 sustained inhaling remains in gameplay
+PASS: level 39 sustained inhaling uses the full viewport and retains the camera bottom cap
+PASS: level 39 sustained inhaling retains every color overlay
+Original B&W sustained jumping: 60.18 fps, work 5602 us avg / 6567 us max, late=0
+PASS: Original B&W sustained jumping sustains 60 fps within serial measurement tolerance
+PASS: Original B&W sustained jumping stays inside the frame budget
+PASS: Original B&W sustained jumping fits the 2 KiB stack
+PASS: Original B&W sustained jumping remains in gameplay
+PASS: Original B&W sustained jumping uses the full viewport and retains the camera bottom cap
+PASS: Original B&W sustained jumping retains every color overlay
+Game Boy DMG sustained jumping: 60.11 fps, work 9750 us avg / 10749 us max, late=0
+PASS: Game Boy DMG sustained jumping sustains 60 fps within serial measurement tolerance
+PASS: Game Boy DMG sustained jumping stays inside the frame budget
+PASS: Game Boy DMG sustained jumping fits the 2 KiB stack
+PASS: Game Boy DMG sustained jumping remains in gameplay
+PASS: Game Boy DMG sustained jumping uses the full viewport and retains the camera bottom cap
+PASS: Game Boy DMG sustained jumping retains every color overlay
+Amber sustained jumping: 60.19 fps, work 9749 us avg / 10722 us max, late=0
+PASS: Amber sustained jumping sustains 60 fps within serial measurement tolerance
+PASS: Amber sustained jumping stays inside the frame budget
+PASS: Amber sustained jumping fits the 2 KiB stack
+PASS: Amber sustained jumping remains in gameplay
+PASS: Amber sustained jumping uses the full viewport and retains the camera bottom cap
+PASS: Amber sustained jumping retains every color overlay
+PASS: color palette selection is active
+PASS: color uses the expected original/color renderer
+PASS: original palette selection is active
+PASS: original uses the expected original/color renderer
+PASS: dmg palette selection is active
+PASS: dmg uses the expected original/color renderer
+PASS: amber palette selection is active
+PASS: amber uses the expected original/color renderer
+PASS: directional input moves the player
+PASS: pause freezes the world and framebuffer
+PASS: START resumes gameplay
+PASS: no device fault after the complete run

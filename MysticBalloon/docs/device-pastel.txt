@@ -1,0 +1,6 @@
+PASS: Pastel Island is the boot/default color palette, including the expanded splash
+PASS Pastel Island: 60.13 fps, max work 10615 us, late=0
+PASS Original B&W: 60.24 fps, max work 6419 us, late=0
+PASS DMG: 59.94 fps, max work 10555 us, late=0
+PASS Amber: 60.16 fps, max work 10574 us, late=0
+PASS: No device fault; all four menu display modes retain their expected palette

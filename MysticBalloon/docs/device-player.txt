@@ -1,0 +1,71 @@
+PASS: installed diagnostic identity matches source
+PASS: Color kid frame 0 matches all 16384 reviewed pixels
+PASS: Color kid frame 1 matches all 16384 reviewed pixels
+PASS: Color kid frame 2 matches all 16384 reviewed pixels
+PASS: Color kid frame 3 matches all 16384 reviewed pixels
+PASS: Color kid frame 4 matches all 16384 reviewed pixels
+PASS: Color kid frame 5 matches all 16384 reviewed pixels
+PASS: Color kid frame 6 matches all 16384 reviewed pixels
+PASS: Color kid frame 7 matches all 16384 reviewed pixels
+PASS: Color kid frame 8 matches all 16384 reviewed pixels
+PASS: Color kid frame 9 matches all 16384 reviewed pixels
+PASS: Color kid frame 10 matches all 16384 reviewed pixels
+PASS: Color kid frame 11 matches all 16384 reviewed pixels
+PASS: Color inhale frame 0 matches all 16384 reviewed pixels
+PASS: Color inhale frame 1 matches all 16384 reviewed pixels
+PASS: Color inhale frame 2 matches all 16384 reviewed pixels
+PASS: Color inhale frame 3 matches all 16384 reviewed pixels
+PASS: Color retains all player commands
+PASS: Original B&W kid frame 0 matches all 16384 reviewed pixels
+PASS: Original B&W kid frame 1 matches all 16384 reviewed pixels
+PASS: Original B&W kid frame 2 matches all 16384 reviewed pixels
+PASS: Original B&W kid frame 3 matches all 16384 reviewed pixels
+PASS: Original B&W kid frame 4 matches all 16384 reviewed pixels
+PASS: Original B&W kid frame 5 matches all 16384 reviewed pixels
+PASS: Original B&W kid frame 6 matches all 16384 reviewed pixels
+PASS: Original B&W kid frame 7 matches all 16384 reviewed pixels
+PASS: Original B&W kid frame 8 matches all 16384 reviewed pixels
+PASS: Original B&W kid frame 9 matches all 16384 reviewed pixels
+PASS: Original B&W kid frame 10 matches all 16384 reviewed pixels
+PASS: Original B&W kid frame 11 matches all 16384 reviewed pixels
+PASS: Original B&W inhale frame 0 matches all 16384 reviewed pixels
+PASS: Original B&W inhale frame 1 matches all 16384 reviewed pixels
+PASS: Original B&W inhale frame 2 matches all 16384 reviewed pixels
+PASS: Original B&W inhale frame 3 matches all 16384 reviewed pixels
+PASS: Original B&W retains all player commands
+PASS: DMG kid frame 0 matches all 16384 reviewed pixels
+PASS: DMG kid frame 1 matches all 16384 reviewed pixels
+PASS: DMG kid frame 2 matches all 16384 reviewed pixels
+PASS: DMG kid frame 3 matches all 16384 reviewed pixels
+PASS: DMG kid frame 4 matches all 16384 reviewed pixels
+PASS: DMG kid frame 5 matches all 16384 reviewed pixels
+PASS: DMG kid frame 6 matches all 16384 reviewed pixels
+PASS: DMG kid frame 7 matches all 16384 reviewed pixels
+PASS: DMG kid frame 8 matches all 16384 reviewed pixels
+PASS: DMG kid frame 9 matches all 16384 reviewed pixels
+PASS: DMG kid frame 10 matches all 16384 reviewed pixels
+PASS: DMG kid frame 11 matches all 16384 reviewed pixels
+PASS: DMG inhale frame 0 matches all 16384 reviewed pixels
+PASS: DMG inhale frame 1 matches all 16384 reviewed pixels
+PASS: DMG inhale frame 2 matches all 16384 reviewed pixels
+PASS: DMG inhale frame 3 matches all 16384 reviewed pixels
+PASS: DMG retains all player commands
+PASS: Amber kid frame 0 matches all 16384 reviewed pixels
+PASS: Amber kid frame 1 matches all 16384 reviewed pixels
+PASS: Amber kid frame 2 matches all 16384 reviewed pixels
+PASS: Amber kid frame 3 matches all 16384 reviewed pixels
+PASS: Amber kid frame 4 matches all 16384 reviewed pixels
+PASS: Amber kid frame 5 matches all 16384 reviewed pixels
+PASS: Amber kid frame 6 matches all 16384 reviewed pixels
+PASS: Amber kid frame 7 matches all 16384 reviewed pixels
+PASS: Amber kid frame 8 matches all 16384 reviewed pixels
+PASS: Amber kid frame 9 matches all 16384 reviewed pixels
+PASS: Amber kid frame 10 matches all 16384 reviewed pixels
+PASS: Amber kid frame 11 matches all 16384 reviewed pixels
+PASS: Amber inhale frame 0 matches all 16384 reviewed pixels
+PASS: Amber inhale frame 1 matches all 16384 reviewed pixels
+PASS: Amber inhale frame 2 matches all 16384 reviewed pixels
+PASS: Amber inhale frame 3 matches all 16384 reviewed pixels
+PASS: Amber retains all player commands
+PASS: no recorded device fault
+PASS: saved checkpoint and preferences restored at main menu

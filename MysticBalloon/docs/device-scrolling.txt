@@ -1,0 +1,49 @@
+PASS: diagnostic version matches current source
+PASS: palette 0 left camera and physics match simulator
+PASS: palette 0 left native pixels match reviewed wall/sky/player
+palette 0 left: 60.29 fps, max work 12326 us, late=0
+PASS: palette 0 left sustains 60 fps with zero late frames
+PASS: palette 0 left fits stack and retains every drawing command
+PASS: palette 0 right camera and physics match simulator
+PASS: palette 0 right native pixels match reviewed wall/sky/player
+palette 0 right: 60.24 fps, max work 11023 us, late=0
+PASS: palette 0 right sustains 60 fps with zero late frames
+PASS: palette 0 right fits stack and retains every drawing command
+PASS: palette 0 ascent camera and physics match simulator
+PASS: palette 0 ascent native pixels match reviewed wall/sky/player
+PASS: palette 0 tracks balloon flight above map row zero
+palette 0 ascent: 60.19 fps, max work 8085 us, late=0
+PASS: palette 0 ascent sustains 60 fps with zero late frames
+PASS: palette 0 ascent fits stack and retains every drawing command
+PASS: palette 1 left camera and physics match simulator
+PASS: palette 1 left native pixels match reviewed wall/sky/player
+PASS: palette 1 right camera and physics match simulator
+PASS: palette 1 right native pixels match reviewed wall/sky/player
+PASS: palette 1 ascent camera and physics match simulator
+PASS: palette 1 ascent native pixels match reviewed wall/sky/player
+PASS: palette 1 tracks balloon flight above map row zero
+palette 1 ascent: 60.21 fps, max work 5142 us, late=0
+PASS: palette 1 ascent sustains 60 fps with zero late frames
+PASS: palette 1 ascent fits stack and retains every drawing command
+PASS: palette 2 left camera and physics match simulator
+PASS: palette 2 left native pixels match reviewed wall/sky/player
+PASS: palette 2 right camera and physics match simulator
+PASS: palette 2 right native pixels match reviewed wall/sky/player
+PASS: palette 2 ascent camera and physics match simulator
+PASS: palette 2 ascent native pixels match reviewed wall/sky/player
+PASS: palette 2 tracks balloon flight above map row zero
+palette 2 ascent: 60.20 fps, max work 8056 us, late=0
+PASS: palette 2 ascent sustains 60 fps with zero late frames
+PASS: palette 2 ascent fits stack and retains every drawing command
+PASS: palette 3 left camera and physics match simulator
+PASS: palette 3 left native pixels match reviewed wall/sky/player
+PASS: palette 3 right camera and physics match simulator
+PASS: palette 3 right native pixels match reviewed wall/sky/player
+PASS: palette 3 ascent camera and physics match simulator
+PASS: palette 3 ascent native pixels match reviewed wall/sky/player
+PASS: palette 3 tracks balloon flight above map row zero
+palette 3 ascent: 60.17 fps, max work 8067 us, late=0
+PASS: palette 3 ascent sustains 60 fps with zero late frames
+PASS: palette 3 ascent fits stack and retains every drawing command
+PASS: no recorded device fault
+PASS: original flash checkpoint and preferences restored; back at main menu

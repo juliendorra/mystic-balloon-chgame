@@ -1,0 +1,30 @@
+{
+  "changed": 42,
+  "bounds": [
+    20,
+    78,
+    38,
+    89
+  ],
+  "stencil_cells": 120,
+  "canvas_cells": 16384,
+  "sha256": "8782b016ca15c22e996497e124ec2a5e6ebe103bc9b4786d78d18d1e204292aa",
+  "firmware": {
+    "version": "1.2.3",
+    "bytes": 40344,
+    "crc32": "0x936ACAA5",
+    "sha256": "c30fe3457def312320fb7253b2e62dffb37121ea2f83ee5b2829a34e926c12be"
+  },
+  "method": "Direct indexed-PNG stencils; no image generation for this correction",
+  "drawing_passes": 2,
+  "display_modes": [
+    "Color",
+    "Original B&W",
+    "DMG Green",
+    "Amber"
+  ],
+  "unchanged_outside_stencils": true,
+  "palette_and_dimensions_unchanged": true,
+  "native_main_menu_difference_from_previous_device_capture": 42,
+  "upload": "upload-1.2.3.txt"
+}

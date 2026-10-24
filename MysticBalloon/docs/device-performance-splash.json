@@ -1,0 +1,144 @@
+{
+  "target": "physical CHGame Rev0",
+  "date": "2026-10-24",
+  "checks": [
+    "installed diagnostic identity is MYBL 1.2.2",
+    "boot reaches the main menu",
+    "pastel main menu exactly matches the reviewed native pixels",
+    "original main menu exactly matches the reviewed native pixels",
+    "dmg main menu exactly matches the reviewed native pixels",
+    "amber main menu exactly matches the reviewed native pixels",
+    "CONF remains accessible through normal controls",
+    "pastel CONF menu exactly matches the reviewed native pixels",
+    "original CONF menu exactly matches the reviewed native pixels",
+    "dmg CONF menu exactly matches the reviewed native pixels",
+    "amber CONF menu exactly matches the reviewed native pixels",
+    "continuous splash and main menu sustains 60 fps with zero late frames",
+    "continuous splash and main menu retains all drawing commands",
+    "level 6 with sound sustains 60 fps with zero late frames",
+    "level 6 with sound retains all drawing commands",
+    "no recorded device fault"
+  ],
+  "performance": [
+    {
+      "label": "continuous splash and main menu",
+      "seconds": 3.0012542080003186,
+      "fps": 59.97,
+      "stages": {
+        "n": 180,
+        "game": 267,
+        "gmax": 270,
+        "wait": 18,
+        "wmax": 19,
+        "expand": 3793,
+        "emax": 3796,
+        "color": 1151,
+        "cmax": 1154,
+        "submit": 105,
+        "work": 5336,
+        "max": 5340,
+        "interval": 16666,
+        "imax": 16672
+      },
+      "perf": {
+        "rnd": 4950,
+        "max": 4952,
+        "late": 0,
+        "frames": 180,
+        "stk": 1216
+      },
+      "state": {
+        "state": 1,
+        "level": 1,
+        "x": 0,
+        "y": 0,
+        "sy": 0,
+        "balloons": 0,
+        "coins": 0,
+        "total": 0,
+        "key": 0,
+        "score": 0,
+        "spikes": 0,
+        "maxheight": 0,
+        "fans": 0,
+        "walkers": 0,
+        "saved": 3,
+        "sound": 1,
+        "camx": 0,
+        "camy": 0,
+        "view": 128,
+        "palette": 0,
+        "draws": 2,
+        "dropped": 0
+      }
+    },
+    {
+      "label": "level 6 with sound",
+      "seconds": 5.007599750002555,
+      "fps": 60.11,
+      "stages": {
+        "n": 302,
+        "game": 4251,
+        "gmax": 5132,
+        "wait": 8,
+        "wmax": 12,
+        "expand": 2588,
+        "emax": 2682,
+        "color": 2858,
+        "cmax": 3378,
+        "submit": 106,
+        "work": 9812,
+        "max": 10640,
+        "interval": 16663,
+        "imax": 16706
+      },
+      "perf": {
+        "rnd": 5455,
+        "max": 6028,
+        "late": 0,
+        "frames": 301,
+        "stk": 1216
+      },
+      "state": {
+        "state": 7,
+        "level": 6,
+        "x": 196,
+        "y": 407,
+        "sy": -96,
+        "balloons": 0,
+        "coins": 6,
+        "total": 0,
+        "key": 0,
+        "score": 0,
+        "spikes": 4,
+        "maxheight": 8,
+        "fans": 6,
+        "walkers": 6,
+        "saved": 3,
+        "sound": 1,
+        "camx": 150,
+        "camy": 256,
+        "view": 128,
+        "palette": 0,
+        "draws": 43,
+        "dropped": 0
+      }
+    }
+  ],
+  "hello": "MYBL 1.2.2",
+  "scope": "Continuous splash/menu artwork and layout; native pixels in all four display modes, menu access, main-menu and level-6 timing. Gameplay renderer unchanged from 1.2.1.",
+  "firmware": {
+    "debug": {
+      "version": "1.2.2",
+      "bytes": 45324,
+      "crc32": "0x3609110E",
+      "sha256": "96856d6d6b6271815a59172ce32321d840ca4e935ddfd9eb3111bc15fd906a30"
+    },
+    "release": {
+      "version": "1.2.2",
+      "bytes": 40316,
+      "crc32": "0x45041057",
+      "sha256": "6f2a2b6799866383a5060d774820d1bbf17de36eea19eb28033510876ccd650b"
+    }
+  }
+}

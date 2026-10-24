@@ -1,0 +1,41 @@
+PASS: installed diagnostic identity is MYBL 1.2.5
+PASS: boot reaches main menu
+PASS: CONF opens through normal controls
+PASS: color is previewed immediately by cursor movement
+PASS: original is previewed immediately by cursor movement
+PASS: dmg is previewed immediately by cursor movement
+PASS: amber is previewed immediately by cursor movement
+PASS: A cancels the preview and restores the previous palette
+PASS: B confirms the highlighted palette
+PASS: moving up previews DMG
+PASS: cancel restores the newly confirmed palette
+PASS: original palette restored before saving progress
+title with dynamic balloon: 60.20 fps, max work 5001 us
+PASS: title with dynamic balloon sustains 60 fps with zero late frames
+PASS: title with dynamic balloon fits the 2 KiB stack
+PASS: CONT loads the existing level checkpoint
+PASS: saved level starts normally
+PASS: START opens pause
+PASS: palette 0 pause option 0 matches reviewed pixels with no dropped commands
+PASS: paused physics, camera and whole frame remain frozen
+PASS: palette 0 pause option 1 matches reviewed pixels with no dropped commands
+Color pause menu: 59.97 fps, max work 5374 us
+PASS: Color pause menu sustains 60 fps with zero late frames
+PASS: Color pause menu fits the 2 KiB stack
+PASS: palette 1 pause option 1 matches reviewed pixels with no dropped commands
+Original B&W pause menu: 60.24 fps, max work 5337 us
+PASS: Original B&W pause menu sustains 60 fps with zero late frames
+PASS: Original B&W pause menu fits the 2 KiB stack
+PASS: palette 2 pause option 1 matches reviewed pixels with no dropped commands
+DMG pause menu: 59.95 fps, max work 5375 us
+PASS: DMG pause menu sustains 60 fps with zero late frames
+PASS: DMG pause menu fits the 2 KiB stack
+PASS: palette 3 pause option 1 matches reviewed pixels with no dropped commands
+Amber pause menu: 60.21 fps, max work 5375 us
+PASS: Amber pause menu sustains 60 fps with zero late frames
+PASS: Amber pause menu fits the 2 KiB stack
+PASS: A resumes from SAVE & QUIT without leaving
+PASS: palette 0 pause option 0 matches reviewed pixels with no dropped commands
+PASS: SAVE & QUIT returns to menu with the current checkpoint
+PASS: normal CONT reloads saved level, score and coins with three balloons
+PASS: no recorded device fault

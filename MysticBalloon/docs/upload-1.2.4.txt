@@ -1,0 +1,9 @@
+port    : /dev/cu.usbmodem101
+image   : MysticBalloon/build/release/MysticBalloon.ino.bin  (39068 bytes)
+region  : 0x3000 + 50944 bytes
+crc32   : 0xE98AB87C
+erase   : 0.00 s
+write   : 1.34 s  (28.6 KiB/s, 256 B chunks)
+total   : 1.46 s  -- image accepted and marked valid
+sent RUN
+running : application is up on /dev/cu.usbmodem101

@@ -1,0 +1,547 @@
+{
+  "version": "1.2.7",
+  "date": "2026-10-24",
+  "target": "local builds and deterministic CHGame host",
+  "firmware": {
+    "release": {
+      "bytes": 41664,
+      "crc32": "0x159EB6E5",
+      "sha256": "97519d9cf03e1b98d0ce0287515670c587b24775dede9d7a83e1dd24ec9eac62",
+      "static_ram_bytes": 17720
+    },
+    "debug": {
+      "bytes": 47104,
+      "crc32": "0xFB40E4D6",
+      "sha256": "175d95f38a203574602bd94f6bb23b929a86a95afc97e05aede2943ce368c984",
+      "static_ram_bytes": 17992
+    }
+  },
+  "host_protocol": {
+    "target": "deterministic CHGame host",
+    "checks": [
+      "installed diagnostic identity matches source",
+      "Color kid frame 0 matches all 16384 reviewed pixels",
+      "Color kid frame 1 matches all 16384 reviewed pixels",
+      "Color kid frame 2 matches all 16384 reviewed pixels",
+      "Color kid frame 3 matches all 16384 reviewed pixels",
+      "Color kid frame 4 matches all 16384 reviewed pixels",
+      "Color kid frame 5 matches all 16384 reviewed pixels",
+      "Color kid frame 6 matches all 16384 reviewed pixels",
+      "Color kid frame 7 matches all 16384 reviewed pixels",
+      "Color kid frame 8 matches all 16384 reviewed pixels",
+      "Color kid frame 9 matches all 16384 reviewed pixels",
+      "Color kid frame 10 matches all 16384 reviewed pixels",
+      "Color kid frame 11 matches all 16384 reviewed pixels",
+      "Color inhale frame 0 matches all 16384 reviewed pixels",
+      "Color inhale frame 1 matches all 16384 reviewed pixels",
+      "Color inhale frame 2 matches all 16384 reviewed pixels",
+      "Color inhale frame 3 matches all 16384 reviewed pixels",
+      "Color retains all player commands",
+      "Original B&W kid frame 0 matches all 16384 reviewed pixels",
+      "Original B&W kid frame 1 matches all 16384 reviewed pixels",
+      "Original B&W kid frame 2 matches all 16384 reviewed pixels",
+      "Original B&W kid frame 3 matches all 16384 reviewed pixels",
+      "Original B&W kid frame 4 matches all 16384 reviewed pixels",
+      "Original B&W kid frame 5 matches all 16384 reviewed pixels",
+      "Original B&W kid frame 6 matches all 16384 reviewed pixels",
+      "Original B&W kid frame 7 matches all 16384 reviewed pixels",
+      "Original B&W kid frame 8 matches all 16384 reviewed pixels",
+      "Original B&W kid frame 9 matches all 16384 reviewed pixels",
+      "Original B&W kid frame 10 matches all 16384 reviewed pixels",
+      "Original B&W kid frame 11 matches all 16384 reviewed pixels",
+      "Original B&W inhale frame 0 matches all 16384 reviewed pixels",
+      "Original B&W inhale frame 1 matches all 16384 reviewed pixels",
+      "Original B&W inhale frame 2 matches all 16384 reviewed pixels",
+      "Original B&W inhale frame 3 matches all 16384 reviewed pixels",
+      "Original B&W retains all player commands",
+      "DMG kid frame 0 matches all 16384 reviewed pixels",
+      "DMG kid frame 1 matches all 16384 reviewed pixels",
+      "DMG kid frame 2 matches all 16384 reviewed pixels",
+      "DMG kid frame 3 matches all 16384 reviewed pixels",
+      "DMG kid frame 4 matches all 16384 reviewed pixels",
+      "DMG kid frame 5 matches all 16384 reviewed pixels",
+      "DMG kid frame 6 matches all 16384 reviewed pixels",
+      "DMG kid frame 7 matches all 16384 reviewed pixels",
+      "DMG kid frame 8 matches all 16384 reviewed pixels",
+      "DMG kid frame 9 matches all 16384 reviewed pixels",
+      "DMG kid frame 10 matches all 16384 reviewed pixels",
+      "DMG kid frame 11 matches all 16384 reviewed pixels",
+      "DMG inhale frame 0 matches all 16384 reviewed pixels",
+      "DMG inhale frame 1 matches all 16384 reviewed pixels",
+      "DMG inhale frame 2 matches all 16384 reviewed pixels",
+      "DMG inhale frame 3 matches all 16384 reviewed pixels",
+      "DMG retains all player commands",
+      "Amber kid frame 0 matches all 16384 reviewed pixels",
+      "Amber kid frame 1 matches all 16384 reviewed pixels",
+      "Amber kid frame 2 matches all 16384 reviewed pixels",
+      "Amber kid frame 3 matches all 16384 reviewed pixels",
+      "Amber kid frame 4 matches all 16384 reviewed pixels",
+      "Amber kid frame 5 matches all 16384 reviewed pixels",
+      "Amber kid frame 6 matches all 16384 reviewed pixels",
+      "Amber kid frame 7 matches all 16384 reviewed pixels",
+      "Amber kid frame 8 matches all 16384 reviewed pixels",
+      "Amber kid frame 9 matches all 16384 reviewed pixels",
+      "Amber kid frame 10 matches all 16384 reviewed pixels",
+      "Amber kid frame 11 matches all 16384 reviewed pixels",
+      "Amber inhale frame 0 matches all 16384 reviewed pixels",
+      "Amber inhale frame 1 matches all 16384 reviewed pixels",
+      "Amber inhale frame 2 matches all 16384 reviewed pixels",
+      "Amber inhale frame 3 matches all 16384 reviewed pixels",
+      "Amber retains all player commands",
+      "no recorded device fault",
+      "saved checkpoint and preferences restored at main menu"
+    ],
+    "cases": [
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 0,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 1,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 2,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 3,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 4,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 5,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 6,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 7,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 8,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 9,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 10,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "kid",
+        "frame": 11,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "inhale",
+        "frame": 0,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "inhale",
+        "frame": 1,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "inhale",
+        "frame": 2,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 0,
+        "asset": "inhale",
+        "frame": 3,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 0,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 1,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 2,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 3,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 4,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 5,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 6,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 7,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 8,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 9,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 10,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "kid",
+        "frame": 11,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "inhale",
+        "frame": 0,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "inhale",
+        "frame": 1,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "inhale",
+        "frame": 2,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 1,
+        "asset": "inhale",
+        "frame": 3,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 0,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 1,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 2,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 3,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 4,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 5,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 6,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 7,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 8,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 9,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 10,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "kid",
+        "frame": 11,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "inhale",
+        "frame": 0,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "inhale",
+        "frame": 1,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "inhale",
+        "frame": 2,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 2,
+        "asset": "inhale",
+        "frame": 3,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 0,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 1,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 2,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 3,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 4,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 5,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 6,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 7,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 8,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 9,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 10,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "kid",
+        "frame": 11,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "inhale",
+        "frame": 0,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "inhale",
+        "frame": 1,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "inhale",
+        "frame": 2,
+        "matched_pixels": 16384
+      },
+      {
+        "palette": 3,
+        "asset": "inhale",
+        "frame": 3,
+        "matched_pixels": 16384
+      }
+    ],
+    "hello": "MYBL 1.2.7",
+    "initial": {
+      "state": 0,
+      "level": 1,
+      "x": 0,
+      "y": 0,
+      "sy": 0,
+      "balloons": 0,
+      "coins": 0,
+      "total": 0,
+      "key": 0,
+      "score": 0,
+      "spikes": 0,
+      "maxheight": 0,
+      "fans": 0,
+      "walkers": 0,
+      "saved": 1,
+      "sound": 1,
+      "camx": 0,
+      "camy": 0,
+      "view": 128,
+      "palette": 0,
+      "draws": 0,
+      "dropped": 0
+    },
+    "restored": {
+      "state": 1,
+      "level": 1,
+      "x": 0,
+      "y": 0,
+      "sy": 0,
+      "balloons": 0,
+      "coins": 0,
+      "total": 0,
+      "key": 0,
+      "score": 0,
+      "spikes": 0,
+      "maxheight": 0,
+      "fans": 0,
+      "walkers": 0,
+      "saved": 1,
+      "sound": 1,
+      "camx": 0,
+      "camy": 0,
+      "view": 128,
+      "palette": 0,
+      "draws": 2,
+      "dropped": 0
+    }
+  },
+  "player_composites": 320,
+  "diagnostic_sprite_and_particle_cases": 88,
+  "upstream_arrays_unchanged": 81,
+  "checks": [
+    "complete local check passed",
+    "all exterior player clearing pixels receive zero tint in every mode",
+    "Amber player fill is uniformly light index 14",
+    "patterned sky and terrain are unchanged outside the player in 320 clipped/aligned composites",
+    "Original B&W matches the original monochrome output",
+    "all 64 host protocol frames match the independent native references",
+    "cartridge verified and contains the exact release binary"
+  ],
+  "physical_validation": {
+    "status": "pending",
+    "reason": "No CHGame USB device detected; uploader reported no 16C0:27DD device",
+    "uploaded": false
+  }
+}

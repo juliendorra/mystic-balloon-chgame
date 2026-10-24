@@ -1,0 +1,156 @@
+{
+  "target": "physical CHGame Rev0",
+  "date": "2026-10-24",
+  "checks": [
+    "installed diagnostic identity is MYBL 1.2.4",
+    "boot reaches the main menu",
+    "pastel main menu exactly matches the reviewed native pixels",
+    "original main menu exactly matches the reviewed native pixels",
+    "dmg main menu exactly matches the reviewed native pixels",
+    "amber main menu exactly matches the reviewed native pixels",
+    "CONF remains accessible through normal controls",
+    "pastel CONF menu exactly matches the reviewed native pixels",
+    "original CONF menu exactly matches the reviewed native pixels",
+    "dmg CONF menu exactly matches the reviewed native pixels",
+    "amber CONF menu exactly matches the reviewed native pixels",
+    "continuous splash and main menu sustains 60 fps with zero late frames",
+    "continuous splash and main menu retains all drawing commands",
+    "level 6 with sound sustains 60 fps with zero late frames",
+    "level 6 with sound retains all drawing commands",
+    "no recorded device fault"
+  ],
+  "performance": [
+    {
+      "label": "continuous splash and main menu",
+      "seconds": 3.0080134579984588,
+      "fps": 60.17,
+      "stages": {
+        "n": 181,
+        "game": 267,
+        "gmax": 271,
+        "wait": 19,
+        "wmax": 23,
+        "expand": 3342,
+        "emax": 3358,
+        "color": 1151,
+        "cmax": 1154,
+        "submit": 105,
+        "work": 4886,
+        "max": 4906,
+        "interval": 16666,
+        "imax": 16672
+      },
+      "perf": {
+        "rnd": 4499,
+        "max": 4516,
+        "late": 0,
+        "frames": 181,
+        "stk": 1216
+      },
+      "state": {
+        "state": 1,
+        "level": 1,
+        "x": 0,
+        "y": 0,
+        "sy": 0,
+        "balloons": 0,
+        "coins": 0,
+        "total": 0,
+        "key": 0,
+        "score": 0,
+        "spikes": 0,
+        "maxheight": 0,
+        "fans": 0,
+        "walkers": 0,
+        "saved": 1,
+        "sound": 1,
+        "camx": 0,
+        "camy": 0,
+        "view": 128,
+        "palette": 0,
+        "draws": 2,
+        "dropped": 0
+      }
+    },
+    {
+      "label": "level 6 with sound",
+      "seconds": 5.0053811660036445,
+      "fps": 60.14,
+      "stages": {
+        "n": 301,
+        "game": 3721,
+        "gmax": 5142,
+        "wait": 7,
+        "wmax": 11,
+        "expand": 2396,
+        "emax": 2527,
+        "color": 2628,
+        "cmax": 3119,
+        "submit": 106,
+        "work": 8860,
+        "max": 10053,
+        "interval": 16665,
+        "imax": 16703
+      },
+      "perf": {
+        "rnd": 5030,
+        "max": 5645,
+        "late": 0,
+        "frames": 301,
+        "stk": 1216
+      },
+      "state": {
+        "state": 7,
+        "level": 6,
+        "x": 85,
+        "y": 336,
+        "sy": 0,
+        "balloons": 3,
+        "coins": 6,
+        "total": 0,
+        "key": 0,
+        "score": 0,
+        "spikes": 4,
+        "maxheight": 8,
+        "fans": 6,
+        "walkers": 6,
+        "saved": 1,
+        "sound": 1,
+        "camx": 15,
+        "camy": 256,
+        "view": 128,
+        "palette": 0,
+        "draws": 41,
+        "dropped": 0
+      }
+    }
+  ],
+  "hello": "MYBL 1.2.4",
+  "firmware": {
+    "release": {
+      "version": "1.2.4",
+      "bytes": 39068,
+      "crc32": "0xE98AB87C",
+      "sha256": "370e32472abe947a69e3d3bb648dd06c994280798babb154df30e4ae9bacd391"
+    },
+    "debug": {
+      "version": "1.2.4",
+      "bytes": 44076,
+      "crc32": "0x9943340E",
+      "sha256": "87041de96d1912073837f5b9f4bbbe05eb021f24724fffbaef4f1367bc3f9128"
+    }
+  },
+  "scope": "Full-scene direct pixel refinement, true title matte, foreground cuts and menu clearance; eight native main/CONF comparisons, controls and title/gameplay timing.",
+  "drawing_checks": [
+    "eight deliberate indexed colors",
+    "skin confined to the child",
+    "connected knot-to-grip white string",
+    "dark reserved CONF pocket",
+    "unmodified title ink",
+    "transparent title padding and rounded corners",
+    "exact eight-color cartridge image"
+  ],
+  "source_indices_changed": 3151,
+  "title_unused_source_rows": 6,
+  "title_padding_native_rows": 12
+}

@@ -11,7 +11,9 @@ This guide uses the workspace's CHGame 0.3.0 board package and native GCC
 16.2.0 toolchain. The [Mystic Balloon measurements](../MysticBalloon/docs/performance.md)
 contain the recorded timings, device results, and release identity.
 
-Mystic Balloon 1.1.0 expands gameplay to 128×128 and removes the added UI.
+Mystic Balloon 1.1.0 expanded gameplay to 128×128 and removed the added UI.
+Version 1.2.0 adds color, selectable Original/DMG/Amber modes, and a full
+128×128 splash. It preserves the original source sprite and level bytes.
 The timing comparison below records the earlier 1.0.1 128×64 optimization;
 the same packed renderer now handles twice as many rows. Current viewport
 and device results are recorded separately in the measurements.
@@ -90,8 +92,9 @@ from the new viewport dimensions:
 
 - Buffer bytes and sprite clipping: `width * height / 8` for page-packed data.
 - Camera anchor: Mystic Balloon centers the 12×16 player at `(58, 56)`.
-- Camera limits: `level width - view width` and `level height - view height`;
-  both are 256 for its 384×384 worlds and 128×128 view.
+- Camera limits: preserve the game's boundary rules. Mystic Balloon caps
+  only the bottom at `level height - view height` (256); it follows outside
+  the sides to reveal implicit solid walls and above row zero during flight.
 - Visible tile rows and columns, including one extra tile for partial edges.
   Parallax backgrounds need the same coverage check.
 - Off-screen fall/death thresholds and camera initialization at level spawn.
@@ -108,6 +111,20 @@ Test all camera corners, unaligned scrolling, doors, parallax and the lowest
 world rows against an independent pixel reference. Recheck masks at the new
 bottom edge and measure the larger workload on hardware. More visible world
 changes the player's information even when physics and level data stay fixed.
+
+Do not assume the stored tile rectangle is also the camera rectangle.
+The 128×128 port initially clamped both axes to `0..256`, hiding Mystic
+Balloon's collision walls outside columns 0–23 and letting fan-driven
+flight disappear above row zero. Release 1.2.6 restores the upstream
+bottom-only cap. Test moving through those boundaries with real physics,
+as well as static renders: earlier tests incorrectly asserted the new
+clamp instead of checking that the original world remained visible.
+
+Negative camera coordinates also change tile arithmetic. Tile cells need
+floor division, and repeated parallax phases need a positive remainder
+(`(camera >> 2) & 15` for 16-pixel tiles). A signed `% 16` can place the
+first background tile after pixel zero, leaving seams along the top/left.
+Include negative aligned and unaligned positions in pixel references.
 
 ## Draw eight pixels with each source byte
 
@@ -200,6 +217,64 @@ This differs from skipping a whole frame. The world, HUD, enemies and
 player still update and render on each game tick. Only unchanged labels
 and their LCD payload are retained.
 
+## Add color without a second native framebuffer
+
+Keep the monochrome drawing pass when an original B&W mode is required.
+Mystic Balloon 1.2.0 retains its 2 KiB buffer and records up to 128 compact
+color commands (8 bytes each on RISC-V). After DMA finishes, it expands
+the buffer, tints packed terrain spans, then replays colored sprites into
+the existing native framebuffer. Static splash art stays compressed in
+flash. There is no additional 8 KiB framebuffer.
+
+Color replay must also preserve packed source bytes. Loading a source bit
+from flash separately for every destination pixel repeats work eight times.
+Load pairs of vertical column bytes once, then emit their eight rows with
+packed destination masks. Use SRAM for the measured hot loop and confirm
+its native pixel output matches the simple reference.
+
+Interpret the source drawing operation before assigning colors. In this
+game the player is a filled silhouette followed by an erase frame: color
+the silhouette with skin/clothes and erase the outline/details to dark ink.
+Reversing those colors leaves a dark head with a light outline. Opaque
+sprites also contain white matte pixels that originally matched the white
+world; exclude edge-connected matte when tinting coins and hazards.
+
+The player needs the same treatment per animation frame. Its shared white
+clearing silhouette covers several poses, so coloring the entire silhouette
+adds detached skin/clothing pixels around the actual black contours. In
+Mystic Balloon 1.2.7, offline generation builds enclosed fill/contour masks
+for all player and inhale poses. A 48-byte pre-player source backdrop also
+restores the world under the discarded clearing padding: skipping its tint
+alone would leave the earlier monochrome clearing visible on terrain or
+texture. Test exact background preservation at every screen edge and keep
+the original B&W path intact. Check tinted modes independently; Amber's
+player fill now uses one light shade across the head and body for contrast.
+
+Whole-tile terrain tint can expose the same matte problem. Rounded platform
+corners contain white padding that becomes a bright terrain color. In
+Mystic Balloon 1.2.8, offline masks remove only padding at convex corners
+where both adjacent tile sides are exposed. A general edge flood would
+also remove valid fill at joined edges. Cache the visible tile variants
+and restore the sparse corner coordinates from the actual parallax sky,
+using the same camera phase as its original draw. Restore these corners
+after the cached player backdrop and before foreground color commands.
+Test every adjacency variant, scroll phase, clipped edge and display mode;
+keep Original B&W pixel-identical. The [review](../MysticBalloon/docs/platform-corners.png)
+and [joined platforms](../MysticBalloon/docs/platform-joins.png) show both
+transparency and preserved tile connections.
+
+Choose a palette by role rather than by screen position. Bright sky,
+light peach skin, dark contours and red/yellow/blue balloons make the
+character and lives readable. Compare several levels and every animation
+frame, including masks and hurt/inhaling states. The [four color studies](../MysticBalloon/docs/palette-study.md)
+and complete sprite sheets are generated through the actual renderer.
+
+Recheck frame timing with sound enabled. A simulator may accept hardware
+initialization that the native service refuses: this board's audio service
+requires a non-null effect table even for direct `audio::blip` calls.
+Save palette preferences without resetting progress; the original sound
+byte in Mystic Balloon had spare bits and retains the same 12-byte layout.
+
 ## Schedule framebuffer access around DMA
 
 The frame loop has four stages:
@@ -238,6 +313,30 @@ principle with different boundaries: it checks its top and bottom bands
 and omits unchanged ones from transfers. Reuse that principle while
 choosing boundaries that match the new game's layout.
 
+Paused rendering deserves its own measurement. Mystic Balloon 1.2.5's
+first action panel waited for DMA, then rebuilt the frozen world and
+painted the panel; this took 17.19 ms and reduced pause to 58.23 fps.
+Retaining the existing native world and replaying only the opaque pause
+panel reduced maximum frame work to 5.375 ms in the focused device check,
+with 60 fps and zero late frames in every palette. No extra framebuffer
+was needed, and the full LCD transfer stayed asynchronous.
+
+An opaque panel must cover its previous cursor, text and error message.
+Preserve the world command count before appending overlay commands so
+they do not accumulate. Fall back to a full render when no world frame
+exists yet. Compare the fast result against a full redraw in every display
+mode, switch both selections, and verify that all pixels outside the panel
+and all paused physics remain unchanged. Always wait for DMA before
+writing the retained native frame.
+
+For settings previews, keep the confirmed value separately and avoid
+flash writes until confirmation; Back should restore it. For Save & Quit,
+define whether Continue resumes an exact world snapshot or a level
+checkpoint. Mystic Balloon uses its existing 12-byte level checkpoint:
+capture score/coins on entry, save only after DMA, verify the write, and
+return to the menu on success. Check collecting a reward, saving, loading,
+and collecting it again so a restart cannot duplicate banked rewards.
+
 ## Audit AVR and SDK assumptions
 
 | Assumption to inspect | CHGame porting action |
@@ -250,6 +349,7 @@ choosing boundaries that match the new game's layout.
 | `%lu` or other `%l` formatting | This board package's nano printf lacks `%l`; use CHGame's `fmtInt` and `fmtStr` for suitable integer ranges |
 | EEPROM writes inside a frame loop | Stage a checkpoint and commit through `save::` only when its data changes |
 | Save records shared with another game | Choose a unique magic, validate fields, define the record layout, and version format changes |
+| Tone-only `audio::begin(nullptr, 0)` | Supply a valid effect table; native audio refuses to enable without one even when only using blips |
 
 Keep signedness explicit in loops that count down through zero. On one
 platform `unsigned long` may be 32 bits and on another 64 bits. Match
@@ -280,7 +380,9 @@ expensive original sprite pass. Its `U` command in
 
 In its `U` report, `game` includes original sprite drawing; `wait` includes
 waiting for the previous DMA and any pending checkpoint save; `expand` and
-`chrome` cover the native buffer and labels (zero chrome in 1.1.0); `submit` ends when the new
+`chrome` cover the native buffer and labels (zero chrome in 1.1.0).
+Version 1.2.0 replaces `chrome` with `color` for the separate sprite replay.
+`submit` ends when the new
 asynchronous transfer has started. `work` includes all those stages, while
 `interval` measures time between frame starts. Reset sums and peaks at the
 start of each measurement window so they cover the same workload and stay
@@ -302,6 +404,16 @@ The historical 128×64 validation visited all 39 levels and exercised three
 longer scenarios; its worst observed CPU-work time was 5.185 ms with zero
 late frames across 42 scenarios. Consult the measurement page for the
 separate 128×128 results.
+
+## Make small artwork corrections directly
+
+Keep a palette-indexed base PNG and draw small anchored text stencils.
+Inspect only the affected crop, render a candidate and a difference image,
+then redraw from the same base. Check native size and every display palette
+before generating packed assets. This avoids resending whole canvases or
+losing unrelated pixels during a local correction. Mystic Balloon's
+[pixel drawing workflow](../MysticBalloon/docs/pixel-art-workflow.md) includes
+the tool, source stencils, research and the eye-edit draw/check/redraw example.
 
 ## Build and deliver a measured port
 

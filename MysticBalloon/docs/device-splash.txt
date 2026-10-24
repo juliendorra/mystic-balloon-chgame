@@ -1,0 +1,18 @@
+PASS: installed diagnostic identity is MYBL 1.2.2
+PASS: boot reaches the main menu
+PASS: pastel main menu exactly matches the reviewed native pixels
+PASS: original main menu exactly matches the reviewed native pixels
+PASS: dmg main menu exactly matches the reviewed native pixels
+PASS: amber main menu exactly matches the reviewed native pixels
+PASS: CONF remains accessible through normal controls
+PASS: pastel CONF menu exactly matches the reviewed native pixels
+PASS: original CONF menu exactly matches the reviewed native pixels
+PASS: dmg CONF menu exactly matches the reviewed native pixels
+PASS: amber CONF menu exactly matches the reviewed native pixels
+PASS: continuous splash and main menu sustains 60 fps with zero late frames
+PASS: continuous splash and main menu retains all drawing commands
+continuous splash and main menu: 59.97 fps, max work 5340 us
+PASS: level 6 with sound sustains 60 fps with zero late frames
+PASS: level 6 with sound retains all drawing commands
+level 6 with sound: 60.11 fps, max work 10640 us
+PASS: no recorded device fault

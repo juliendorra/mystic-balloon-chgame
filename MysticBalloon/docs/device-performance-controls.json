@@ -1,0 +1,211 @@
+{
+  "target": "physical CHGame Rev0",
+  "checks": [
+    "installed diagnostic identity is MYBL 1.2.5",
+    "boot reaches main menu",
+    "CONF opens through normal controls",
+    "color is previewed immediately by cursor movement",
+    "original is previewed immediately by cursor movement",
+    "dmg is previewed immediately by cursor movement",
+    "amber is previewed immediately by cursor movement",
+    "A cancels the preview and restores the previous palette",
+    "B confirms the highlighted palette",
+    "moving up previews DMG",
+    "cancel restores the newly confirmed palette",
+    "original palette restored before saving progress",
+    "title with dynamic balloon sustains 60 fps with zero late frames",
+    "title with dynamic balloon fits the 2 KiB stack",
+    "CONT loads the existing level checkpoint",
+    "saved level starts normally",
+    "START opens pause",
+    "palette 0 pause option 0 matches reviewed pixels with no dropped commands",
+    "paused physics, camera and whole frame remain frozen",
+    "palette 0 pause option 1 matches reviewed pixels with no dropped commands",
+    "Color pause menu sustains 60 fps with zero late frames",
+    "Color pause menu fits the 2 KiB stack",
+    "palette 1 pause option 1 matches reviewed pixels with no dropped commands",
+    "Original B&W pause menu sustains 60 fps with zero late frames",
+    "Original B&W pause menu fits the 2 KiB stack",
+    "palette 2 pause option 1 matches reviewed pixels with no dropped commands",
+    "DMG pause menu sustains 60 fps with zero late frames",
+    "DMG pause menu fits the 2 KiB stack",
+    "palette 3 pause option 1 matches reviewed pixels with no dropped commands",
+    "Amber pause menu sustains 60 fps with zero late frames",
+    "Amber pause menu fits the 2 KiB stack",
+    "A resumes from SAVE & QUIT without leaving",
+    "palette 0 pause option 0 matches reviewed pixels with no dropped commands",
+    "SAVE & QUIT returns to menu with the current checkpoint",
+    "normal CONT reloads saved level, score and coins with three balloons",
+    "no recorded device fault"
+  ],
+  "performance": [
+    {
+      "label": "title with dynamic balloon",
+      "seconds": 2.009908959000313,
+      "fps": 60.2,
+      "stages": {
+        "n": 121,
+        "game": 266,
+        "gmax": 270,
+        "wait": 25,
+        "wmax": 29,
+        "expand": 3445,
+        "emax": 3453,
+        "color": 1152,
+        "cmax": 1153,
+        "submit": 104,
+        "work": 4993,
+        "max": 5001,
+        "interval": 16665,
+        "imax": 16674
+      },
+      "perf": {
+        "rnd": 4604,
+        "max": 4613,
+        "late": 0,
+        "frames": 121,
+        "stk": 1232
+      }
+    },
+    {
+      "label": "Color pause menu",
+      "seconds": 2.0008537500034436,
+      "fps": 59.97,
+      "stages": {
+        "n": 120,
+        "game": 737,
+        "gmax": 742,
+        "wait": 9,
+        "wmax": 10,
+        "expand": 2,
+        "emax": 3,
+        "color": 4514,
+        "cmax": 4519,
+        "submit": 104,
+        "work": 5368,
+        "max": 5374,
+        "interval": 16665,
+        "imax": 16675
+      },
+      "perf": {
+        "rnd": 4523,
+        "max": 4529,
+        "late": 0,
+        "frames": 120,
+        "stk": 1232
+      }
+    },
+    {
+      "label": "Original B&W pause menu",
+      "seconds": 2.008673791999172,
+      "fps": 60.24,
+      "stages": {
+        "n": 121,
+        "game": 738,
+        "gmax": 742,
+        "wait": 9,
+        "wmax": 13,
+        "expand": 2,
+        "emax": 3,
+        "color": 4474,
+        "cmax": 4479,
+        "submit": 103,
+        "work": 5329,
+        "max": 5337,
+        "interval": 16665,
+        "imax": 16672
+      },
+      "perf": {
+        "rnd": 4484,
+        "max": 4489,
+        "late": 0,
+        "frames": 121,
+        "stk": 1232
+      }
+    },
+    {
+      "label": "DMG pause menu",
+      "seconds": 2.001686499999778,
+      "fps": 59.95,
+      "stages": {
+        "n": 120,
+        "game": 737,
+        "gmax": 742,
+        "wait": 9,
+        "wmax": 13,
+        "expand": 2,
+        "emax": 6,
+        "color": 4514,
+        "cmax": 4519,
+        "submit": 103,
+        "work": 5368,
+        "max": 5375,
+        "interval": 16665,
+        "imax": 16671
+      },
+      "perf": {
+        "rnd": 4524,
+        "max": 4528,
+        "late": 0,
+        "frames": 120,
+        "stk": 1232
+      }
+    },
+    {
+      "label": "Amber pause menu",
+      "seconds": 2.0095763749995967,
+      "fps": 60.21,
+      "stages": {
+        "n": 121,
+        "game": 737,
+        "gmax": 742,
+        "wait": 9,
+        "wmax": 10,
+        "expand": 2,
+        "emax": 3,
+        "color": 4515,
+        "cmax": 4521,
+        "submit": 103,
+        "work": 5368,
+        "max": 5375,
+        "interval": 16666,
+        "imax": 16672
+      },
+      "perf": {
+        "rnd": 4524,
+        "max": 4532,
+        "late": 0,
+        "frames": 121,
+        "stk": 1232
+      }
+    }
+  ],
+  "hello": "MYBL 1.2.5",
+  "checkpoint": {
+    "level": 1,
+    "score": 0,
+    "total": 0
+  },
+  "date": "2026-10-24",
+  "firmware": {
+    "release": {
+      "version": "1.2.5",
+      "bytes": 40280,
+      "crc32": "0xAE8DFE5D",
+      "sha256": "a72511434311ecfd3f606267dd5def850d3c97cde470c0921069b08180bf6c33"
+    },
+    "debug": {
+      "version": "1.2.5",
+      "bytes": 45336,
+      "crc32": "0x30FBDFA7",
+      "sha256": "3d5bc2977670a785f749254da319cf00f3b86621dbc187b27db4436d01914d81"
+    }
+  },
+  "scope": "Direct pixel splash motion correction; live palette preview, cancel/confirm, pause panel pixel references in four modes, frozen world, save/quit and checkpoint continue; focused title and pause timings with runtime audio enabled.",
+  "drawing_checks": [
+    "large angled balloon with deliberate right-edge crop",
+    "straight knot-to-grip string",
+    "foreground CONF card occludes the string",
+    "global view and native menu renders checked in all four modes"
+  ]
+}
