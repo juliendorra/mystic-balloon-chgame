@@ -1,8 +1,17 @@
 # Mystic Balloon for CHGame
 
-A 128×128, 60 fps port of TEAM a.r.g.'s **Mystic Balloon** for the CHGame
-Rev0 handheld. Explore all 39 original levels with the original physics,
-bright red/yellow/blue balloons and a continuous splash illustration.
+I asked my daughter what Arduboy game she would want to play on the CHGame
+Rev0, and she said Mystic Balloon! So here is a **128×128, 60 fps color
+port** of TEAM a.r.g.'s **Mystic Balloon**.
+
+Explore all 39 original levels with the original physics, bright
+red/yellow/blue balloons and a continuous splash illustration.
+
+**[Download version 1.2.8](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.2.8)**:
+[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.2.8/MysticBalloon-1.2.8.chgame)
+or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.2.8/MysticBalloon-1.2.8-rev0.bin).
+The release includes USB and SD-card installation instructions and
+checksums. No compiling needed.
 
 ![Mystic Balloon gameplay](MysticBalloon/docs/gameplay.gif)
 
