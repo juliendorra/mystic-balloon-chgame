@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import subprocess
 from PIL import Image, ImageDraw, ImageFont
+from review_font import load_font
 from art.build_art import arrays, tint_mask, PALETTES
 from verify_sim import build_runner, asset_bytes
 
@@ -74,7 +75,7 @@ def main():
             assert visible == [0,0,0,0]
             cases.append(dict(name=name, frame=f, exterior_light_pixels=suspects,
                               visible_exterior_pixels_by_mode=visible))
-    font = ImageFont.truetype("/System/Library/Fonts/Menlo.ttc", 13)
+    font = load_font(13)
     names = ["COLOR", "ORIGINAL B&W", "DMG GREEN", "AMBER"]
     scenes = [("kid", 0, "Standing"), ("kid", 5, "Floating pose"), ("inhale", 0, "Inhaling")]
     sheet = Image.new("RGB", (4 * 224, 3 * 252), "#171926")

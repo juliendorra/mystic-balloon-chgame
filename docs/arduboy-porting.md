@@ -187,8 +187,8 @@ cost of SRAM capacity.
 In Mystic Balloon 1.0.1's release map, `mysticSprites` occupies 502 bytes
 and `mysticExpand` occupies 220 bytes in SRAM. Menus, save code, and general
 game logic stay in their normal sections. Pinball uses the same technique
-for its beam and zoom loops in [Render.cpp](../Pinball/Render.cpp), and Ball
-uses it for its packed sprite loop in [Ball.ino](../Ball/Ball.ino).
+for its beam and zoom loops, and Ball uses it for its packed sprite loop.
+Those separate projects are not included in this game-only repository.
 
 ## Expand pixels in groups and cache static drawing
 
@@ -308,8 +308,7 @@ are clipped and rounded to the alignment documented by
 The rectangle must cover every changed pixel, including overlays and
 status transitions.
 
-Pinball's [present function](../Pinball/Pinball.ino) follows the same
-principle with different boundaries: it checks its top and bottom bands
+A separate Pinball port follows the same principle with different boundaries: it checks its top and bottom bands
 and omits unchanged ones from transfers. Reuse that principle while
 choosing boundaries that match the new game's layout.
 

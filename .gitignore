@@ -1,0 +1,7 @@
+/CHGame
+/.venv
+/.arduino15
+/.cache
+/sketchbook
+__pycache__/
+.DS_Store

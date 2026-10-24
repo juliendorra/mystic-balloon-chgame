@@ -1,0 +1,4 @@
+# Exact Python dependencies used for the simulator, GIF capture, and uploader.
+pillow==13.0.0
+pyserial==3.5
+numpy==2.5.4

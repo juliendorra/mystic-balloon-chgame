@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 import sys
 from PIL import Image,ImageDraw,ImageFont
+from review_font import load_font
 from verify_sim import build_runner
 
 GAME=Path(__file__).resolve().parents[1]
@@ -15,7 +16,7 @@ def main():
     out=GAME/'out/splash-review';out.mkdir(parents=True,exist_ok=True)
     exe=build_runner(GAME/'tools/art/splash_preview.cpp',out/'splash_preview')
     subprocess.run([str(exe),str(out)],check=True)
-    font=ImageFont.truetype('/System/Library/Fonts/Menlo.ttc',12)
+    font=load_font(12)
     names=['PASTEL ISLAND','ORIGINAL B&W','DMG GREEN','AMBER']
     scenes=[('art',0),('main',0),('main',1),('main',3),('config',0),('config',4),('pause',0),('pause',1)]
     review=Image.new('RGB',(4*272,36+len(scenes)*280),'#151626')

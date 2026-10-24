@@ -1,0 +1,9 @@
+board_manager:
+  additional_urls:
+    - https://github.com/bateske/CHGame/releases/latest/download/package_chgame_index.json
+directories:
+  data: .arduino15
+  downloads: .arduino15/staging
+  user: sketchbook
+build_cache:
+  path: .arduino15/cache

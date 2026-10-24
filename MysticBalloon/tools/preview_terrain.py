@@ -3,6 +3,7 @@
 from pathlib import Path
 import subprocess
 from PIL import Image, ImageDraw, ImageFont
+from review_font import load_font
 from art.build_art import PALETTES
 from verify_sim import build_runner
 
@@ -14,7 +15,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     exe = build_runner(GAME / "tools/art/terrain_preview.cpp", out / "terrain_preview")
     subprocess.run([str(exe), str(out)], check=True)
-    font = ImageFont.truetype("/System/Library/Fonts/Menlo.ttc", 13)
+    font = load_font(13)
     review = Image.new("RGB", (4 * 224, 2 * 246), "#171926")
     full = Image.new("RGB", (4 * 272, 292), "#171926")
     draw, full_draw = ImageDraw.Draw(review), ImageDraw.Draw(full)
