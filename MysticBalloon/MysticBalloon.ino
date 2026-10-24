@@ -161,6 +161,7 @@ void loop() {
         sparkleFrames = (sparkleFrames + 1) % 5;
     if (gameState != STATE_GAME_PAUSE) arduboy.clear();
     else {
+        if (!arduboy.paused) { pauseSelection=0; pauseSaveFailed=false; }
         arduboy.beginPause();
     }
     const uint8_t drawnState = gameState;
@@ -170,7 +171,15 @@ void loop() {
     const uint32_t perfGame = micros();
 #endif
     gfx_wait();
-    if ((gameState == STATE_GAME_NEXT_LEVEL && canPressButton) ||
+    if (pauseSaveRequested) {
+        pauseSaveRequested=false;
+        pauseSaveFailed=!mystic::storeProgress();
+        if (!pauseSaveFailed) {
+            gameState=STATE_MENU_MAIN;
+            menuSelection=STATE_MENU_PLAY;
+            cont=0;
+        }
+    } else if ((gameState == STATE_GAME_NEXT_LEVEL && canPressButton) ||
         gameState == STATE_GAME_OVER ||
         (chgame.justPressed(SELECT_BUTTON) && drawnState!=STATE_MENU_SOUNDFX) ||
         gameState == STATE_MENU_MAIN)

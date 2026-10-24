@@ -16,6 +16,9 @@ PROGMEM const byte tones[] = {
 };
 
 byte toneindex = 0;
+byte pauseSelection = 0;
+bool pauseSaveRequested = false;
+bool pauseSaveFailed = false;
 
 void stateMenuPlayNew()
 {
@@ -164,11 +167,25 @@ void stateGamePlaying()
 
 void stateGamePause()
 {
+  if (arduboy.justPressed(UP_BUTTON | DOWN_BUTTON)) pauseSelection ^= 1;
+  sprites.drawOverwrite(20, 36, mystic::art::pausePanel, 0);
   sprites.drawOverwrite((mystic::VIEW_W - badgePause[0]) / 2,
-                        (mystic::VIEW_H - badgePause[1]) / 2, badgePause, 0);
-  if (arduboy.justPressed(A_BUTTON | B_BUTTON))
-  {
-    gameState = STATE_GAME_PLAYING;
+                        38, badgePause, 0);
+  sprites.drawSelfMasked(43, 64, mystic::art::labels[6], 0);
+  sprites.drawSelfMasked(43, 74, mystic::art::labels[7], 0);
+  sprites.drawSelfMasked(32, 64+10*pauseSelection, mystic::art::cursor, 0);
+  const uint8_t *hint=mystic::art::labels[pauseSaveFailed ? 9 : 8];
+  sprites.drawSelfMasked((mystic::VIEW_W-hint[0])/2, 84, hint, 0);
+  if (arduboy.justPressed(A_BUTTON)) gameState = STATE_GAME_PLAYING;
+  else if (arduboy.justPressed(B_BUTTON)) {
+    if (!pauseSelection) gameState = STATE_GAME_PLAYING;
+    else {
+      if (scorePlayer > progress.highScore) {
+        progress.highScore = scorePlayer;
+        progress.highCoins = totalCoins;
+      }
+      pauseSaveRequested = true; // Commit only after the previous DMA ends.
+    }
   }
 }
 

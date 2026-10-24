@@ -366,9 +366,71 @@ static void pauseTest() {
     puts("PASS: START freezes physics, camera and pixels; resume and mute work");
 }
 
+static void pauseSaveQuitTest() {
+    using namespace mystic;
+    startLevel(5,1200,12);tick();
+    assert(storeProgress());
+    kid.pos=coins[0].pos;checkCollisions();
+    assert(scorePlayer==1400 && totalCoins==13 && coinsCollected==1);
+    tap(START_BUTTON);tap(DOWN_BUTTON);
+    assert(gameState==STATE_GAME_PAUSE && pauseSelection==1);
+    const Players frozen=kid;const Camera frozenCam=cam;
+    const unsigned commands=arduboy.commandCount;
+    for (unsigned i=0;i<20;++i) tick();
+    assert(!memcmp(&kid,&frozen,sizeof kid) && !memcmp(&cam,&frozenCam,sizeof cam));
+    assert(arduboy.commandCount==commands && !arduboy.dropped);
+    tick(A_BUTTON); // Back resumes even with SAVE & QUIT selected.
+    assert(gameState==STATE_GAME_PLAYING && !memcmp(&kid,&frozen,sizeof kid));
+    tick();tap(START_BUTTON);
+    assert(pauseSelection==0); // Every new pause starts safely on RESUME.
+    tap(DOWN_BUTTON);
+    const Players beforeQuit=kid;
+    tick(B_BUTTON);
+    assert(gameState==STATE_MENU_MAIN && !pauseSaveFailed && !pauseSaveRequested);
+    assert(!memcmp(&kid,&beforeQuit,sizeof kid));
+    for (unsigned i=0;i<5;++i) tick(B_BUTTON);
+    assert(gameState==STATE_MENU_MAIN && arduboy.title && !arduboy.world);
+    tick();
+    Progress loaded;
+    assert(save::load(SAVE_MAGIC,1,loaded) && loaded.level==5 && loaded.score==1200 && loaded.coins==12);
+    assert(loaded.highScore>=1400);
+    progress=Progress{};loadProgress(); // Reload from the actual simulated flash.
+    assert(progress.level==5 && progress.score==1200 && progress.coins==12);
+    tap(B_BUTTON); // PLAY.
+    assert(gameState==STATE_MENU_PLAY && cont==0);
+    tap(B_BUTTON); // CONT.
+    assert(gameState==STATE_GAME_NEXT_LEVEL && level==5 && scorePlayer==1200 && totalCoins==12 && kid.balloons==3);
+    chgame.frameCount=0;stateGameNextLevel();
+    tick();tap(B_BUTTON);
+    assert(gameState==STATE_GAME_PLAYING && scorePlayer==1200 && totalCoins==12 && coinsActive==6);
+    kid.pos=coins[0].pos;checkCollisions();
+    assert(scorePlayer==1400 && totalCoins==13); // No duplicated mid-level reward.
+    puts("PASS: pause selection freezes the world; SAVE & QUIT persists checkpoint and high score; CONT reloads without duplicate coins");
+}
 
-
-
+static void pauseRenderTest() {
+    using namespace mystic;
+    for (unsigned p=0; p<4; ++p) {
+        setPalette(Palette(p));startLevel(5);tick();
+        uint8_t world[8192],overlay[8192];
+        memcpy(world,gfx_fb,sizeof world);
+        tap(START_BUTTON);
+        const unsigned commands=arduboy.commandCount;
+        for (unsigned option : {0u,1u,0u}) {
+            if (pauseSelection!=option) tap(DOWN_BUTTON);
+            assert(arduboy.commandCount==commands && !arduboy.dropped);
+            memcpy(overlay,gfx_fb,sizeof overlay);
+            arduboy.render(true); // Independent full-world replay reference.
+            assert(!memcmp(overlay,gfx_fb,sizeof overlay));
+            for (unsigned y=0;y<128;++y) for (unsigned x=0;x<64;++x)
+                if (y<36 || y>=92 || x<10 || x>=54)
+                    assert(gfx_fb[y*64+x]==world[y*64+x]);
+        }
+        tap(A_BUTTON);
+    }
+    setPalette(Color);
+    puts("PASS: pause-only replay matches full rendering in all four palettes; switching options preserves the frozen world");
+}
 
 static void brightBalloonsTest() {
     using namespace mystic;
@@ -487,6 +549,8 @@ int main() {
     colorBlitTest();
     brightBalloonsTest();
     pauseTest();
+    pauseRenderTest();
+    pauseSaveQuitTest();
     progressionTest();
     hazardsTest();
     gfx_wait();
