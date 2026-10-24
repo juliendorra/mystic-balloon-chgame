@@ -1,5 +1,8 @@
 # Mystic Balloon performance on CHGame Rev0
 
+The [Arduboy porting guide](../../docs/arduboy-porting.md) explains how to
+apply these rendering and validation techniques to another game.
+
 ## Native 128×128 release 1.1.0
 
 Measured on the physical handheld on 2026-10-24. Gameplay now occupies all

@@ -40,6 +40,7 @@ the UBSan suite. The README preview is 157,063 B, under its 1 MB limit.
 Real-device validation covered all 39 levels and three sustained scenarios
 with no late frames; worst CPU work was 6.961 ms, with a 1,216-byte stack
 watermark. See [the measurements](docs/performance.md).
+The reusable workflow is in the [Arduboy porting guide](../docs/arduboy-porting.md).
 
 ## Adaptation
 
