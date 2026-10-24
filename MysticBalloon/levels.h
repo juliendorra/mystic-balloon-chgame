@@ -75,6 +75,11 @@ byte gridGetTile(int8_t x, int8_t y) {
 
 
 void levelLoad(const uint8_t *lvl) {
+  // Continue restarts this level. Bank only its entry score/coins, so
+  // quitting mid-level cannot award the same collectibles twice.
+  progress.level = level;
+  progress.score = scorePlayer;
+  progress.coins = totalCoins;
   byte i = 0;
   lvl += LEVEL_ARRAY_SIZE >> 3;
 
@@ -150,18 +155,28 @@ void levelLoad(const uint8_t *lvl) {
 
 void drawGrid()
 {
+  arduboy.world = true;
+  arduboy.worldX = cam.pos.x;
+  arduboy.worldY = cam.pos.y;
+  // A positive modulo keeps the first parallax tile covering pixel zero
+  // when the camera follows beyond the left or top map edge.
+  const int parallaxX = (cam.pos.x >> 2) & 15;
+  const int parallaxY = (cam.pos.y >> 2) & 15;
   // One extra tile in each direction covers fractional camera positions.
   for (int x=0; x<=mystic::VIEW_W/16; ++x)
     for (int y=0; y<=mystic::VIEW_H/16; ++y)
-      sprites.drawSelfMasked(x*16 - (cam.pos.x >> 2)%16,
-                             y*16 - (cam.pos.y >> 2)%16, tileSetTwo, 16);
+      sprites.drawSelfMasked(x*16 - parallaxX,
+                             y*16 - parallaxY, tileSetTwo, 16);
 
   for (int x=cam.pos.x >> 4; x<=(cam.pos.x >> 4)+mystic::VIEW_W/16; ++x)
     for (int y=cam.pos.y >> 4; y<=(cam.pos.y >> 4)+mystic::VIEW_H/16; ++y)
     {
       const byte tile = gridGetTile(x, y);
       if (tile != 16)
+      {
+        arduboy.noteTerrain(x-(cam.pos.x>>4),y-(cam.pos.y>>4),tile);
         sprites.drawOverwrite(x*16-cam.pos.x, y*16-cam.pos.y, tileSetTwo, tile);
+      }
     }
   sprites.drawOverwrite(levelExit.x-cam.pos.x, levelExit.y-cam.pos.y, door, key.haveKey);
 }

@@ -30,19 +30,16 @@ def asset_bytes(text):
     return arrays
 
 
-def main():
-    expected = json.loads((GAME / "tools/upstream-assets.json").read_text())
-    assert asset_bytes((GAME / "bitmaps.h").read_text()) == expected["arrays"], "upstream graphics/levels changed"
-    print(f"PASS: all {len(expected['arrays'])} original bitmap/level arrays match upstream", flush=True)
+def build_runner(source, output):
     host = ROOT / "CHGame/tools/chsim/host"
     libraries = ROOT / "CHGame/platform/board/arduino/CHGame/libraries"
     gfx = libraries / "CHGfx/src"
     lib = libraries / "CHGame/src"
-    out = GAME / "out/tests"
+    out = output.parent
     out.mkdir(parents=True, exist_ok=True)
     sanitizers = os.environ.get("CHMB_SANITIZERS", "undefined")
     os.environ["CHSIM_FLAGS"] = f"-fsanitize={sanitizers} -fno-sanitize-recover=all"
-    sources = [GAME / "tools/tests/port_test.cpp", GAME / "Port.cpp", host / "chgfx_host.cpp"]
+    sources = [source, GAME / "Port.cpp", GAME / "Color.cpp", host / "chgfx_host.cpp"]
     sources += sorted(p for p in gfx.glob("*.cpp") if p.name != "CHGfx.cpp")
     sources += sorted(p for p in lib.rglob("*.cpp") if p.name != "Save.cpp")
     # Physical flash is word-aligned. The upstream simulator declares its
@@ -54,7 +51,14 @@ def main():
     aligned_save = out / "Save_aligned.cpp"
     aligned_save.write_text(save_source.replace(declaration, "alignas(4) " + declaration))
     sources.append(aligned_save)
-    exe = compile_exe(sources, out / "port_test", includes=[GAME, host, gfx, lib, lib / "chgame"])
+    return compile_exe(sources, output, includes=[GAME, host, gfx, lib, lib / "chgame"])
+
+
+def main():
+    expected = json.loads((GAME / "tools/upstream-assets.json").read_text())
+    assert asset_bytes((GAME / "bitmaps.h").read_text()) == expected["arrays"], "upstream graphics/levels changed"
+    print(f"PASS: all {len(expected['arrays'])} original bitmap/level arrays match upstream", flush=True)
+    exe = build_runner(GAME / "tools/tests/port_test.cpp", GAME / "out/tests/port_test")
     subprocess.run([str(exe)], check=True)
 
 

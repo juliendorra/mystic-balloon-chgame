@@ -317,8 +317,10 @@ void drawKid()
       int commony = kidcam.y + kid.balloonOffset;
       if (kid.balloons > 1)
       {
-        sprites.drawPlusMask(commonx + 1, commony - 11, balloon_plus_mask, 0);
-        if (kid.balloons > 2) sprites.drawPlusMask(commonx + 7, commony - 12, balloon_plus_mask, 0);
+        sprites.drawTinted(commonx + 1, commony - 11, balloon_plus_mask, 0,
+                           mystic::PortSprites::PlusMask, mystic::YellowBalloonInk);
+        if (kid.balloons > 2) sprites.drawTinted(commonx + 7, commony - 12, balloon_plus_mask, 0,
+                           mystic::PortSprites::PlusMask, mystic::BlueBalloonInk);
       }
       sprites.drawPlusMask(commonx + 4, commony - 9, balloon_plus_mask, 0);
     }

@@ -20,7 +20,7 @@ struct FramePerf {
     void report() {
         char line[256];
         snprintf(line, sizeof line,
-            "TIME n=%u game=%u gmax=%u wait=%u wmax=%u expand=%u emax=%u chrome=%u cmax=%u submit=%u work=%u max=%u interval=%u imax=%u\n",
+            "TIME n=%u game=%u gmax=%u wait=%u wmax=%u expand=%u emax=%u color=%u cmax=%u submit=%u work=%u max=%u interval=%u imax=%u\n",
             (unsigned)frames, avg(Game), top(Game), avg(Wait), top(Wait),
             avg(Expand), top(Expand), avg(Chrome), top(Chrome), avg(Submit),
             avg(Work), top(Work), avg(Interval), top(Interval));

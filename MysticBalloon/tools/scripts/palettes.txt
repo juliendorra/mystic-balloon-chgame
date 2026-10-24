@@ -1,0 +1,19 @@
+wait 1
+tap B
+snap splash
+tap DOWN
+tap DOWN
+tap B
+snap conf
+tap A
+say G 1
+wait 2
+say C 0
+snap color
+say C 1
+snap original
+say C 2
+snap dmg
+say C 3
+snap amber
+say C 0

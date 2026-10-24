@@ -1,44 +1,22 @@
-"""Visual-menu picture using TEAM a.r.g.'s original title-screen sprites."""
+"""Use the expanded, native-color splash artwork as the cartridge picture."""
 from pathlib import Path
-import re
+from collections import Counter
 import sys
 from PIL import Image
 
-GAME = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(GAME.parent / "CHGame/tools"))
-import pixkit as pk
+sys.path.insert(0,str(Path(__file__).resolve().parent/'art'))
+from build_art import DEFAULT_COLORS as COLORS, scene
 
 
 def draw():
-    source = (GAME / "bitmaps.h").read_text()
-    source = re.sub(r"/\*.*?\*/|//[^\n]*", "", source, flags=re.S)
-    colours = [(17, 17, 34), (221, 238, 255), (255, 204, 136), (85, 136, 170)]
-    fb = pk.FB(0)
-
-    def sprite(name, x, y, frame=0):
-        body = re.search(rf"\b{name}\[\]\s*=\s*\{{([^}}]+)\}}", source).group(1)
-        data = [int(v.strip(), 0) if v.strip().startswith(("0x", "0b")) else int(v.strip())
-                for v in body.split(",") if v.strip()]
-        w, h = data[:2]
-        offset = 2 + frame * w * ((h + 7) // 8)
-        for sy in range(h):
-            for sx in range(w):
-                if data[offset + (sy // 8) * w + sx] & (1 << (sy % 8)):
-                    fb.pixel(x + sx, y + sy, 1)
-
-    fb.text35x2(9, 5, "MYSTIC BALLOON", 2)
-    fb.text35(36, 20, "TEAM A.R.G.", 3)
-    fb.hline(0, 30, 128, 3)
-    for i in range(4):
-        sprite("titleScreen", i * 32, 32, i)
-    sprite("badgeMysticBalloon", 85, 77)
-    sprite("stars", 79, 75)
-    sprite("leftGuyLeftEye", 9, 41)
-    sprite("leftGuyRightEye", 15, 45)
-    sprite("rightGuyEyes", 109, 66)
-    fb.hline(0, 97, 128, 3)
-    fb.text35(25, 104, "39 LEVELS TO EXPLORE", 1)
-    fb.text35(27, 115, "ARDUBOY TO CHGAME", 3)
-    out = Image.new("RGB", (128, 128))
-    out.putdata([colours[i] for i in fb.p])
-    return out
+    color,_=scene()
+    image=Image.new('RGB',(128,128))
+    image.putdata([(((COLORS[i]>>8)&15)*17,((COLORS[i]>>4)&15)*17,(COLORS[i]&15)*17)
+                   for i in color])
+    # The launcher reserves five of its sixteen slots for its own UI. Keep
+    # the eleven dominant splash colors and merge only rare shading colors.
+    dominant=[COLORS[i] for i,_ in Counter(color).most_common(11)]
+    rgb=[(((c>>8)&15)*17,((c>>4)&15)*17,(c&15)*17) for c in dominant]
+    palette=Image.new('P',(1,1))
+    palette.putpalette([v for c in rgb for v in c]+list(rgb[0])*(256-len(rgb)))
+    return image.quantize(palette=palette,dither=Image.Dither.NONE).convert('RGB')

@@ -1,0 +1,29 @@
+# Live preview, commit, pause/save/quit, and normal CONT controls.
+wait 1
+tap B
+tap DOWN
+tap DOWN
+tap B
+snap conf_color
+tap DOWN
+snap conf_original
+tap DOWN
+snap conf_dmg
+tap DOWN
+snap conf_amber
+tap B
+say G 6
+wait 2
+tap START
+snap pause_resume
+tap DOWN
+snap pause_save_quit
+tap B
+snap saved_main_menu
+tap B
+tap B
+wait 30
+tap B
+snap continued
+say V
+say C 0

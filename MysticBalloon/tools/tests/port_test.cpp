@@ -13,9 +13,13 @@ static void tick(uint8_t buttons = 0) {
     gfx_wait();
 }
 
-static void startLevel(unsigned n) {
+static void tap(uint8_t button) { tick(button); tick(); }
+
+static void startLevel(unsigned n, uint32_t entryScore=0, uint8_t entryCoins=0) {
     stateMenuPlayNew();
     level = n;
+    scorePlayer = entryScore;
+    totalCoins = entryCoins;
     setKid();
     enemiesInit();
     levelLoad(levels[level]);
@@ -25,6 +29,7 @@ static void startLevel(unsigned n) {
 }
 
 static void spritesTest() {
+    mystic::setPalette(mystic::Original);
     using S = mystic::PortSprites;
     const int positions[][2] = {
         {0,0},{1,1},{2,2},{3,3},{4,4},{5,5},{6,6},{7,7},
@@ -44,6 +49,7 @@ static void spritesTest() {
       }
       for (int mode=0; mode<4; ++mode) for (int frame=0; frame<2; ++frame)
         for (const auto &p : positions) {
+            arduboy.clear();
             uint8_t expected[sizeof arduboy.buffer];
             for (unsigned i=0; i<sizeof arduboy.buffer; ++i) expected[i] = arduboy.buffer[i] = uint8_t(i*31+29);
             for (int y=0; y<mystic::VIEW_H; ++y) for (int x=0; x<mystic::VIEW_W; ++x) {
@@ -87,8 +93,16 @@ static unsigned bitmapPixel(const uint8_t *sprite, unsigned frame, unsigned x, u
     return (sprite[2+frame*frameBytes+(y/8)*w+x] >> (y%8))&1;
 }
 
+
+
+
+
 static void viewportTest() {
-    const int cameras[][2]={{0,0},{256,256},{0,256},{256,0},{23,71},{255,255}};
+    const int cameras[][2]={{0,0},{256,256},{0,256},{256,0},{23,71},{255,255},
+        {-58,-40},{314,-40},{-63,161},{329,255},{-1,-1},{-16,-16},
+        {23,-95},{255,-128},{-59,256},{315,256}};
+    const auto cell=[](int v) { return v>=0 ? v/16 : (v-15)/16; };
+    const auto mod16=[](int v) { return (v%16+16)%16; };
     for (unsigned n : {0u,12u,38u}) {
       startLevel(n);
       for (const auto &c : cameras) {
@@ -97,30 +111,40 @@ static void viewportTest() {
         drawGrid();
         for (int y=0; y<128; ++y) for (int x=0; x<128; ++x) {
           const int wx=x+cam.pos.x, wy=y+cam.pos.y;
-          const unsigned tile=gridGetTile(wx/16,wy/16);
-          unsigned expected=tile==16 ? bitmapPixel(tileSetTwo,16,(x+(cam.pos.x>>2))%16,(y+(cam.pos.y>>2))%16)
-                                    : bitmapPixel(tileSetTwo,tile,wx%16,wy%16);
+          const unsigned tile=gridGetTile(cell(wx),cell(wy));
+          unsigned expected=tile==16 ? bitmapPixel(tileSetTwo,16,mod16(x+(cam.pos.x>>2)),mod16(y+(cam.pos.y>>2)))
+                                    : bitmapPixel(tileSetTwo,tile,mod16(wx),mod16(wy));
           if (wx>=levelExit.x && wx<levelExit.x+16 && wy>=levelExit.y && wy<levelExit.y+16)
             expected=bitmapPixel(door,key.haveKey,wx-levelExit.x,wy-levelExit.y);
           const unsigned got=(arduboy.buffer[(y/8)*128+x] >> (y%8))&1;
           assert(got==expected);
         }
+        mystic::setPalette(mystic::Color);
+        arduboy.renderBase(true);
+        for (int y=0; y<128; ++y) for (int x=0; x<128; ++x) {
+          const bool solid=gridGetSolid(cell(x+cam.pos.x),cell(y+cam.pos.y));
+          const unsigned bit=(arduboy.buffer[(y/8)*128+x]>>(y%8))&1;
+          const unsigned expected=(solid ? 3 : 0)+bit*2;
+          assert(((gfx_fb[y*64+x/2]>>((x&1)*4))&15)==expected);
+        }
+        mystic::setPalette(mystic::Original);
       }
     }
     for (const auto &p : cameras) {
       kid.pos=vec2(p[0],p[1]);
       resetCamera();
-      assert(cam.pos.x>=0 && cam.pos.x<=256 && cam.pos.y>=0 && cam.pos.y<=256);
+      assert(cam.pos.x>=0 && cam.pos.x<=CAMERA_MAX_X && cam.pos.y>=0 && cam.pos.y<=CAMERA_MAX_Y);
     }
     kid.pos=vec2(192,192);
     resetCamera();
     assert(cam.pos.x==134 && cam.pos.y==136);
     kid.pos=vec2(0,0); resetCamera(); assert(cam.pos.x==0 && cam.pos.y==0);
-    kid.pos=vec2(383,383); resetCamera(); assert(cam.pos.x==256 && cam.pos.y==256);
-    puts("PASS: full viewport tile coverage at 18 camera positions, parallax, doors, camera centering and bounds");
+    kid.pos=vec2(372,368); resetCamera(); assert(cam.pos.x==256 && cam.pos.y==256);
+    puts("PASS: full viewport and packed terrain color at 48 camera positions, negative parallax, implicit walls, doors and bottom cap");
 }
 
 static void levelsTest() {
+    mystic::setPalette(mystic::Original);
     unsigned directions=0;
     for (unsigned n=0; n<TOTAL_LEVELS; ++n) {
         startLevel(n);
@@ -153,7 +177,7 @@ static void levelsTest() {
         // Update and render each complete level, not just its record parser.
         for (unsigned f=0; f<120; ++f) {
             tick((f<60 ? RIGHT_BUTTON : LEFT_BUTTON) | (f%40<20 ? B_BUTTON : 0));
-            assert(cam.pos.x>=0 && cam.pos.x<=256 && cam.pos.y>=0 && cam.pos.y<=256);
+            assert(cam.pos.y<=CAMERA_MAX_Y);
         }
         for (int y=0; y<128; ++y) for (int x=0; x<128; ++x) {
             const unsigned pixel=(gfx_fb[y*64+x/2] >> ((x&1)*4))&15;
@@ -164,6 +188,158 @@ static void levelsTest() {
     HighRect tall={10,0,8,384}, nearBottom={11,350,2,12};
     assert(collide(tall,nearBottom));
     puts("PASS: all 39 levels, 4,680 simulated frames, all fan directions, 384-pixel collision rectangles");
+}
+
+
+
+static void colorsTest() {
+    using namespace mystic;
+    for (unsigned n=0; n<TOTAL_LEVELS; ++n) {
+        startLevel(n);
+        setPalette(Color);
+        tick(B_BUTTON);
+        assert(!arduboy.dropped && arduboy.commandCount<=PortDisplay::MAX_COMMANDS);
+        const Players before=kid;
+        const Camera camera=cam;
+        unsigned long colorHash=0;
+        uint8_t colorPixels[8192];
+        for (Palette p : {Color,Original,DMG,Amber}) {
+            setPalette(p);
+            applyPalette();
+            arduboy.render(true);
+            unsigned seen=0;
+            unsigned long hash=0;
+            for (int y=0; y<128; ++y) for (int x=0; x<128; ++x) {
+                const unsigned c=(gfx_fb[y*64+x/2]>>((x&1)*4))&15;
+                seen |= 1u<<c;
+                hash=hash*31+c;
+                if (p==Original) assert(c==((arduboy.buffer[(y/8)*128+x]>>(y%8))&1));
+                if (p==Amber) {
+                    const unsigned prev=(colorPixels[y*64+x/2]>>((x&1)*4))&15;
+                    assert(c==prev || (c==14 && (prev==6 || prev==12)));
+                }
+            }
+            if (p==Original) assert(seen==3);
+            else {
+                assert(__builtin_popcount(seen)>=4);
+                if (p==Color) { colorHash=hash;memcpy(colorPixels,gfx_fb,sizeof colorPixels); }
+                else if (p==DMG) assert(hash==colorHash);
+            }
+            assert(!memcmp(&kid,&before,sizeof kid) && !memcmp(&cam,&camera,sizeof cam));
+        }
+    }
+    setPalette(Color);
+    arduboy.clear();
+    gameState=STATE_MENU_MAIN;
+    stateMenuMain();
+    arduboy.render(false);
+    unsigned top=0,bottom=0;
+    for (int y=0; y<32; ++y) for (int x=0; x<64; ++x) top+=gfx_fb[y*64+x]!=0;
+    for (int y=104; y<128; ++y) for (int x=0; x<64; ++x) bottom+=gfx_fb[y*64+x]!=0;
+    assert(top>100 && bottom>100); // Both formerly blank bands contain illustration.
+    gameState=STATE_MENU_SOUNDFX;
+    tick();
+    for (unsigned i=0; i<4; ++i) {
+        settingsSelection=i;
+        tick(B_BUTTON);
+        assert(gameState==STATE_MENU_MAIN && palette()==Palette(i));
+        tick();
+        const bool sound=audio::on();
+        setSound(!sound);
+        assert(palette()==Palette(i));
+        setSound(sound);
+        assert(palette()==Palette(i));
+        storeProgress();
+        progress=Progress{};
+        loadProgress();
+        assert(palette()==Palette(i) && audio::on()==sound);
+        gameState=STATE_MENU_SOUNDFX;
+    }
+    // Schema-1 records from the monochrome release have only the sound bit.
+    Progress legacy;
+    legacy.options=0;
+    assert(save::store(SAVE_MAGIC,1,legacy));
+    loadProgress();
+    assert(palette()==Color && !audio::on());
+    setSound(true);
+    setPalette(Color);
+    puts("PASS: all 39 levels in four palettes, unchanged geometry/physics, full splash, menu selection and compatible saved preferences");
+}
+
+static void colorBlitTest() {
+    using namespace mystic;
+    uint8_t sprite[2+2*9*2*2] = {9,11};
+    for (unsigned i=2; i<sizeof sprite; ++i) sprite[i]=uint8_t(i*73+41);
+    unsigned cases=0;
+    for (unsigned mode=0; mode<4; ++mode) for (int scale : {1,2})
+      for (const auto &pos : {vec2(-3,-5),vec2(3,7),vec2(119,121),vec2(127,127)}) {
+        uint8_t expected[8192];
+        memset(expected,0x33,sizeof expected);
+        memset(gfx_fb,0x33,sizeof expected);
+        const unsigned stride=mode==PortSprites::PlusMask ? 2 : 1;
+        for (int sy=0; sy<11; ++sy) for (int sx=0; sx<9; ++sx) {
+            const unsigned at=2+((sy/8)*9+sx)*stride, bit=1u<<(sy%8);
+            const bool on=sprite[at]&bit;
+            const bool mask=mode==PortSprites::Overwrite ||
+                (mode==PortSprites::PlusMask ? (sprite[at+1]&bit)!=0 : on);
+            for (int dy=0; dy<scale; ++dy) for (int dx=0; dx<scale; ++dx) {
+                const int x=pos.x+sx*scale+dx,y=pos.y+sy*scale+dy;
+                if (x<0 || x>=128 || y<0 || y>=128 || (!mask && !on)) continue;
+                const unsigned value=on && mode!=PortSprites::Erase ? 1 : 0;
+                const unsigned atPixel=y*64+x/2,shift=(x%2)*4;
+                expected[atPixel]=(expected[atPixel]&~(15u<<shift)) | (value<<shift);
+            }
+        }
+        paintSprite(sprite,pos.x,pos.y,0,(Text<<2)|mode,true,scale);
+        assert(!memcmp(expected,gfx_fb,sizeof expected));
+        ++cases;
+      }
+    memset(gfx_fb,0x22,8192);
+    paintSprite(elements,20,20,0,(CoinInk<<2)|PortSprites::Overwrite,false);
+    assert((gfx_fb[20*64+10]&15)==2); // White matte keeps the world colour.
+    unsigned gold=0;
+    for (int y=20; y<36; ++y) for (int x=20; x<30; ++x)
+        gold+=((gfx_fb[y*64+x/2]>>((x&1)*4))&15)==8;
+    assert(gold>0);
+    printf("PASS: %u native color-blit clipping/masking/scale references and transparent coin matte\n",cases);
+}
+
+
+
+static void settingsPreviewTest() {
+    using namespace mystic;
+    gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_SOUNDFX;
+    setPalette(Color);setSound(true);tick();
+    const Progress checkpoint=progress;
+    const void *record=save::read(SAVE_MAGIC,1,sizeof(Progress));
+    tap(B_BUTTON);
+    assert(gameState==STATE_MENU_SOUNDFX && settingsSelection==0);
+    for (unsigned p=1;p<4;++p) {
+        tap(DOWN_BUTTON);
+        assert(settingsSelection==p && palette()==Palette(p));
+        assert(save::read(SAVE_MAGIC,1,sizeof(Progress))==record);
+    }
+    tap(DOWN_BUTTON); // Sound row keeps the last preview on screen.
+    assert(settingsSelection==4 && palette()==Amber);
+    tap(SELECT_BUTTON); // Muting cannot accidentally persist a preview.
+    assert(!audio::on() && save::read(SAVE_MAGIC,1,sizeof(Progress))==record);
+    tap(A_BUTTON);
+    Progress loaded;
+    assert(gameState==STATE_MENU_MAIN && palette()==Color);
+    assert(save::load(SAVE_MAGIC,1,loaded) && loaded.level==checkpoint.level &&
+           loaded.score==checkpoint.score && loaded.coins==checkpoint.coins && loaded.options==0);
+    setSound(true);tick();tap(B_BUTTON);tap(DOWN_BUTTON);tap(B_BUTTON);
+    assert(gameState==STATE_MENU_MAIN && palette()==Original);
+    assert(save::load(SAVE_MAGIC,1,loaded) && ((loaded.options>>1)&3)==Original);
+    tap(B_BUTTON);tap(UP_BUTTON); // Preview Color from committed Original.
+    assert(palette()==Color);
+    tap(UP_BUTTON); // Wrap to SOUND, then confirm just the sound change.
+    assert(settingsSelection==4);
+    tap(B_BUTTON);
+    assert(gameState==STATE_MENU_MAIN && palette()==Original && !audio::on());
+    assert(save::load(SAVE_MAGIC,1,loaded) && loaded.options==2);
+    setPalette(Color);setSound(true);tick();
+    puts("PASS: live palette previews, B confirms, A cancels, SOUND restores committed palette, previews never write flash");
 }
 
 static void pauseTest() {
@@ -188,6 +364,26 @@ static void pauseTest() {
     assert(audio::on());
     tick();
     puts("PASS: START freezes physics, camera and pixels; resume and mute work");
+}
+
+
+
+
+
+static void brightBalloonsTest() {
+    using namespace mystic;
+    startLevel(0);setPalette(Color);
+    kid.pos=vec2(100,300);kid.isActive=true;kid.isBalloon=true;kid.balloons=3;
+    kid.direction=0;kid.balloonOffset=0;resetCamera();
+    arduboy.clear();drawGrid();drawKid();drawHUD();arduboy.render(true);
+    const int x=kid.pos.x-cam.pos.x,y=kid.pos.y-cam.pos.y;
+    unsigned colors[16]={},skin=0;
+    for (int py=y-12;py<y;++py) for (int px=x;px<x+18;++px)
+        ++colors[(gfx_fb[py*64+px/2]>>((px&1)*4))&15];
+    for (int py=y;py<y+8;++py) for (int px=x;px<x+12;++px)
+        skin+=((gfx_fb[py*64+px/2]>>((px&1)*4))&15)==14;
+    assert(colors[6]>4 && colors[8]>4 && colors[12]>4 && skin>10);
+    puts("PASS: distinct red/yellow/blue balloons and a light peach face against the sky");
 }
 
 static void progressionTest() {
@@ -280,9 +476,16 @@ static void hazardsTest() {
 
 int main() {
     setup();
+    assert(mystic::palette()==mystic::Color);
+    assert(gfx_paletteOut(0)==gfx_rgb(68,51,85)); // Pastel Island outline.
+    assert(gfx_paletteOut(2)==gfx_rgb(153,221,238)); // Pastel Island sky.
     spritesTest();
     viewportTest();
     levelsTest();
+    colorsTest();
+    settingsPreviewTest();
+    colorBlitTest();
+    brightBalloonsTest();
     pauseTest();
     progressionTest();
     hazardsTest();

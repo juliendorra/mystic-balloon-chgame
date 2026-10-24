@@ -16,7 +16,8 @@ void drawBalloonLives()
 {
   for (byte i = 0; i < kid.balloons; ++i)
   {
-    sprites.drawOverwrite((i * 7) + 2, 0, elementsHUD, 10);
+    const mystic::Role role = i==0 ? mystic::LifeInk : i==1 ? mystic::YellowLifeInk : mystic::BlueLifeInk;
+    sprites.drawTinted((i * 7) + 2, 0, elementsHUD, 10, mystic::PortSprites::Overwrite, role);
   }
 }
 

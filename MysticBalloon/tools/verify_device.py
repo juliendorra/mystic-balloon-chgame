@@ -25,6 +25,7 @@ def main():
     t = SerialTransport(a.port)
     d = Driver(t, "MYBL ")
     evidence = {"target": "physical CHGame Rev0", "performance": [], "checks": []}
+    original_sound = None
 
     def state():
         return fields(d.query("V", "MYBL "))
@@ -58,27 +59,43 @@ def main():
         check(perf["late"]<=2 and stages["max"]<16667, label+" stays inside the frame budget")
         check(perf["stk"]<1900, label+" fits the 2 KiB stack")
         check(row["state"]["state"]==7, label+" remains in gameplay")
-        check(row["state"]["view"]==128 and
-              0<=row["state"]["camx"]<=256 and 0<=row["state"]["camy"]<=256,
-              label+" uses the full viewport and stays within the level")
+        check(row["state"]["view"]==128 and row["state"]["camy"]<=256,
+              label+" uses the full viewport and retains the camera bottom cap")
+        check(row["state"]["dropped"]==0, label+" retains every color overlay")
         d.buttons(0)
 
     try:
         evidence["hello"] = d.handshake()
         d.cmd("L1")
         d.buttons(0)
+        original_sound=state()["sound"]
+        d.cmd("O 1")  # Runtime override; the saved sound preference is unchanged.
+        check(state()["sound"]==1,"sound is enabled during performance measurements")
         check(d.cmd("!", "FAULT")=="FAULT none", "no recorded device fault")
+        d.cmd("C 0")
         for level in range(1,40):
             measure(level, 32|2, 1, f"level {level:02} moving and floating")
         measure(1,32,5,"level 01 sustained walking")
         measure(6,32|2,5,"level 06 sustained jumping")
         measure(39,1,5,"level 39 sustained inhaling")
+        for palette,name in [(1,"Original B&W"),(2,"Game Boy DMG"),(3,"Amber")]:
+            d.cmd(f"C {palette}")
+            measure(6,32|2,3,name+" sustained jumping")
+        for palette,name in enumerate(["color","original","dmg","amber"]):
+            d.cmd(f"C {palette}")
+            d.cmd("G 1")
+            d.frames(2)
+            shot=d.shot()
+            pixels=shot[:8192]
+            indices={c for b in pixels for c in (b&15,b>>4)}
+            check(state()["palette"]==palette,name+" palette selection is active")
+            check(indices<={0,1} if palette==1 else len(indices)>=4,
+                  name+" uses the expected original/color renderer")
+            to_image(shot,3).save(a.out/(name+".png"))
+        d.cmd("C 0")
         d.cmd("G 1")
         d.frames(2)
         before=state()
-        pixels=d.shot()[:8192]
-        check(all((b&15)<=1 and (b>>4)<=1 for b in pixels),
-              "full-screen play contains only original monochrome graphics")
         d.buttons(32)
         d.frames(12)
         check(state()["x"]>before["x"],"directional input moves the player")
@@ -101,6 +118,8 @@ def main():
         (a.out/"results.json").write_text(json.dumps(evidence,indent=2)+"\n")
         try:
             d.buttons(0)
+            if original_sound is not None:
+                d.cmd(f"O {original_sound}")
             d.cmd("L0")
         finally:
             t.close()

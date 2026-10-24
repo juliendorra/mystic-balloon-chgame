@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "globals.h"
+#include "MenuArt.h"
 
 #define FONT_TINY                 0
 #define FONT_SMALL                1
@@ -12,21 +13,16 @@
 #define DATA_SCORE                1
 #define DATA_LEVEL                2
 
-byte blinkingFrames = 0;
 byte sparkleFrames = 0;
 byte cont = 0;
+byte settingsSelection = 0;
+mystic::Palette settingsOriginalPalette = mystic::Color;
 
 extern void drawNumbers(byte numbersX, byte numbersY, byte fontType, byte data);
 
 void drawTitleScreen()
 {
-  if (arduboy.everyXFrames(8))blinkingFrames = (++blinkingFrames) % 32;
-  for (byte i = 0; i < 4; i++) sprites.drawSelfMasked(32 * i, 0, titleScreen, i);
-  sprites.drawSelfMasked(85, 45, badgeMysticBalloon, 0);
-  sprites.drawSelfMasked(79, 43, stars, sparkleFrames);
-  sprites.drawSelfMasked(9, 9, leftGuyLeftEye, pgm_read_byte(&blinkingEyesLeftGuy[blinkingFrames]));
-  sprites.drawSelfMasked(15, 13, leftGuyRightEye, pgm_read_byte(&blinkingEyesLeftGuy[blinkingFrames]));
-  sprites.drawSelfMasked(109, 34, rightGuyEyes, pgm_read_byte(&blinkingEyesRightGuy[blinkingFrames]));
+  arduboy.title = true;
 }
 
 void stateMenuIntro()
@@ -40,6 +36,7 @@ void stateMenuIntro()
   globalCounter++;
   if (globalCounter < 160)
   {
+    arduboy.intro = true;
     sprites.drawSelfMasked(34, 4, T_arg, 0);
   }
   else
@@ -57,7 +54,7 @@ void stateMenuMain()
 {
 
   drawTitleScreen();
-  sprites.drawOverwrite(51, 9, mainMenu, 0);
+  sprites.drawOverwrite(51, 42, mainMenu, 0);
   if (arduboy.justPressed(DOWN_BUTTON) && (menuSelection < 5))
   {
     menuSelection++;
@@ -71,9 +68,13 @@ void stateMenuMain()
   if (arduboy.justPressed(A_BUTTON | B_BUTTON))
   {
     gameState = menuSelection;
+    if (gameState == STATE_MENU_SOUNDFX) {
+      settingsOriginalPalette = mystic::palette();
+      settingsSelection = settingsOriginalPalette;
+    }
     sound.tone(425, 20);
   }
-  sprites.drawPlusMask(46, 9 + 9 * (menuSelection - 2), selector_plus_mask, 0);
+  sprites.drawPlusMask(46, 42 + 9 * (menuSelection - 2), selector_plus_mask, 0);
 }
 
 void stateMenuHelp()
@@ -112,26 +113,37 @@ void stateMenuInfo()
 void stateMenuSoundfx()
 {
   drawTitleScreen();
-  sprites.drawOverwrite(51, 9, soundMenu, 0);
-  if (arduboy.justPressed(DOWN_BUTTON))
+  const byte previousSelection = settingsSelection;
+  if (arduboy.justPressed(DOWN_BUTTON)) settingsSelection = (settingsSelection+1)%5;
+  if (arduboy.justPressed(UP_BUTTON)) settingsSelection = (settingsSelection+4)%5;
+  if (settingsSelection != previousSelection && settingsSelection<4)
+    mystic::setPalette(mystic::Palette(settingsSelection));
+  sprites.drawOverwrite(49, 40, mystic::art::configBlank, 0);
+  for (byte i=0; i<5; ++i)
+    sprites.drawSelfMasked(58, 44+i*8,
+        mystic::art::labels[i<4 ? i : arduboy.audio.enabled() ? 4 : 5], 0);
+  sprites.drawSelfMasked(96, 45+8*mystic::palette(), mystic::art::selected, 0);
+  sprites.drawSelfMasked(51, 44+8*settingsSelection, mystic::art::cursor, 0);
+  if (arduboy.justPressed(B_BUTTON))
   {
-    arduboy.audio.on();
-    sound.tone(300, 20);
-  }
-  if (arduboy.justPressed(UP_BUTTON)) arduboy.audio.off();
-  sprites.drawPlusMask(54, 18 + 9 * arduboy.audio.enabled(), selector_plus_mask, 0);
-  if (arduboy.justPressed(A_BUTTON | B_BUTTON))
-  {
-    arduboy.audio.saveOnOff();
-    gameState = STATE_MENU_MAIN;
+    if (settingsSelection<4) mystic::setPalette(mystic::Palette(settingsSelection));
+    else {
+      mystic::setPalette(settingsOriginalPalette);
+      mystic::setSound(!arduboy.audio.enabled());
+    }
     sound.tone(425, 20);
+    gameState = STATE_MENU_MAIN;
+  }
+  if (arduboy.justPressed(A_BUTTON)) {
+    mystic::setPalette(settingsOriginalPalette);
+    gameState = STATE_MENU_MAIN;
   }
 }
 
 void stateMenuPlaySelect()
 {
   drawTitleScreen();
-  sprites.drawOverwrite(53, 18, continueMenu, 0);
+  sprites.drawOverwrite(53, 58, continueMenu, 0);
   if (arduboy.justPressed(DOWN_BUTTON))
   {
     cont = 1;
@@ -142,7 +154,7 @@ void stateMenuPlaySelect()
     cont = 0;
     sound.tone(300, 20);
   }
-  sprites.drawPlusMask(48, 18 + 9 * cont, selector_plus_mask, 0);
+  sprites.drawPlusMask(48, 58 + 9 * cont, selector_plus_mask, 0);
   if (arduboy.justPressed(B_BUTTON))
   {
     gameState = STATE_GAME_PLAYCONTNEW + cont;

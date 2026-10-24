@@ -23,11 +23,44 @@ const FunctionPointer mainGameLoop[] = {
 };
 static_assert(sizeof levels / sizeof levels[0] == TOTAL_LEVELS, "all 39 levels required");
 
+namespace mystic {
+Role spriteRole(const uint8_t *s, uint8_t frame, uint8_t mode) {
+    if (s==tileSetTwo) return Skip;
+    if (s==T_arg) return LogoInk;
+    if (s==kidSprite) return mode==PortSprites::Erase ? KidInk : KidMask;
+    if (s==kidSpriteSuck_plus_mask) return KidSuck;
+    if (s==balloon_plus_mask) return BalloonInk;
+    if (s==walkerSprite) return WalkerInk;
+    if (s==sprSpikes) return SpikeInk;
+    if (s==fan) return FanInk;
+    if (s==particle) return ParticleInk;
+    if (s==elements) return frame<4 ? CoinInk : KeyInk;
+    if (s==elementsHUD && frame==10) return LifeInk;
+    if (s==elementsHUD && frame==11) return HudCoinInk;
+    if (s==door) return DoorInk;
+    if (s==stars || s==badgeMysticBalloon) return Gold;
+    if (s==leftGuyLeftEye || s==leftGuyRightEye || s==rightGuyEyes) return EyeInk;
+    return Text;
+}
+}
+
 #if CHGAME_DEBUG
 bool debugCommand(char cmd, const char *args) {
     if (cmd == 'U') { mystic::framePerf.report(); return true; }
+    if (cmd == 'O') { audio::setOn(dbg::parseNum(args,10)!=0); return true; }
+    if (cmd == 'C' || cmd == 'T') {
+        const unsigned n=dbg::parseNum(args,10);
+        if (n>3) return false;
+        mystic::setPalette(cmd=='T' ? mystic::Color : mystic::Palette(n));
+        if (cmd=='T') mystic::setColorVariant(n);
+        gfx_wait();
+        mystic::applyPalette();
+        arduboy.render(gameState==STATE_GAME_PLAYING || gameState==STATE_GAME_PAUSE);
+        gfx_flushAsync();
+        return true;
+    }
     if (cmd == 'V') {
-        char line[320];
+        char line[352];
         unsigned ns = 0, nf = 0, nw = 0, maxHeight = 0;
         for (unsigned i = 0; i < MAX_PER_TYPE; ++i) {
             if ((spikes[i].characteristics >> 2) & 1) {
@@ -38,11 +71,26 @@ bool debugCommand(char cmd, const char *args) {
             nw += walkers[i].active;
         }
         snprintf(line, sizeof line,
-            "MYBL state=%u level=%u x=%d y=%d sy=%d balloons=%u coins=%u total=%u key=%u score=%u spikes=%u maxheight=%u fans=%u walkers=%u saved=%u sound=%u camx=%d camy=%d view=%u\n",
+            "MYBL state=%u level=%u x=%d y=%d sy=%d balloons=%u coins=%u total=%u key=%u score=%u spikes=%u maxheight=%u fans=%u walkers=%u saved=%u sound=%u camx=%d camy=%d view=%u palette=%u draws=%u dropped=%u\n",
             gameState, level+1, kid.pos.x, kid.pos.y, kid.speed.y,
             kid.balloons, coinsActive, totalCoins, key.haveKey, (unsigned)scorePlayer,
-            ns, maxHeight, nf, nw, progress.level+1, audio::on(), cam.pos.x, cam.pos.y, mystic::VIEW_H);
+            ns, maxHeight, nf, nw, progress.level+1, audio::on(), cam.pos.x, cam.pos.y, mystic::VIEW_H,
+            mystic::palette(), arduboy.commandCount, arduboy.dropped);
         dbg::print(line);
+        return true;
+    }
+    if (cmd == 'D') {
+        // Static native pixel reference for all twelve poses and four inhale
+        // frames. Lockstep keeps this diagnostic canvas until the next frame.
+        const unsigned f=dbg::parseNum(args,10);
+        if (f>=16) return false;
+        gfx_wait();arduboy.clear();
+        memset(arduboy.buffer,255,sizeof arduboy.buffer);arduboy.world=true;
+        if (f<12) {
+            sprites.drawSelfMasked(48,48,kidSprite,12+f/6);
+            sprites.drawErase(48,48,kidSprite,f);
+        } else sprites.drawPlusMask(48,48,kidSpriteSuck_plus_mask,f-12);
+        mystic::applyPalette();arduboy.render(true);gfx_flushAsync();
         return true;
     }
     if (cmd == 'G') {
@@ -58,6 +106,27 @@ bool debugCommand(char cmd, const char *args) {
         gameState = STATE_GAME_PLAYING;
         return true;
     }
+    if (cmd == 'J') {
+        // Reproducible edge/fan launch in the current level; normal physics
+        // runs on subsequent frames. Diagnostic only, never writes a save.
+        const int x=int32_t(dbg::parseNum(args,10));
+        const int y=int32_t(dbg::parseNum(args,10));
+        const int vy=int32_t(dbg::parseNum(args,10));
+        if (x<0 || x>LEVEL_WIDTH-12 || y<0 || y>LEVEL_HEIGHT-16 ||
+            vy < -MAX_YSPEED || vy > MAX_YSPEED) return false;
+        kid.pos=vec2(x,y);kid.actualpos=kid.pos<<FIXED_POINT;
+        kid.speed=vec2(0,vy);kid.isImune=false;kid.isActive=true;
+        kid.isWalking=kid.isJumping=kid.isSucking=false;
+        kid.isBalloon=kid.isLanding=true;kid.balloonOffset=0;
+        resetCamera();gameState=STATE_GAME_PLAYING;
+        return true;
+    }
+    if (cmd == 'R') {
+        // Discard diagnostic level/position changes and reload saved options.
+        mystic::loadProgress();
+        gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;cont=0;
+        return true;
+    }
     return false;
 }
 #endif
@@ -69,10 +138,9 @@ void setup() {
     dbg::hook = debugCommand;
 #endif
     gfx_begin(GFX_DIV2, GFX_12BPP);
-    gfx_setPaletteEntry(0, gfx_rgb(17, 17, 34));
-    gfx_setPaletteEntry(1, gfx_rgb(221, 238, 255));
     chgame.setFrameRate(CHMB_FPS);
     mystic::loadProgress();
+    mystic::applyPalette();
     gfx_clear(0);
 }
 
@@ -92,6 +160,9 @@ void loop() {
     if (gameState < STATE_GAME_NEXT_LEVEL && chgame.everyXFrames(10))
         sparkleFrames = (sparkleFrames + 1) % 5;
     if (gameState != STATE_GAME_PAUSE) arduboy.clear();
+    else {
+        arduboy.beginPause();
+    }
     const uint8_t drawnState = gameState;
     mainGameLoop[drawnState](); // native-width function pointer, never AVR pgm_read_word
     audio::update();
@@ -100,24 +171,30 @@ void loop() {
 #endif
     gfx_wait();
     if ((gameState == STATE_GAME_NEXT_LEVEL && canPressButton) ||
-        gameState == STATE_GAME_OVER || chgame.justPressed(SELECT_BUTTON) ||
+        gameState == STATE_GAME_OVER ||
+        (chgame.justPressed(SELECT_BUTTON) && drawnState!=STATE_MENU_SOUNDFX) ||
         gameState == STATE_MENU_MAIN)
         mystic::storeProgress();
     dbg::markRenderStart();
+    mystic::applyPalette();
 #if CHGAME_DEBUG
     const uint32_t perfWait = micros();
 #endif
-    arduboy.render(drawnState == STATE_GAME_PLAYING || drawnState == STATE_GAME_PAUSE);
+    const bool fullScreen=drawnState==STATE_GAME_PLAYING || drawnState==STATE_GAME_PAUSE;
+    const bool pauseOverlay=drawnState==STATE_GAME_PAUSE && arduboy.world;
+    if (!pauseOverlay) arduboy.renderBase(fullScreen);
 #if CHGAME_DEBUG
     const uint32_t perfExpand = micros();
 #endif
+    if (pauseOverlay) arduboy.renderPause();
+    else arduboy.renderColors(fullScreen);
 #if CHGAME_DEBUG
-    const uint32_t perfChrome = perfExpand;
+    const uint32_t perfChrome = micros();
 #endif
     dbg::markRenderEnd();
     gfx_flushAsync();
 #if CHGAME_DEBUG
     mystic::framePerf.record(perfStart, perfGame, perfWait, perfExpand, perfChrome, micros());
 #endif
-    if (resume) gameState = STATE_GAME_PLAYING;
+    if (resume && gameState==STATE_GAME_PAUSE) gameState = STATE_GAME_PLAYING;
 }

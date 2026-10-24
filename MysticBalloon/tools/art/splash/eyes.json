@@ -1,0 +1,47 @@
+{
+  "description": "Hand-drawn open eyes, following the tilted face; 0 outline, 1 white, C blue, E skin.",
+  "size": [
+    128,
+    128
+  ],
+  "base_sha256": "746512947f3d59648a985be12186c5d838003e46e8c3faa9e5f63b4d1891578b",
+  "review": [
+    15,
+    75,
+    28,
+    19
+  ],
+  "patches": [
+    {
+      "at": [
+        20,
+        78
+      ],
+      "rows": [
+        "EEEEEEEE",
+        "EEE000EE",
+        "EE01100E",
+        "E011C00E",
+        "E01000EE",
+        "EE010EEE",
+        "EEE0EEEE",
+        "EEEEEEEE"
+      ]
+    },
+    {
+      "at": [
+        31,
+        82
+      ],
+      "rows": [
+        "EEEEEEEE",
+        "EEE000EE",
+        "EE01100E",
+        "E011C00E",
+        "E01000EE",
+        "EE010EEE",
+        "EEE0EEEE"
+      ]
+    }
+  ]
+}

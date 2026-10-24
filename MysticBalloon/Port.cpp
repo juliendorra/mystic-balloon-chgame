@@ -4,34 +4,53 @@ namespace mystic {
 Progress progress;
 static Progress stored;
 PortDisplay display;
+// The native audio service requires a non-null table even for direct blips.
+AUDIO_STEPS(toneAnchor) = { AUDIO_REST(2) };
+static const audio::Effect toneEffects[] = { AUDIO_EFFECT(toneAnchor,0) };
 
 void loadProgress() {
     Progress p;
     if (save::load(SAVE_MAGIC, 1, p) && p.level < 39 && p.coins <= 232 &&
-        p.highCoins <= 232 && p.sound <= 1 && p.score <= 999999 && p.highScore <= 999999)
+        p.highCoins <= 232 && p.options <= 7 && p.score <= 999999 && p.highScore <= 999999)
         progress = p;
     else
         progress = Progress{};
     stored = progress;
-    audio::begin(nullptr, 0, progress.sound != 0);
+    audio::begin(toneEffects, 1, (progress.options & 1) != 0);
 }
 
-void storeProgress() {
-    // The original wrote EEPROM each frame. Flash is committed only after a
-    // completed tally or changed sound setting, and only when bytes changed.
-    if (memcmp(&progress, &stored, sizeof progress) &&
-        save::store(SAVE_MAGIC, 1, progress))
-        stored = progress;
+bool storeProgress() {
+    // Commit checkpoints, records and confirmed preferences only when their
+    // bytes changed. Settings previews never call this function.
+    if (!save::available()) return false;
+    if (!memcmp(&progress, &stored, sizeof progress)) return true;
+    if (!save::store(SAVE_MAGIC, 1, progress)) return false;
+    stored = progress;
+    return true;
 }
 
 void setSound(bool on) {
-    progress.sound = on;
+    progress.options = (progress.options & ~1u) | on;
     audio::setOn(on);
+}
+
+Palette palette() { return Palette((progress.options >> 1) & 3); }
+
+void setPalette(Palette mode) {
+    progress.options = (progress.options & 1) | (uint8_t(mode) << 1);
+}
+
+void PortDisplay::queue(int x, int y, const uint8_t *s, uint8_t frame, uint8_t mode) {
+    const Role role = nextRole==Skip ? spriteRole(s, frame, mode) : nextRole;
+    if (role == Skip) return;
+    if (commandCount == MAX_COMMANDS) { ++dropped; return; }
+    commands[commandCount++] = {s, int8_t(x), int8_t(y), frame, uint8_t((role << 2) | mode)};
 }
 
 RAMFUNC(mysticSprites) void PortSprites::draw(int x, int y, const uint8_t *s, uint8_t frame, Mode mode) {
     const int w = s[0], h = s[1], stride = mode == PlusMask ? 2 : 1;
     if (x >= VIEW_W || y >= VIEW_H || x + w <= 0 || y + h <= 0) return;
+    display.queue(x, y, s, frame, mode);
     s += 2 + frame * w * ((h + 7) / 8) * stride;
     const int x0 = max(0, -x), x1 = min(w, VIEW_W - x);
     const int shift = y & 7, firstPage = y >> 3;
@@ -69,29 +88,82 @@ RAMFUNC(mysticSprites) void PortSprites::draw(int x, int y, const uint8_t *s, ui
     }
 }
 
-RAMFUNC(mysticExpand) void PortDisplay::render(bool fullScreen) const {
+void PortDisplay::render(bool fullScreen) const {
+    renderBase(fullScreen);
+    renderColors(fullScreen);
+}
+
+RAMFUNC(mysticExpand) void PortDisplay::renderBase(bool fullScreen) const {
     // Read each pair of source bytes once and expand its eight rows directly
     // into packed destination bytes. The hot transpose runs from SRAM.
+    const bool original = palette() == Original;
     const int height = fullScreen ? VIEW_H : MENU_H;
-    const int top = fullScreen ? VIEW_Y : MENU_Y;
-    if (!fullScreen) {
+    const int top = (fullScreen || title || intro) ? VIEW_Y : MENU_Y;
+    if (title) {
+        paintSplash(original);
+    } else if (intro) {
+        memset(gfx_fb, 0, GFX_FB_BYTES);
+    } else {
+      if (!fullScreen) {
         memset(gfx_fb, 0, MENU_Y*GFX_FB_STRIDE);
         memset(gfx_fb+(MENU_Y+MENU_H)*GFX_FB_STRIDE, 0, MENU_Y*GFX_FB_STRIDE);
-    }
-    for (int page=0; page<height/8; ++page) {
+      }
+      const unsigned shade = world && !original ? 1 : 0;
+      for (int page=0; page<height/8; ++page) {
         const uint8_t *src = buffer + page*VIEW_W;
         uint8_t *dst = gfx_fb + (top+page*8)*GFX_FB_STRIDE;
         for (int x=0; x<VIEW_W; x+=2, ++dst) {
             const unsigned a=src[x], b=src[x+1];
-            dst[0*GFX_FB_STRIDE] = (a&1) | ((b&1)<<4);
-            dst[1*GFX_FB_STRIDE] = ((a>>1)&1) | (((b>>1)&1)<<4);
-            dst[2*GFX_FB_STRIDE] = ((a>>2)&1) | (((b>>2)&1)<<4);
-            dst[3*GFX_FB_STRIDE] = ((a>>3)&1) | (((b>>3)&1)<<4);
-            dst[4*GFX_FB_STRIDE] = ((a>>4)&1) | (((b>>4)&1)<<4);
-            dst[5*GFX_FB_STRIDE] = ((a>>5)&1) | (((b>>5)&1)<<4);
-            dst[6*GFX_FB_STRIDE] = ((a>>6)&1) | (((b>>6)&1)<<4);
-            dst[7*GFX_FB_STRIDE] = ((a>>7)&1) | (((b>>7)&1)<<4);
+#define MB_EXPAND(row) dst[row*GFX_FB_STRIDE] = ((((a>>row)&1) | (((b>>row)&1)<<4))<<shade)
+            MB_EXPAND(0); MB_EXPAND(1); MB_EXPAND(2); MB_EXPAND(3);
+            MB_EXPAND(4); MB_EXPAND(5); MB_EXPAND(6); MB_EXPAND(7);
+#undef MB_EXPAND
         }
+      }
+      if (world && !original) {
+        // Background uses 0/2; adding three changes terrain to 3/5.
+        // Tint whole packed spans instead of looking up a tile per pixel.
+        for (int ty=0; ty<9; ++ty) for (int tx=0; tx<9; ++tx) {
+            if (!(terrain[ty] & (1u<<tx))) continue;
+            const int left=max(0,tx*16-(worldX&15));
+            const int right=min(VIEW_W,tx*16-(worldX&15)+16);
+            const int first=max(0,ty*16-(worldY&15));
+            const int last=min(VIEW_H,ty*16-(worldY&15)+16);
+            for (int y=first; y<last; ++y) {
+                uint8_t *dst=gfx_fb+y*GFX_FB_STRIDE+left/2;
+                int count=right-left;
+                if (left&1) { *dst++ += 0x30; --count; }
+                while (count>=2) { *dst++ += 0x33; count-=2; }
+                if (count) *dst += 3;
+            }
+        }
+      }
+    }
+}
+
+void PortDisplay::renderColors(bool fullScreen) const {
+    const bool original=palette()==Original;
+    const int top=(fullScreen || title || intro) ? VIEW_Y : MENU_Y;
+    if (world && !original) {
+    }
+    if (!original || title || intro) {
+        for (unsigned i=0; i<commandCount; ++i) {
+            const Command &c=commands[i];
+            if (intro) paintSprite(c.sprite, 4, 8, c.frame, c.style, original, 2);
+            else paintSprite(c.sprite, c.x, c.y+top, c.frame, c.style, original);
+        }
+    }
+}
+
+
+
+void PortDisplay::renderPause() const {
+    // The native world is frozen too. The opaque pause panel replaces its
+    // previous contents, so replay only the UI after the preceding DMA ends.
+    const bool original=palette()==Original;
+    for (unsigned i=pauseCount; i<commandCount; ++i) {
+        const Command &c=commands[i];
+        paintSprite(c.sprite, c.x, c.y, c.frame, c.style, original);
     }
 }
 } // namespace mystic
