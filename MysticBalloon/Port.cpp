@@ -44,6 +44,13 @@ void PortDisplay::queue(int x, int y, const uint8_t *s, uint8_t frame, uint8_t m
     const Role role = nextRole==Skip ? spriteRole(s, frame, mode) : nextRole;
     if (role == Skip) return;
     if (commandCount == MAX_COMMANDS) { ++dropped; return; }
+    if (world && (role==KidMask || role==KidSuck)) {
+        kidX=max(0,x);kidPage=max(0,y>>3);
+        kidW=min(VIEW_W,x+s[0])-kidX;
+        kidPages=min(VIEW_H/8,(y+s[1]+7)>>3)-kidPage;
+        for (unsigned p=0;p<kidPages;++p)
+            memcpy(kidBackdrop+p*kidW,buffer+(kidPage+p)*VIEW_W+kidX,kidW);
+    }
     commands[commandCount++] = {s, int8_t(x), int8_t(y), frame, uint8_t((role << 2) | mode)};
 }
 
@@ -145,6 +152,7 @@ void PortDisplay::renderColors(bool fullScreen) const {
     const bool original=palette()==Original;
     const int top=(fullScreen || title || intro) ? VIEW_Y : MENU_Y;
     if (world && !original) {
+        restoreKidBackground();
     }
     if (!original || title || intro) {
         for (unsigned i=0; i<commandCount; ++i) {
@@ -155,7 +163,30 @@ void PortDisplay::renderColors(bool fullScreen) const {
     }
 }
 
-
+void PortDisplay::restoreKidBackground() const {
+    // Restore only the packed background under the player. Color commands
+    // replay afterward, preserving overlapping objects and clean sprite edges.
+    for (unsigned p=0;p<kidPages && kidW;++p) {
+        const uint8_t *src=kidBackdrop+p*kidW;
+        for (unsigned x=0;x<kidW;) {
+            const unsigned dx=kidX+x;
+            const bool pair=!(dx&1) && x+1<kidW;
+            unsigned a=src[x],b=pair ? src[x+1] : 0;
+            const unsigned ta=1u<<((dx+(worldX&15))>>4);
+            const unsigned tb=1u<<((dx+1+(worldX&15))>>4);
+            const unsigned shift=(dx&1)*4;
+            for (unsigned r=0;r<8;++r,a>>=1,b>>=1) {
+                const unsigned y=(kidPage+p)*8+r;
+                const unsigned solid=terrain[(y+(worldY&15))>>4];
+                const unsigned ca=(a&1)*2+((solid&ta) ? 3 : 0);
+                uint8_t &dst=gfx_fb[y*GFX_FB_STRIDE+dx/2];
+                if (pair) dst=ca | (((b&1)*2+((solid&tb) ? 3 : 0))<<4);
+                else dst=(dst&~(15u<<shift)) | (ca<<shift);
+            }
+            x+=pair ? 2 : 1;
+        }
+    }
+}
 
 void PortDisplay::renderPause() const {
     // The native world is frozen too. The opaque pause panel replaces its

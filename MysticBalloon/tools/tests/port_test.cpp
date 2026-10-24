@@ -344,7 +344,72 @@ static void colorBlitTest() {
     printf("PASS: %u native color-blit clipping/masking/scale references and transparent coin matte\n",cases);
 }
 
-
+static void playerCompositeTest() {
+    using namespace mystic;
+    unsigned cases=0;
+    for (bool inhale : {false,true}) for (unsigned f=0;f<(inhale ? 4u : 12u);++f) {
+        const uint8_t *s=inhale ? kidSpriteSuck_plus_mask : kidSprite;
+        const unsigned w=s[0],h=s[1],stride=inhale ? 2 : 1;
+        bool black[16][16]={},white[16][16]={},outside[16][16]={};
+        for (unsigned y=0;y<h;++y) for (unsigned x=0;x<w;++x) {
+            const unsigned at=2+(f*w*2+(y/8)*w+x)*stride,bit=1u<<(y%8);
+            if (inhale) {
+                white[y][x]=s[at]&bit;
+                black[y][x]=(s[at+1]&bit) && !white[y][x];
+            } else {
+                black[y][x]=s[at]&bit;
+                white[y][x]=(s[2+(12+f/6)*w*2+(y/8)*w+x]&bit) && !black[y][x];
+            }
+            outside[y][x]=!black[y][x] && (!x || !y || x==w-1 || y==h-1);
+        }
+        // Independent wave propagation defines the exterior around the
+        // black contours; it never reads the generated color assets.
+        bool changed;
+        do {
+            changed=false;
+            for (unsigned y=0;y<h;++y) for (unsigned x=0;x<w;++x) {
+                if (black[y][x] || outside[y][x]) continue;
+                if ((x && outside[y][x-1]) || (x+1<w && outside[y][x+1]) ||
+                    (y && outside[y-1][x]) || (y+1<h && outside[y+1][x]))
+                    { outside[y][x]=true;changed=true; }
+            }
+        } while (changed);
+        for (Palette p : {Color,Original,DMG,Amber}) for (const auto &pos :
+                {vec2(-3,-5),vec2(37,41),vec2(48,48),vec2(119,121),vec2(127,127)}) {
+            setPalette(p);arduboy.clear();arduboy.world=true;
+            arduboy.worldX=23;arduboy.worldY=-19;
+            for (unsigned i=0;i<sizeof arduboy.buffer;++i) arduboy.buffer[i]=uint8_t(i*31+19);
+            for (unsigned i=0;i<9;++i) arduboy.terrain[i]=(i*73+41)&511;
+            arduboy.render(true);
+            uint8_t background[8192];memcpy(background,gfx_fb,sizeof background);
+            if (inhale) PortSprites::draw(pos.x,pos.y,s,f,PortSprites::PlusMask);
+            else {
+                PortSprites::draw(pos.x,pos.y,s,12+f/6,PortSprites::Self);
+                PortSprites::draw(pos.x,pos.y,s,f,PortSprites::Erase);
+            }
+            assert(arduboy.kidW*arduboy.kidPages<=sizeof arduboy.kidBackdrop);
+            arduboy.render(true);
+            for (int y=0;y<128;++y) for (int x=0;x<128;++x) {
+                const unsigned got=(gfx_fb[y*64+x/2]>>((x&1)*4))&15;
+                if (p==Original) {
+                    assert(got==((arduboy.buffer[(y/8)*128+x]>>(y%8))&1));
+                    continue;
+                }
+                const int sx=x-pos.x,sy=y-pos.y;
+                unsigned expected=(background[y*64+x/2]>>((x&1)*4))&15;
+                if (sx>=0 && sx<int(w) && sy>=0 && sy<int(h)) {
+                    if (black[sy][sx]) expected=0;
+                    else if (white[sy][sx] && !outside[sy][sx])
+                        expected=p==Amber ? 14 : sy<8 ? 14 : sy<13 ? 6 : 12;
+                }
+                assert(got==expected);
+            }
+            ++cases;
+        }
+    }
+    setPalette(Color);
+    printf("PASS: %u complete player/inhale composites preserve patterned sky/terrain, clipping, original pixels and uniformly light Amber fill\n",cases);
+}
 
 static void settingsPreviewTest() {
     using namespace mystic;
@@ -588,6 +653,7 @@ int main() {
     colorsTest();
     settingsPreviewTest();
     colorBlitTest();
+    playerCompositeTest();
     brightBalloonsTest();
     pauseTest();
     pauseRenderTest();

@@ -39,7 +39,7 @@ static inline __attribute__((always_inline)) void rowColors(unsigned role, unsig
     paper=original ? 0 : papers[role<sizeof papers ? role : 0];
     if (original) return;
     if (role==KidMask || role==KidSuck)
-        ink=y<8 ? 14 : y<13 ? 6 : 12;
+        ink=palette()==Amber ? 14 : y<8 ? 14 : y<13 ? 6 : 12;
     else if (role==FanInk) ink=y<5 ? 13 : 12;
     else if (role==DoorInk) ink=frame ? 8 : 10;
     else if (role==LogoInk) ink=y<25 ? 13 : 8;
@@ -135,6 +135,14 @@ static RAMFUNC(mysticColor) void paintPacked(const uint8_t *s,int x,int y,uint8_
 void paintSprite(const uint8_t *s,int x,int y,uint8_t frame,
                  uint8_t style,bool original,int scale) {
     unsigned role=style>>2,mode=style&3;
+    if (!original) {
+        if (role==KidMask) return; // Original clearing mask has no visible tint.
+        if (role==KidInk) {
+            s=art::kidColor;role=KidMask;mode=PortSprites::PlusMask;
+        } else if (role==KidSuck) {
+            s=art::kidSuckColor;mode=PortSprites::PlusMask;
+        }
+    }
     if (scale!=1) paintScaled(s,x,y,frame,(role<<2)|mode,original,scale);
     else paintPacked(s,x,y,frame,role,mode,original);
 }
