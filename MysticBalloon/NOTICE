@@ -1,0 +1,14 @@
+Mystic Balloon for CHGame is derived from Mystic Balloon (Arduboy 1.7.2).
+Copyright (c) 2016 TEAM a.r.g. Licensed under the MIT License; see LICENSE.
+
+Original credits: GAVENO, CastPixel, JO3RI, Martian220 (2016-2018).
+Thanks to MLXXXP for the original migration to Arduboy2.
+
+Source: https://github.com/Team-ARG-Museum/ID-34-Mystic-Balloon
+Upstream commit: 58743b6b52f1aa9f7bc39efd807034a83ebed9a6
+
+The CHGame adaptation replaces Arduboy hardware services, EEPROM and AVR
+pointer handling, adds native pause/mute controls, expands the scrolling
+viewport to 128x128, and corrects fixed-width arithmetic and the all-coins
+badge total. Original game artwork, 39-level order, physics, enemies and
+scoring are retained.

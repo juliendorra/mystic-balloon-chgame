@@ -1,0 +1,29 @@
+# U includes the game/sprite pass, expansion, chrome, DMA wait and frame interval.
+say G 1
+free 1
+say U
+perf reset
+hold RIGHT
+free 4
+release
+say U
+perf level 1 moving
+say G 6
+free 1
+say U
+perf reset
+hold RIGHT+B
+free 4
+release
+say U
+perf level 6 jumping
+say G 39
+free 1
+say U
+perf reset
+hold A
+free 4
+release
+say U
+perf level 39 inhaling
+snap device

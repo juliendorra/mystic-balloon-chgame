@@ -1,0 +1,13 @@
+TIME n=864 game=960 gmax=2605 wait=13 wmax=20 expand=666 emax=668 chrome=9 cmax=3479 submit=105 work=1755 max=5065 interval=16646 imax=16672
+perf reset: PERF rnd=680 max=4151 late=0 frames=864 stk=1104
+TIME n=241 game=2586 gmax=2634 wait=7 wmax=8 expand=666 emax=668 chrome=4 cmax=5 submit=105 work=3369 max=3418 interval=16596 imax=16672
+perf level 1 moving: PERF rnd=675 max=676 late=0 frames=241 stk=1104
+TIME n=60 game=2633 gmax=2713 wait=6 wmax=7 expand=666 emax=668 chrome=21 cmax=1041 submit=105 work=3434 max=4489 interval=16388 imax=16672
+perf reset: PERF rnd=692 max=1713 late=0 frames=60 stk=1104
+TIME n=241 game=2622 gmax=3214 wait=6 wmax=8 expand=666 emax=668 chrome=4 cmax=6 submit=105 work=3405 max=3998 interval=16596 imax=16672
+perf level 6 jumping: PERF rnd=675 max=676 late=0 frames=241 stk=1104
+TIME n=60 game=2791 gmax=2872 wait=6 wmax=7 expand=666 emax=668 chrome=21 cmax=1041 submit=105 work=3591 max=4580 interval=16388 imax=16672
+perf reset: PERF rnd=692 max=1711 late=0 frames=60 stk=1104
+TIME n=241 game=2828 gmax=2893 wait=6 wmax=9 expand=666 emax=668 chrome=4 cmax=6 submit=105 work=3611 max=3676 interval=16592 imax=16672
+perf level 39 inhaling: PERF rnd=675 max=676 late=0 frames=241 stk=1104
+ok: MysticBalloon/out/device_optimized

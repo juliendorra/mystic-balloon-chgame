@@ -1,0 +1,19 @@
+{
+  "id": "mystic-balloon",
+  "title": "MYSTIC BALLOON",
+  "author": "TEAM a.r.g.; CHGame port",
+  "version": "1.1.0",
+  "description": "Mystic Balloon with a native 128x128 scrolling playfield. Find the key, ride fans with your balloons, inhale enemies, and collect every coin through 39 original levels.",
+  "genre": "Platformer",
+  "license": "MIT",
+  "sourceUrl": "https://github.com/Team-ARG-Museum/ID-34-Mystic-Balloon",
+  "licenseFiles": ["LICENSE", "NOTICE"],
+  "buttons": [
+    {"control": "LEFT/RIGHT", "action": "Move"},
+    {"control": "UP/DOWN", "action": "Look; UP enters an unlocked door"},
+    {"control": "B", "action": "Jump; press again in the air and hold to float; confirm menus"},
+    {"control": "A", "action": "Inhale enemies and coins; back in menus"},
+    {"control": "START", "action": "Pause or resume; hold 3 seconds for the game menu"},
+    {"control": "SELECT", "action": "Toggle sound"}
+  ]
+}

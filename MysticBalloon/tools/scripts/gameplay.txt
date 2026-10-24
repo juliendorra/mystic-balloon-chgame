@@ -1,0 +1,35 @@
+wait 1
+tap B
+rec start 4
+wait 60
+rec stop 01_title
+tap B
+tap DOWN
+tap B
+wait 24
+tap B
+rec start 4
+hold RIGHT
+wait 42
+hold RIGHT+B
+wait 26
+release
+wait 10
+hold B
+wait 60
+release
+rec stop 02_play
+tap START
+snap paused
+wait 30
+tap START
+say G 6
+wait 1
+rec start 4
+hold RIGHT+B
+wait 80
+release
+wait 20
+rec stop 03_world
+say V
+perf
