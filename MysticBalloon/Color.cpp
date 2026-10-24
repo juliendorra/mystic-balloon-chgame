@@ -52,10 +52,29 @@ static const uint8_t *tintFor(unsigned role) {
     if (role==SpikeInk) return art::sprSpikesTint;
     if (role==WalkerInk) return art::walkerSpriteTint;
     if (role==DoorInk) return art::doorTint;
+    if (role==TerrainInk) return art::tileSetTwoTint;
     return nullptr;
 }
 
-
+void PortDisplay::restoreTerrainCorners() const {
+    if (!terrainCoverage) return;
+    const int px=(worldX>>2)&15,py=(worldY>>2)&15;
+    for (unsigned ty=0;ty<9;++ty) for (unsigned tx=0;tx<9;++tx) {
+        if (!(terrain[ty]&(1u<<tx))) continue;
+        const unsigned f=terrainFrames[ty][tx];
+        for (unsigned i=art::terrainCornerOffsets[f];i<art::terrainCornerOffsets[f+1];++i) {
+            const unsigned corner=art::terrainCorners[i];
+            const int x=int(tx)*16-(worldX&15)+(corner&15);
+            const int y=int(ty)*16-(worldY&15)+(corner>>4);
+            if (x<0 || x>=128 || y<0 || y>=128) continue;
+            const unsigned sx=(x+px)&15,sy=(y+py)&15;
+            const unsigned shade=((art::terrainSky[(sy>>3)*16+sx]>>(sy&7))&1)*2;
+            uint8_t &dst=gfx_fb[y*GFX_FB_STRIDE+x/2];
+            const unsigned shift=(x&1)*4;
+            dst=(dst&~(15u<<shift)) | (shade<<shift);
+        }
+    }
+}
 
 // Only the static introduction needs scaling; keep this out of the game hot loop.
 static void paintScaled(const uint8_t *s,int x,int y,unsigned frame,unsigned style,bool original,int scale) {

@@ -153,6 +153,7 @@ void PortDisplay::renderColors(bool fullScreen) const {
     const int top=(fullScreen || title || intro) ? VIEW_Y : MENU_Y;
     if (world && !original) {
         restoreKidBackground();
+        restoreTerrainCorners();
     }
     if (!original || title || intro) {
         for (unsigned i=0; i<commandCount; ++i) {

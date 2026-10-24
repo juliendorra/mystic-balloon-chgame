@@ -55,6 +55,8 @@ struct PortDisplay {
     Command commands[MAX_COMMANDS];
     uint16_t commandCount = 0, pauseCount = 0, dropped = 0;
     uint16_t terrain[9] = {};
+    uint8_t terrainFrames[9][9];
+    bool terrainCoverage = false;
     // At most 16 columns by three source pages under the player. Preserve
     // this before the original white clearing mask touches the mono buffer.
     uint8_t kidBackdrop[48];
@@ -68,6 +70,7 @@ struct PortDisplay {
     void clear() {
         memset(buffer, 0, sizeof buffer);
         memset(terrain, 0, sizeof terrain);
+        terrainCoverage = false;
         commandCount = dropped = 0;
         kidW = 0;
         world = title = intro = paused = false;
@@ -80,12 +83,15 @@ struct PortDisplay {
     void queue(int x, int y, const uint8_t *sprite, uint8_t frame, uint8_t mode);
     void noteTerrain(unsigned x,unsigned y,uint8_t frame) {
         terrain[y] |= 1u<<x;
+        terrainFrames[y][x]=frame;
+        terrainCoverage=true;
     }
     void render(bool fullScreen = true) const;
     void renderBase(bool fullScreen) const;
     void renderColors(bool fullScreen) const;
     void renderPause() const;
     void restoreKidBackground() const;
+    void restoreTerrainCorners() const;
 };
 extern PortDisplay display;
 

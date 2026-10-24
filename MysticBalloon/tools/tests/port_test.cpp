@@ -93,9 +93,79 @@ static unsigned bitmapPixel(const uint8_t *sprite, unsigned frame, unsigned x, u
     return (sprite[2+frame*frameBytes+(y/8)*w+x] >> (y%8))&1;
 }
 
+static bool platformCutout(unsigned tile,unsigned x,unsigned y) {
+    if ((x==0 && y<=1) || (x==1 && y==0)) return !(tile&6);
+    if ((x==15 && y<=1) || (x==14 && y==0)) return !(tile&3);
+    if (x==0 && y==15) return !(tile&12);
+    if (x==15 && y==15) return !(tile&9);
+    return false;
+}
 
-
-
+static void platformCornersTest() {
+    using namespace mystic;
+    unsigned cases=0;
+    for (unsigned f=0;f<16;++f) for (unsigned phase=0;phase<16;++phase)
+      for (Palette p : {Color,Original,DMG,Amber}) {
+        setPalette(p);arduboy.clear();arduboy.world=true;
+        arduboy.worldX=int(phase);arduboy.worldY=-int(phase);
+        const int px=(arduboy.worldX>>2)&15,py=(arduboy.worldY>>2)&15;
+        for (int tx=0;tx<=8;++tx) for (int ty=0;ty<=8;++ty)
+            PortSprites::draw(tx*16-px,ty*16-py,tileSetTwo,16,PortSprites::Self);
+        const int left=48-(arduboy.worldX&15),top=48-(arduboy.worldY&15);
+        arduboy.noteTerrain(3,3,f);
+        PortSprites::draw(left,top,tileSetTwo,f,PortSprites::Overwrite);
+        arduboy.render(true);
+        for (int y=0;y<128;++y) for (int x=0;x<128;++x) {
+            unsigned bit=bitmapPixel(tileSetTwo,16,(x+px)&15,(y+py)&15);
+            const int sx=x-left,sy=y-top;
+            const bool inside=sx>=0 && sx<16 && sy>=0 && sy<16;
+            unsigned expected=bit*(p==Original ? 1 : 2);
+            if (inside && (p==Original || !platformCutout(f,sx,sy))) {
+                bit=bitmapPixel(tileSetTwo,f,sx,sy);
+                expected=p==Original ? bit : 3+bit*2;
+            }
+            const unsigned got=(gfx_fb[y*64+x/2]>>((x&1)*4))&15;
+            assert(got==expected);
+        }
+        ++cases;
+      }
+    // Integrate the corner patch with real map topology and clipped tiles.
+    const vec2 cameras[]={vec2(0,0),vec2(12,12),vec2(-59,-39),vec2(315,255)};
+    for (unsigned n=0;n<TOTAL_LEVELS;++n) for (const auto &c : cameras)
+      for (Palette p : {Color,Original,DMG,Amber}) {
+        startLevel(n);setPalette(p);cam.pos=c;levelExit=vec2(1000,1000);
+        arduboy.clear();drawGrid();arduboy.render(true);
+        for (int y=0;y<128;++y) for (int x=0;x<128;++x) {
+            const int wx=x+c.x,wy=y+c.y;
+            const unsigned f=gridGetTile(wx>>4,wy>>4);
+            const bool background=f==16 || (p!=Original && platformCutout(f,wx&15,wy&15));
+            const unsigned bit=background ? bitmapPixel(tileSetTwo,16,(x+(c.x>>2))&15,(y+(c.y>>2))&15)
+                                          : bitmapPixel(tileSetTwo,f,wx&15,wy&15);
+            const unsigned expected=p==Original ? bit : background ? bit*2 : 3+bit*2;
+            assert(((gfx_fb[y*64+x/2]>>((x&1)*4))&15)==expected);
+        }
+        ++cases;
+      }
+    // The atlas uses direct native tile blits rather than the world pipeline.
+    // Its alpha must preserve an arbitrary existing background as well.
+    for (unsigned f=0;f<17;++f) for (Palette p : {Color,Original,DMG,Amber}) {
+        setPalette(p);memset(gfx_fb,0x99,8192);
+        paintSprite(tileSetTwo,47,45,f,(TerrainInk<<2)|PortSprites::Overwrite,p==Original);
+        for (int y=44;y<=61;++y) for (int x=46;x<=63;++x) {
+            const int sx=x-47,sy=y-45;
+            unsigned expected=9;
+            if (sx>=0 && sx<16 && sy>=0 && sy<16 &&
+                (p==Original || f==16 || !platformCutout(f,sx,sy))) {
+                const unsigned bit=bitmapPixel(tileSetTwo,f,sx,sy);
+                expected=p==Original ? bit : f==16 ? bit*2 : 3+bit*2;
+            }
+            assert(((gfx_fb[y*64+x/2]>>((x&1)*4))&15)==expected);
+        }
+        ++cases;
+    }
+    setPalette(Color);
+    printf("PASS: %u full platform composites: all 16 tile joins, 16 scroll phases, 39 maps, four palettes; transparent corners reveal exact parallax\n",cases);
+}
 
 static void viewportTest() {
     const int cameras[][2]={{0,0},{256,256},{0,256},{256,0},{23,71},{255,255},
@@ -380,6 +450,9 @@ static void playerCompositeTest() {
             arduboy.worldX=23;arduboy.worldY=-19;
             for (unsigned i=0;i<sizeof arduboy.buffer;++i) arduboy.buffer[i]=uint8_t(i*31+19);
             for (unsigned i=0;i<9;++i) arduboy.terrain[i]=(i*73+41)&511;
+            arduboy.terrainCoverage=true;
+            for (unsigned ty=0;ty<9;++ty) for (unsigned tx=0;tx<9;++tx)
+                arduboy.terrainFrames[ty][tx]=(ty*3+tx*5)&15;
             arduboy.render(true);
             uint8_t background[8192];memcpy(background,gfx_fb,sizeof background);
             if (inhale) PortSprites::draw(pos.x,pos.y,s,f,PortSprites::PlusMask);
@@ -648,6 +721,7 @@ int main() {
     assert(gfx_paletteOut(2)==gfx_rgb(153,221,238)); // Pastel Island sky.
     spritesTest();
     viewportTest();
+    platformCornersTest();
     levelsTest();
     scrollingTest();
     colorsTest();
