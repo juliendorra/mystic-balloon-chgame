@@ -133,13 +133,13 @@ static void viewportTest() {
     for (const auto &p : cameras) {
       kid.pos=vec2(p[0],p[1]);
       resetCamera();
-      assert(cam.pos.x>=0 && cam.pos.x<=CAMERA_MAX_X && cam.pos.y>=0 && cam.pos.y<=CAMERA_MAX_Y);
+      assert(cam.pos.x==kid.pos.x-CAMERA_X && cam.pos.y<=CAMERA_MAX_Y);
     }
     kid.pos=vec2(192,192);
     resetCamera();
     assert(cam.pos.x==134 && cam.pos.y==136);
-    kid.pos=vec2(0,0); resetCamera(); assert(cam.pos.x==0 && cam.pos.y==0);
-    kid.pos=vec2(372,368); resetCamera(); assert(cam.pos.x==256 && cam.pos.y==256);
+    kid.pos=vec2(0,0); resetCamera(); assert(cam.pos.x==-58 && cam.pos.y==-56);
+    kid.pos=vec2(372,368); resetCamera(); assert(cam.pos.x==314 && cam.pos.y==256);
     puts("PASS: full viewport and packed terrain color at 48 camera positions, negative parallax, implicit walls, doors and bottom cap");
 }
 
@@ -190,7 +190,47 @@ static void levelsTest() {
     puts("PASS: all 39 levels, 4,680 simulated frames, all fan directions, 384-pixel collision rectangles");
 }
 
-
+static void scrollingTest() {
+    using namespace mystic;
+    for (unsigned n=0;n<TOTAL_LEVELS;++n) for (int side=0;side<2;++side) {
+        startLevel(n);kid.pos=vec2(side ? 372 : 0,16);resetCamera();
+        assert(side ? cam.pos.x+VIEW_W>LEVEL_WIDTH : cam.pos.x<0);
+        arduboy.clear();drawGrid();setPalette(Color);arduboy.render(true);
+        unsigned wallPixels=0;
+        for (int y=0;y<128;++y) for (int x=0;x<128;++x) {
+            const int wx=x+cam.pos.x;
+            if (wx>=0 && wx<LEVEL_WIDTH) continue;
+            const unsigned p=(gfx_fb[y*64+x/2]>>((x&1)*4))&15;
+            assert(p==3 || p==5); // The collision wall is visibly terrain.
+            ++wallPixels;
+        }
+        assert(wallPixels>=16*128);
+    }
+    for (unsigned p=0;p<4;++p) {
+        startLevel(0);setPalette(Palette(p));
+        kid.pos=vec2(112,32);kid.actualpos=kid.pos<<FIXED_POINT;
+        kid.speed=vec2(0,MAX_YSPEED);kid.isImune=false;kid.isActive=true;
+        kid.isBalloon=kid.isLanding=true;kid.balloonOffset=0;resetCamera();
+        chgame.injected=0;chgame.pollButtons();
+        int highest=32;
+        for (unsigned frame=0;frame<150;++frame) {
+            tick(B_BUTTON); // Real fan collision, gravity and balloon physics.
+            if (kid.pos.y<highest) highest=kid.pos.y;
+            const int screenY=kid.pos.y-cam.pos.y;
+            assert(gameState==STATE_GAME_PLAYING && kid.balloons==3);
+            assert(screenY>=24 && screenY+16<=VIEW_H);
+            assert(arduboy.commandCount>0 && !arduboy.dropped);
+        }
+        assert(highest < -16 && cam.pos.y<0); // Actually cross the old clamp.
+        for (unsigned frame=0;frame<90;++frame) {
+            tick(); // Falling back into the map must keep tracking too.
+            assert(kid.pos.y-cam.pos.y>=24 && kid.pos.y-cam.pos.y+16<=VIEW_H);
+        }
+        assert(kid.pos.y>=0 && gameState==STATE_GAME_PLAYING);
+    }
+    setPalette(Color);
+    puts("PASS: visible side collision walls in all 39 levels; fan ascent above row zero and return stay visible in all four palettes");
+}
 
 static void colorsTest() {
     using namespace mystic;
@@ -544,6 +584,7 @@ int main() {
     spritesTest();
     viewportTest();
     levelsTest();
+    scrollingTest();
     colorsTest();
     settingsPreviewTest();
     colorBlitTest();

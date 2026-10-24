@@ -57,13 +57,13 @@ Players kid;
 Camera cam;
 constexpr int CAMERA_X = (mystic::VIEW_W - 12) / 2;
 constexpr int CAMERA_Y = (mystic::VIEW_H - 16) / 2;
-constexpr int CAMERA_MAX_X = LEVEL_WIDTH - mystic::VIEW_W;
 constexpr int CAMERA_MAX_Y = LEVEL_HEIGHT - mystic::VIEW_H;
 
 void clampCamera()
 {
-  cam.pos.x = max(0, min(CAMERA_MAX_X, (int)cam.pos.x));
-  cam.pos.y = max(0, min(CAMERA_MAX_Y, (int)cam.pos.y));
+  // Upstream follows outside the map: its side walls are implicit solid
+  // tiles, and fans can lift the player above row zero. Only cap the bottom.
+  cam.pos.y = min(CAMERA_MAX_Y, (int)cam.pos.y);
 }
 
 void resetCamera()
