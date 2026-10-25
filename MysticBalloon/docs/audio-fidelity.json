@@ -1,0 +1,1657 @@
+{
+  "port_version": "1.2.9",
+  "reference_commits": {
+    "game": "58743b6b52f1aa9f7bc39efd807034a83ebed9a6",
+    "tones": "972fe8117002da47073b6c1835117d654a03e16f",
+    "arduboy": "bc460a2cff1a3e116880991aa2f88bae4b2e3160"
+  },
+  "source_sha256": {
+    "Tones.cpp": "08e943522a379d80ba65b7583d2549f84159672c2985f5e902c343c2451e30ad",
+    "Tones.h": "b5199e95aa43cbfda64b904caaff34207bdbb39e38a0dab6a1182cf17dabc604",
+    "Port.cpp": "a89fdd10fbaba5a4311dc3d529a60fc4492e78220ba0278ea953cb0891293ec5",
+    "Port.h": "cd4b40d190bc4d6d9628e7b69adf6fdf43fc1ea9b3c9eb00466d74a2506de185",
+    "MysticBalloon.ino": "3fb7d740759d7368b09a0fbb7a3386dc4c34cf0bd1c9dad0777063ea21348695",
+    "menu.h": "098b9c4c18a6ed89e0edd103eeffc6693a247238aabe86e7177f0862fc40c242",
+    "config.h": "71480c6893b4c18d15fced95ec55ba6b3620a062b995eb8a91682f288e153ee4",
+    "chgame.json": "ff9ee45943c70d25ed142a9f3ed86c0b3d8b63a8b747020070b3928995596733",
+    "tools/tests/audio_events_test.cpp": "f5fa447530119abc44d04c71df53f1b8e270a1d4554594cab61c61e50235c1e4",
+    "tools/tests/audio_timer_test.cpp": "042a0c65090799475313081a13aef53731a21ec0c37cbc02403942e400e305f6"
+  },
+  "source_calls": {
+    "menu.h": {
+      "original": [
+        "425,20",
+        "300,20",
+        "300,20",
+        "425,20",
+        "425,20",
+        "425,20",
+        "300,20",
+        "425,20",
+        "300,20",
+        "300,20",
+        "425,20",
+        "425,20"
+      ],
+      "port": [
+        "425,20",
+        "425,20",
+        "300,20",
+        "300,20",
+        "425,20",
+        "425,20",
+        "425,20",
+        "425,20",
+        "300,20",
+        "425,20",
+        "300,20",
+        "300,20",
+        "425,20",
+        "425,20"
+      ]
+    },
+    "game.h": {
+      "original": [
+        "pgm_read_byte(tones+toneindex++),150",
+        "pgm_read_byte(tones+toneindex++),150",
+        "pgm_read_byte(tones+toneindex++),200",
+        "425,20"
+      ],
+      "port": [
+        "pgm_read_byte(tones+toneindex++),150",
+        "pgm_read_byte(tones+toneindex++),150",
+        "pgm_read_byte(tones+toneindex++),200",
+        "425,20"
+      ]
+    },
+    "inputs.h": {
+      "original": [
+        "200,100"
+      ],
+      "port": [
+        "200,100"
+      ]
+    },
+    "player.h": {
+      "original": [
+        "150,20",
+        "80,30",
+        "80,30"
+      ],
+      "port": [
+        "150,20",
+        "80,30",
+        "80,30"
+      ]
+    },
+    "levels.h": {
+      "original": [
+        "320+random(20),30",
+        "420,100",
+        "420,200",
+        "400,200",
+        "200,100",
+        "200,100"
+      ],
+      "port": [
+        "320+random(20),30",
+        "420,100",
+        "420,200",
+        "400,200",
+        "200,100",
+        "200,100"
+      ]
+    }
+  },
+  "timer_cases": [
+    {
+      "hz": 0,
+      "duration_1024": 20,
+      "half_period_ticks": 4000,
+      "stop_interrupt": 10,
+      "stop_us": 20000.0,
+      "old_blip_hz": 0
+    },
+    {
+      "hz": 0,
+      "duration_1024": 30,
+      "half_period_ticks": 4000,
+      "stop_interrupt": 15,
+      "stop_us": 30000.0,
+      "old_blip_hz": 0
+    },
+    {
+      "hz": 0,
+      "duration_1024": 100,
+      "half_period_ticks": 4000,
+      "stop_interrupt": 49,
+      "stop_us": 98000.0,
+      "old_blip_hz": 0
+    },
+    {
+      "hz": 0,
+      "duration_1024": 150,
+      "half_period_ticks": 4000,
+      "stop_interrupt": 74,
+      "stop_us": 148000.0,
+      "old_blip_hz": 0
+    },
+    {
+      "hz": 0,
+      "duration_1024": 200,
+      "half_period_ticks": 4000,
+      "stop_interrupt": 98,
+      "stop_us": 196000.0,
+      "old_blip_hz": 0
+    },
+    {
+      "hz": 80,
+      "duration_1024": 20,
+      "half_period_ticks": 12500,
+      "stop_interrupt": 4,
+      "stop_us": 25000.0,
+      "old_blip_hz": 80
+    },
+    {
+      "hz": 80,
+      "duration_1024": 30,
+      "half_period_ticks": 12500,
+      "stop_interrupt": 5,
+      "stop_us": 31250.0,
+      "old_blip_hz": 80
+    },
+    {
+      "hz": 80,
+      "duration_1024": 100,
+      "half_period_ticks": 12500,
+      "stop_interrupt": 16,
+      "stop_us": 100000.0,
+      "old_blip_hz": 80
+    },
+    {
+      "hz": 80,
+      "duration_1024": 150,
+      "half_period_ticks": 12500,
+      "stop_interrupt": 24,
+      "stop_us": 150000.0,
+      "old_blip_hz": 80
+    },
+    {
+      "hz": 80,
+      "duration_1024": 200,
+      "half_period_ticks": 12500,
+      "stop_interrupt": 32,
+      "stop_us": 200000.0,
+      "old_blip_hz": 80
+    },
+    {
+      "hz": 131,
+      "duration_1024": 20,
+      "half_period_ticks": 7633,
+      "stop_interrupt": 6,
+      "stop_us": 22899.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 131,
+      "duration_1024": 30,
+      "half_period_ticks": 7633,
+      "stop_interrupt": 8,
+      "stop_us": 30532.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 131,
+      "duration_1024": 100,
+      "half_period_ticks": 7633,
+      "stop_interrupt": 26,
+      "stop_us": 99229.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 131,
+      "duration_1024": 150,
+      "half_period_ticks": 7633,
+      "stop_interrupt": 39,
+      "stop_us": 148843.5,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 131,
+      "duration_1024": 200,
+      "half_period_ticks": 7633,
+      "stop_interrupt": 52,
+      "stop_us": 198458.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 139,
+      "duration_1024": 20,
+      "half_period_ticks": 7194,
+      "stop_interrupt": 6,
+      "stop_us": 21582.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 139,
+      "duration_1024": 30,
+      "half_period_ticks": 7194,
+      "stop_interrupt": 9,
+      "stop_us": 32373.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 139,
+      "duration_1024": 100,
+      "half_period_ticks": 7194,
+      "stop_interrupt": 28,
+      "stop_us": 100716.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 139,
+      "duration_1024": 150,
+      "half_period_ticks": 7194,
+      "stop_interrupt": 41,
+      "stop_us": 147477.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 139,
+      "duration_1024": 200,
+      "half_period_ticks": 7194,
+      "stop_interrupt": 55,
+      "stop_us": 197835.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 145,
+      "duration_1024": 20,
+      "half_period_ticks": 6896,
+      "stop_interrupt": 6,
+      "stop_us": 20688.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 145,
+      "duration_1024": 30,
+      "half_period_ticks": 6896,
+      "stop_interrupt": 9,
+      "stop_us": 31032.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 145,
+      "duration_1024": 100,
+      "half_period_ticks": 6896,
+      "stop_interrupt": 29,
+      "stop_us": 99992.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 145,
+      "duration_1024": 150,
+      "half_period_ticks": 6896,
+      "stop_interrupt": 43,
+      "stop_us": 148264.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 145,
+      "duration_1024": 200,
+      "half_period_ticks": 6896,
+      "stop_interrupt": 57,
+      "stop_us": 196536.0,
+      "old_blip_hz": 140
+    },
+    {
+      "hz": 150,
+      "duration_1024": 20,
+      "half_period_ticks": 6666,
+      "stop_interrupt": 6,
+      "stop_us": 19998.0,
+      "old_blip_hz": 160
+    },
+    {
+      "hz": 150,
+      "duration_1024": 30,
+      "half_period_ticks": 6666,
+      "stop_interrupt": 9,
+      "stop_us": 29997.0,
+      "old_blip_hz": 160
+    },
+    {
+      "hz": 150,
+      "duration_1024": 100,
+      "half_period_ticks": 6666,
+      "stop_interrupt": 30,
+      "stop_us": 99990.0,
+      "old_blip_hz": 160
+    },
+    {
+      "hz": 150,
+      "duration_1024": 150,
+      "half_period_ticks": 6666,
+      "stop_interrupt": 44,
+      "stop_us": 146652.0,
+      "old_blip_hz": 160
+    },
+    {
+      "hz": 150,
+      "duration_1024": 200,
+      "half_period_ticks": 6666,
+      "stop_interrupt": 59,
+      "stop_us": 196647.0,
+      "old_blip_hz": 160
+    },
+    {
+      "hz": 152,
+      "duration_1024": 20,
+      "half_period_ticks": 6578,
+      "stop_interrupt": 6,
+      "stop_us": 19734.0,
+      "old_blip_hz": 160
+    },
+    {
+      "hz": 152,
+      "duration_1024": 30,
+      "half_period_ticks": 6578,
+      "stop_interrupt": 9,
+      "stop_us": 29601.0,
+      "old_blip_hz": 160
+    },
+    {
+      "hz": 152,
+      "duration_1024": 100,
+      "half_period_ticks": 6578,
+      "stop_interrupt": 30,
+      "stop_us": 98670.0,
+      "old_blip_hz": 160
+    },
+    {
+      "hz": 152,
+      "duration_1024": 150,
+      "half_period_ticks": 6578,
+      "stop_interrupt": 45,
+      "stop_us": 148005.0,
+      "old_blip_hz": 160
+    },
+    {
+      "hz": 152,
+      "duration_1024": 200,
+      "half_period_ticks": 6578,
+      "stop_interrupt": 60,
+      "stop_us": 197340.0,
+      "old_blip_hz": 160
+    },
+    {
+      "hz": 172,
+      "duration_1024": 20,
+      "half_period_ticks": 5813,
+      "stop_interrupt": 7,
+      "stop_us": 20345.5,
+      "old_blip_hz": 180
+    },
+    {
+      "hz": 172,
+      "duration_1024": 30,
+      "half_period_ticks": 5813,
+      "stop_interrupt": 11,
+      "stop_us": 31971.5,
+      "old_blip_hz": 180
+    },
+    {
+      "hz": 172,
+      "duration_1024": 100,
+      "half_period_ticks": 5813,
+      "stop_interrupt": 34,
+      "stop_us": 98821.0,
+      "old_blip_hz": 180
+    },
+    {
+      "hz": 172,
+      "duration_1024": 150,
+      "half_period_ticks": 5813,
+      "stop_interrupt": 51,
+      "stop_us": 148231.5,
+      "old_blip_hz": 180
+    },
+    {
+      "hz": 172,
+      "duration_1024": 200,
+      "half_period_ticks": 5813,
+      "stop_interrupt": 68,
+      "stop_us": 197642.0,
+      "old_blip_hz": 180
+    },
+    {
+      "hz": 188,
+      "duration_1024": 20,
+      "half_period_ticks": 5319,
+      "stop_interrupt": 8,
+      "stop_us": 21276.0,
+      "old_blip_hz": 180
+    },
+    {
+      "hz": 188,
+      "duration_1024": 30,
+      "half_period_ticks": 5319,
+      "stop_interrupt": 12,
+      "stop_us": 31914.0,
+      "old_blip_hz": 180
+    },
+    {
+      "hz": 188,
+      "duration_1024": 100,
+      "half_period_ticks": 5319,
+      "stop_interrupt": 37,
+      "stop_us": 98401.5,
+      "old_blip_hz": 180
+    },
+    {
+      "hz": 188,
+      "duration_1024": 150,
+      "half_period_ticks": 5319,
+      "stop_interrupt": 56,
+      "stop_us": 148932.0,
+      "old_blip_hz": 180
+    },
+    {
+      "hz": 188,
+      "duration_1024": 200,
+      "half_period_ticks": 5319,
+      "stop_interrupt": 74,
+      "stop_us": 196803.0,
+      "old_blip_hz": 180
+    },
+    {
+      "hz": 200,
+      "duration_1024": 20,
+      "half_period_ticks": 5000,
+      "stop_interrupt": 8,
+      "stop_us": 20000.0,
+      "old_blip_hz": 200
+    },
+    {
+      "hz": 200,
+      "duration_1024": 30,
+      "half_period_ticks": 5000,
+      "stop_interrupt": 12,
+      "stop_us": 30000.0,
+      "old_blip_hz": 200
+    },
+    {
+      "hz": 200,
+      "duration_1024": 100,
+      "half_period_ticks": 5000,
+      "stop_interrupt": 40,
+      "stop_us": 100000.0,
+      "old_blip_hz": 200
+    },
+    {
+      "hz": 200,
+      "duration_1024": 150,
+      "half_period_ticks": 5000,
+      "stop_interrupt": 59,
+      "stop_us": 147500.0,
+      "old_blip_hz": 200
+    },
+    {
+      "hz": 200,
+      "duration_1024": 200,
+      "half_period_ticks": 5000,
+      "stop_interrupt": 79,
+      "stop_us": 197500.0,
+      "old_blip_hz": 200
+    },
+    {
+      "hz": 213,
+      "duration_1024": 20,
+      "half_period_ticks": 4694,
+      "stop_interrupt": 9,
+      "stop_us": 21123.0,
+      "old_blip_hz": 220
+    },
+    {
+      "hz": 213,
+      "duration_1024": 30,
+      "half_period_ticks": 4694,
+      "stop_interrupt": 13,
+      "stop_us": 30511.0,
+      "old_blip_hz": 220
+    },
+    {
+      "hz": 213,
+      "duration_1024": 100,
+      "half_period_ticks": 4694,
+      "stop_interrupt": 42,
+      "stop_us": 98574.0,
+      "old_blip_hz": 220
+    },
+    {
+      "hz": 213,
+      "duration_1024": 150,
+      "half_period_ticks": 4694,
+      "stop_interrupt": 63,
+      "stop_us": 147861.0,
+      "old_blip_hz": 220
+    },
+    {
+      "hz": 213,
+      "duration_1024": 200,
+      "half_period_ticks": 4694,
+      "stop_interrupt": 84,
+      "stop_us": 197148.0,
+      "old_blip_hz": 220
+    },
+    {
+      "hz": 255,
+      "duration_1024": 20,
+      "half_period_ticks": 3921,
+      "stop_interrupt": 10,
+      "stop_us": 19605.0,
+      "old_blip_hz": 260
+    },
+    {
+      "hz": 255,
+      "duration_1024": 30,
+      "half_period_ticks": 3921,
+      "stop_interrupt": 15,
+      "stop_us": 29407.5,
+      "old_blip_hz": 260
+    },
+    {
+      "hz": 255,
+      "duration_1024": 100,
+      "half_period_ticks": 3921,
+      "stop_interrupt": 50,
+      "stop_us": 98025.0,
+      "old_blip_hz": 260
+    },
+    {
+      "hz": 255,
+      "duration_1024": 150,
+      "half_period_ticks": 3921,
+      "stop_interrupt": 75,
+      "stop_us": 147037.5,
+      "old_blip_hz": 260
+    },
+    {
+      "hz": 255,
+      "duration_1024": 200,
+      "half_period_ticks": 3921,
+      "stop_interrupt": 100,
+      "stop_us": 196050.0,
+      "old_blip_hz": 260
+    },
+    {
+      "hz": 300,
+      "duration_1024": 20,
+      "half_period_ticks": 3333,
+      "stop_interrupt": 12,
+      "stop_us": 19998.0,
+      "old_blip_hz": 300
+    },
+    {
+      "hz": 300,
+      "duration_1024": 30,
+      "half_period_ticks": 3333,
+      "stop_interrupt": 18,
+      "stop_us": 29997.0,
+      "old_blip_hz": 300
+    },
+    {
+      "hz": 300,
+      "duration_1024": 100,
+      "half_period_ticks": 3333,
+      "stop_interrupt": 59,
+      "stop_us": 98323.5,
+      "old_blip_hz": 300
+    },
+    {
+      "hz": 300,
+      "duration_1024": 150,
+      "half_period_ticks": 3333,
+      "stop_interrupt": 88,
+      "stop_us": 146652.0,
+      "old_blip_hz": 300
+    },
+    {
+      "hz": 300,
+      "duration_1024": 200,
+      "half_period_ticks": 3333,
+      "stop_interrupt": 118,
+      "stop_us": 196647.0,
+      "old_blip_hz": 300
+    },
+    {
+      "hz": 320,
+      "duration_1024": 20,
+      "half_period_ticks": 3125,
+      "stop_interrupt": 13,
+      "stop_us": 20312.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 320,
+      "duration_1024": 30,
+      "half_period_ticks": 3125,
+      "stop_interrupt": 19,
+      "stop_us": 29687.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 320,
+      "duration_1024": 100,
+      "half_period_ticks": 3125,
+      "stop_interrupt": 63,
+      "stop_us": 98437.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 320,
+      "duration_1024": 150,
+      "half_period_ticks": 3125,
+      "stop_interrupt": 94,
+      "stop_us": 146875.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 320,
+      "duration_1024": 200,
+      "half_period_ticks": 3125,
+      "stop_interrupt": 126,
+      "stop_us": 196875.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 321,
+      "duration_1024": 20,
+      "half_period_ticks": 3115,
+      "stop_interrupt": 13,
+      "stop_us": 20247.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 321,
+      "duration_1024": 30,
+      "half_period_ticks": 3115,
+      "stop_interrupt": 19,
+      "stop_us": 29592.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 321,
+      "duration_1024": 100,
+      "half_period_ticks": 3115,
+      "stop_interrupt": 63,
+      "stop_us": 98122.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 321,
+      "duration_1024": 150,
+      "half_period_ticks": 3115,
+      "stop_interrupt": 95,
+      "stop_us": 147962.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 321,
+      "duration_1024": 200,
+      "half_period_ticks": 3115,
+      "stop_interrupt": 126,
+      "stop_us": 196245.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 322,
+      "duration_1024": 20,
+      "half_period_ticks": 3105,
+      "stop_interrupt": 13,
+      "stop_us": 20182.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 322,
+      "duration_1024": 30,
+      "half_period_ticks": 3105,
+      "stop_interrupt": 19,
+      "stop_us": 29497.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 322,
+      "duration_1024": 100,
+      "half_period_ticks": 3105,
+      "stop_interrupt": 63,
+      "stop_us": 97807.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 322,
+      "duration_1024": 150,
+      "half_period_ticks": 3105,
+      "stop_interrupt": 95,
+      "stop_us": 147487.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 322,
+      "duration_1024": 200,
+      "half_period_ticks": 3105,
+      "stop_interrupt": 126,
+      "stop_us": 195615.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 323,
+      "duration_1024": 20,
+      "half_period_ticks": 3095,
+      "stop_interrupt": 13,
+      "stop_us": 20117.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 323,
+      "duration_1024": 30,
+      "half_period_ticks": 3095,
+      "stop_interrupt": 19,
+      "stop_us": 29402.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 323,
+      "duration_1024": 100,
+      "half_period_ticks": 3095,
+      "stop_interrupt": 64,
+      "stop_us": 99040.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 323,
+      "duration_1024": 150,
+      "half_period_ticks": 3095,
+      "stop_interrupt": 95,
+      "stop_us": 147012.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 323,
+      "duration_1024": 200,
+      "half_period_ticks": 3095,
+      "stop_interrupt": 127,
+      "stop_us": 196532.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 324,
+      "duration_1024": 20,
+      "half_period_ticks": 3086,
+      "stop_interrupt": 13,
+      "stop_us": 20059.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 324,
+      "duration_1024": 30,
+      "half_period_ticks": 3086,
+      "stop_interrupt": 19,
+      "stop_us": 29317.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 324,
+      "duration_1024": 100,
+      "half_period_ticks": 3086,
+      "stop_interrupt": 64,
+      "stop_us": 98752.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 324,
+      "duration_1024": 150,
+      "half_period_ticks": 3086,
+      "stop_interrupt": 95,
+      "stop_us": 146585.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 324,
+      "duration_1024": 200,
+      "half_period_ticks": 3086,
+      "stop_interrupt": 127,
+      "stop_us": 195961.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 325,
+      "duration_1024": 20,
+      "half_period_ticks": 3076,
+      "stop_interrupt": 13,
+      "stop_us": 19994.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 325,
+      "duration_1024": 30,
+      "half_period_ticks": 3076,
+      "stop_interrupt": 20,
+      "stop_us": 30760.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 325,
+      "duration_1024": 100,
+      "half_period_ticks": 3076,
+      "stop_interrupt": 64,
+      "stop_us": 98432.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 325,
+      "duration_1024": 150,
+      "half_period_ticks": 3076,
+      "stop_interrupt": 96,
+      "stop_us": 147648.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 325,
+      "duration_1024": 200,
+      "half_period_ticks": 3076,
+      "stop_interrupt": 127,
+      "stop_us": 195326.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 326,
+      "duration_1024": 20,
+      "half_period_ticks": 3067,
+      "stop_interrupt": 13,
+      "stop_us": 19935.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 326,
+      "duration_1024": 30,
+      "half_period_ticks": 3067,
+      "stop_interrupt": 20,
+      "stop_us": 30670.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 326,
+      "duration_1024": 100,
+      "half_period_ticks": 3067,
+      "stop_interrupt": 64,
+      "stop_us": 98144.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 326,
+      "duration_1024": 150,
+      "half_period_ticks": 3067,
+      "stop_interrupt": 96,
+      "stop_us": 147216.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 326,
+      "duration_1024": 200,
+      "half_period_ticks": 3067,
+      "stop_interrupt": 128,
+      "stop_us": 196288.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 327,
+      "duration_1024": 20,
+      "half_period_ticks": 3058,
+      "stop_interrupt": 13,
+      "stop_us": 19877.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 327,
+      "duration_1024": 30,
+      "half_period_ticks": 3058,
+      "stop_interrupt": 20,
+      "stop_us": 30580.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 327,
+      "duration_1024": 100,
+      "half_period_ticks": 3058,
+      "stop_interrupt": 64,
+      "stop_us": 97856.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 327,
+      "duration_1024": 150,
+      "half_period_ticks": 3058,
+      "stop_interrupt": 96,
+      "stop_us": 146784.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 327,
+      "duration_1024": 200,
+      "half_period_ticks": 3058,
+      "stop_interrupt": 128,
+      "stop_us": 195712.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 328,
+      "duration_1024": 20,
+      "half_period_ticks": 3048,
+      "stop_interrupt": 13,
+      "stop_us": 19812.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 328,
+      "duration_1024": 30,
+      "half_period_ticks": 3048,
+      "stop_interrupt": 20,
+      "stop_us": 30480.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 328,
+      "duration_1024": 100,
+      "half_period_ticks": 3048,
+      "stop_interrupt": 65,
+      "stop_us": 99060.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 328,
+      "duration_1024": 150,
+      "half_period_ticks": 3048,
+      "stop_interrupt": 97,
+      "stop_us": 147828.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 328,
+      "duration_1024": 200,
+      "half_period_ticks": 3048,
+      "stop_interrupt": 129,
+      "stop_us": 196596.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 329,
+      "duration_1024": 20,
+      "half_period_ticks": 3039,
+      "stop_interrupt": 13,
+      "stop_us": 19753.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 329,
+      "duration_1024": 30,
+      "half_period_ticks": 3039,
+      "stop_interrupt": 20,
+      "stop_us": 30390.0,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 329,
+      "duration_1024": 100,
+      "half_period_ticks": 3039,
+      "stop_interrupt": 65,
+      "stop_us": 98767.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 329,
+      "duration_1024": 150,
+      "half_period_ticks": 3039,
+      "stop_interrupt": 97,
+      "stop_us": 147391.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 329,
+      "duration_1024": 200,
+      "half_period_ticks": 3039,
+      "stop_interrupt": 129,
+      "stop_us": 196015.5,
+      "old_blip_hz": 320
+    },
+    {
+      "hz": 330,
+      "duration_1024": 20,
+      "half_period_ticks": 3030,
+      "stop_interrupt": 13,
+      "stop_us": 19695.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 330,
+      "duration_1024": 30,
+      "half_period_ticks": 3030,
+      "stop_interrupt": 20,
+      "stop_us": 30300.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 330,
+      "duration_1024": 100,
+      "half_period_ticks": 3030,
+      "stop_interrupt": 65,
+      "stop_us": 98475.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 330,
+      "duration_1024": 150,
+      "half_period_ticks": 3030,
+      "stop_interrupt": 97,
+      "stop_us": 146955.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 330,
+      "duration_1024": 200,
+      "half_period_ticks": 3030,
+      "stop_interrupt": 129,
+      "stop_us": 195435.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 331,
+      "duration_1024": 20,
+      "half_period_ticks": 3021,
+      "stop_interrupt": 13,
+      "stop_us": 19636.5,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 331,
+      "duration_1024": 30,
+      "half_period_ticks": 3021,
+      "stop_interrupt": 20,
+      "stop_us": 30210.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 331,
+      "duration_1024": 100,
+      "half_period_ticks": 3021,
+      "stop_interrupt": 65,
+      "stop_us": 98182.5,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 331,
+      "duration_1024": 150,
+      "half_period_ticks": 3021,
+      "stop_interrupt": 97,
+      "stop_us": 146518.5,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 331,
+      "duration_1024": 200,
+      "half_period_ticks": 3021,
+      "stop_interrupt": 130,
+      "stop_us": 196365.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 332,
+      "duration_1024": 20,
+      "half_period_ticks": 3012,
+      "stop_interrupt": 13,
+      "stop_us": 19578.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 332,
+      "duration_1024": 30,
+      "half_period_ticks": 3012,
+      "stop_interrupt": 20,
+      "stop_us": 30120.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 332,
+      "duration_1024": 100,
+      "half_period_ticks": 3012,
+      "stop_interrupt": 65,
+      "stop_us": 97890.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 332,
+      "duration_1024": 150,
+      "half_period_ticks": 3012,
+      "stop_interrupt": 98,
+      "stop_us": 147588.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 332,
+      "duration_1024": 200,
+      "half_period_ticks": 3012,
+      "stop_interrupt": 130,
+      "stop_us": 195780.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 333,
+      "duration_1024": 20,
+      "half_period_ticks": 3003,
+      "stop_interrupt": 14,
+      "stop_us": 21021.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 333,
+      "duration_1024": 30,
+      "half_period_ticks": 3003,
+      "stop_interrupt": 20,
+      "stop_us": 30030.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 333,
+      "duration_1024": 100,
+      "half_period_ticks": 3003,
+      "stop_interrupt": 66,
+      "stop_us": 99099.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 333,
+      "duration_1024": 150,
+      "half_period_ticks": 3003,
+      "stop_interrupt": 98,
+      "stop_us": 147147.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 333,
+      "duration_1024": 200,
+      "half_period_ticks": 3003,
+      "stop_interrupt": 131,
+      "stop_us": 196696.5,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 334,
+      "duration_1024": 20,
+      "half_period_ticks": 2994,
+      "stop_interrupt": 14,
+      "stop_us": 20958.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 334,
+      "duration_1024": 30,
+      "half_period_ticks": 2994,
+      "stop_interrupt": 20,
+      "stop_us": 29940.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 334,
+      "duration_1024": 100,
+      "half_period_ticks": 2994,
+      "stop_interrupt": 66,
+      "stop_us": 98802.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 334,
+      "duration_1024": 150,
+      "half_period_ticks": 2994,
+      "stop_interrupt": 98,
+      "stop_us": 146706.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 334,
+      "duration_1024": 200,
+      "half_period_ticks": 2994,
+      "stop_interrupt": 131,
+      "stop_us": 196107.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 335,
+      "duration_1024": 20,
+      "half_period_ticks": 2985,
+      "stop_interrupt": 14,
+      "stop_us": 20895.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 335,
+      "duration_1024": 30,
+      "half_period_ticks": 2985,
+      "stop_interrupt": 20,
+      "stop_us": 29850.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 335,
+      "duration_1024": 100,
+      "half_period_ticks": 2985,
+      "stop_interrupt": 66,
+      "stop_us": 98505.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 335,
+      "duration_1024": 150,
+      "half_period_ticks": 2985,
+      "stop_interrupt": 99,
+      "stop_us": 147757.5,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 335,
+      "duration_1024": 200,
+      "half_period_ticks": 2985,
+      "stop_interrupt": 131,
+      "stop_us": 195517.5,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 336,
+      "duration_1024": 20,
+      "half_period_ticks": 2976,
+      "stop_interrupt": 14,
+      "stop_us": 20832.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 336,
+      "duration_1024": 30,
+      "half_period_ticks": 2976,
+      "stop_interrupt": 20,
+      "stop_us": 29760.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 336,
+      "duration_1024": 100,
+      "half_period_ticks": 2976,
+      "stop_interrupt": 66,
+      "stop_us": 98208.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 336,
+      "duration_1024": 150,
+      "half_period_ticks": 2976,
+      "stop_interrupt": 99,
+      "stop_us": 147312.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 336,
+      "duration_1024": 200,
+      "half_period_ticks": 2976,
+      "stop_interrupt": 132,
+      "stop_us": 196416.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 337,
+      "duration_1024": 20,
+      "half_period_ticks": 2967,
+      "stop_interrupt": 14,
+      "stop_us": 20769.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 337,
+      "duration_1024": 30,
+      "half_period_ticks": 2967,
+      "stop_interrupt": 20,
+      "stop_us": 29670.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 337,
+      "duration_1024": 100,
+      "half_period_ticks": 2967,
+      "stop_interrupt": 66,
+      "stop_us": 97911.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 337,
+      "duration_1024": 150,
+      "half_period_ticks": 2967,
+      "stop_interrupt": 99,
+      "stop_us": 146866.5,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 337,
+      "duration_1024": 200,
+      "half_period_ticks": 2967,
+      "stop_interrupt": 132,
+      "stop_us": 195822.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 338,
+      "duration_1024": 20,
+      "half_period_ticks": 2958,
+      "stop_interrupt": 14,
+      "stop_us": 20706.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 338,
+      "duration_1024": 30,
+      "half_period_ticks": 2958,
+      "stop_interrupt": 20,
+      "stop_us": 29580.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 338,
+      "duration_1024": 100,
+      "half_period_ticks": 2958,
+      "stop_interrupt": 67,
+      "stop_us": 99093.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 338,
+      "duration_1024": 150,
+      "half_period_ticks": 2958,
+      "stop_interrupt": 100,
+      "stop_us": 147900.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 338,
+      "duration_1024": 200,
+      "half_period_ticks": 2958,
+      "stop_interrupt": 133,
+      "stop_us": 196707.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 339,
+      "duration_1024": 20,
+      "half_period_ticks": 2949,
+      "stop_interrupt": 14,
+      "stop_us": 20643.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 339,
+      "duration_1024": 30,
+      "half_period_ticks": 2949,
+      "stop_interrupt": 20,
+      "stop_us": 29490.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 339,
+      "duration_1024": 100,
+      "half_period_ticks": 2949,
+      "stop_interrupt": 67,
+      "stop_us": 98791.5,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 339,
+      "duration_1024": 150,
+      "half_period_ticks": 2949,
+      "stop_interrupt": 100,
+      "stop_us": 147450.0,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 339,
+      "duration_1024": 200,
+      "half_period_ticks": 2949,
+      "stop_interrupt": 133,
+      "stop_us": 196108.5,
+      "old_blip_hz": 340
+    },
+    {
+      "hz": 400,
+      "duration_1024": 20,
+      "half_period_ticks": 2500,
+      "stop_interrupt": 16,
+      "stop_us": 20000.0,
+      "old_blip_hz": 400
+    },
+    {
+      "hz": 400,
+      "duration_1024": 30,
+      "half_period_ticks": 2500,
+      "stop_interrupt": 24,
+      "stop_us": 30000.0,
+      "old_blip_hz": 400
+    },
+    {
+      "hz": 400,
+      "duration_1024": 100,
+      "half_period_ticks": 2500,
+      "stop_interrupt": 79,
+      "stop_us": 98750.0,
+      "old_blip_hz": 400
+    },
+    {
+      "hz": 400,
+      "duration_1024": 150,
+      "half_period_ticks": 2500,
+      "stop_interrupt": 118,
+      "stop_us": 147500.0,
+      "old_blip_hz": 400
+    },
+    {
+      "hz": 400,
+      "duration_1024": 200,
+      "half_period_ticks": 2500,
+      "stop_interrupt": 157,
+      "stop_us": 196250.0,
+      "old_blip_hz": 400
+    },
+    {
+      "hz": 420,
+      "duration_1024": 20,
+      "half_period_ticks": 2380,
+      "stop_interrupt": 17,
+      "stop_us": 20230.0,
+      "old_blip_hz": 420
+    },
+    {
+      "hz": 420,
+      "duration_1024": 30,
+      "half_period_ticks": 2380,
+      "stop_interrupt": 25,
+      "stop_us": 29750.0,
+      "old_blip_hz": 420
+    },
+    {
+      "hz": 420,
+      "duration_1024": 100,
+      "half_period_ticks": 2380,
+      "stop_interrupt": 83,
+      "stop_us": 98770.0,
+      "old_blip_hz": 420
+    },
+    {
+      "hz": 420,
+      "duration_1024": 150,
+      "half_period_ticks": 2380,
+      "stop_interrupt": 124,
+      "stop_us": 147560.0,
+      "old_blip_hz": 420
+    },
+    {
+      "hz": 420,
+      "duration_1024": 200,
+      "half_period_ticks": 2380,
+      "stop_interrupt": 165,
+      "stop_us": 196350.0,
+      "old_blip_hz": 420
+    },
+    {
+      "hz": 425,
+      "duration_1024": 20,
+      "half_period_ticks": 2352,
+      "stop_interrupt": 17,
+      "stop_us": 19992.0,
+      "old_blip_hz": 420
+    },
+    {
+      "hz": 425,
+      "duration_1024": 30,
+      "half_period_ticks": 2352,
+      "stop_interrupt": 25,
+      "stop_us": 29400.0,
+      "old_blip_hz": 420
+    },
+    {
+      "hz": 425,
+      "duration_1024": 100,
+      "half_period_ticks": 2352,
+      "stop_interrupt": 84,
+      "stop_us": 98784.0,
+      "old_blip_hz": 420
+    },
+    {
+      "hz": 425,
+      "duration_1024": 150,
+      "half_period_ticks": 2352,
+      "stop_interrupt": 125,
+      "stop_us": 147000.0,
+      "old_blip_hz": 420
+    },
+    {
+      "hz": 425,
+      "duration_1024": 200,
+      "half_period_ticks": 2352,
+      "stop_interrupt": 167,
+      "stop_us": 196392.0,
+      "old_blip_hz": 420
+    }
+  ],
+  "event_count": 452,
+  "event_scenarios": {
+    "bonus-0-coins-0-balloons": 1,
+    "bonus-0-coins-1-balloons": 2,
+    "bonus-0-coins-2-balloons": 3,
+    "bonus-0-coins-3-balloons": 4,
+    "bonus-1-coins-0-balloons": 2,
+    "bonus-1-coins-1-balloons": 3,
+    "bonus-1-coins-2-balloons": 4,
+    "bonus-1-coins-3-balloons": 5,
+    "bonus-2-coins-0-balloons": 3,
+    "bonus-2-coins-1-balloons": 4,
+    "bonus-2-coins-2-balloons": 5,
+    "bonus-2-coins-3-balloons": 6,
+    "bonus-3-coins-0-balloons": 4,
+    "bonus-3-coins-1-balloons": 5,
+    "bonus-3-coins-2-balloons": 6,
+    "bonus-3-coins-3-balloons": 7,
+    "bonus-4-coins-0-balloons": 5,
+    "bonus-4-coins-1-balloons": 6,
+    "bonus-4-coins-2-balloons": 7,
+    "bonus-4-coins-3-balloons": 8,
+    "bonus-5-coins-0-balloons": 6,
+    "bonus-5-coins-1-balloons": 7,
+    "bonus-5-coins-2-balloons": 8,
+    "bonus-5-coins-3-balloons": 9,
+    "bonus-6-coins-0-balloons": 7,
+    "bonus-6-coins-1-balloons": 8,
+    "bonus-6-coins-2-balloons": 9,
+    "bonus-6-coins-3-balloons": 10,
+    "bonus-cross-wrap": 10,
+    "config-back": 1,
+    "config-enable": 1,
+    "fall-game-over": 1,
+    "fall-life": 1,
+    "fan-left": 32,
+    "fan-right": 32,
+    "fan-up": 32,
+    "footsteps": 8,
+    "head-bump": 1,
+    "help-back": 1,
+    "hurt": 3,
+    "info-back": 1,
+    "inhale-walker-left": 1,
+    "inhale-walker-right": 1,
+    "inhale-wind": 144,
+    "intro-auto": 1,
+    "intro-late-skip": 1,
+    "jump": 1,
+    "key": 1,
+    "landing": 1,
+    "main-menu": 3,
+    "next-level-enter": 1,
+    "play-menu": 4,
+    "same-frame-menu": 3,
+    "same-frame-overrides": 4,
+    "six-coins-same-frame": 6,
+    "spike-hurt": 1,
+    "walker-hurt": 1
+  },
+  "event_traces_identical": true,
+  "all_timer_comparisons_passed": true,
+  "cadence": {
+    "original_frame_ms": 16,
+    "port_frame_us": 16666,
+    "note": "Original Arduboy2 truncates 1000/60; port retains its existing 60 fps pacing."
+  },
+  "limits": [
+    "Register/ISR execution and deterministic handler fixtures; no electrical or acoustic capture.",
+    "The original game does not pin its Arduboy library versions; reference commits are explicit.",
+    "Random wind uses a common seeded host RNG for event comparison; physical platform RNG streams differ.",
+    "Expanded CONF controls and early intro skip are CHGame additions; equivalent enable/back actions are compared."
+  ],
+  "validation_date": "2026-10-25",
+  "sdk_commit": "e1f8d05940ddb7bbef89c13326da75c003f02904",
+  "integration": {
+    "full_local_check": "ALL GOOD",
+    "ubsan": true,
+    "deterministic_images": 21,
+    "electrical_capture": false,
+    "device_listening": false,
+    "usb_device_detected": true,
+    "uploaded": true,
+    "hardware_performance": "45 scenarios passed with audio enabled",
+    "checkpoint_and_preferences_retained": true,
+    "hardware_evidence": "device-audio-1.2.9.json",
+    "uploaded_version": "1.2.9",
+    "normal_release_running": true,
+    "sd_menu_updated": true,
+    "controls_and_save_quit": "passed on physical CHGame",
+    "installation_evidence": "install-audio-1.2.9.json",
+    "controls_evidence": "device-controls-audio-1.2.9.json"
+  },
+  "candidate_builds": {
+    "release": {
+      "bytes": 42332,
+      "sha256": "625a802492eb39924ed7cfdb1f00b21c9532116fc7bb9b5e2f02a51ce4a475d8",
+      "static_ram_bytes": 17776,
+      "stack_bytes": 2048,
+      "save_pages": 2
+    },
+    "debug": {
+      "bytes": 47776,
+      "sha256": "1e4fc7fc1e0861e7b996bb35f4951898a16e783d56e040612c69bffd74d3971b",
+      "static_ram_bytes": 18028,
+      "stack_bytes": 2048,
+      "save_pages": 2
+    }
+  }
+}

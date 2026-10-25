@@ -2,6 +2,7 @@
 #pragma once
 #include <CHGame.h>
 #include <string.h>
+#include "Tones.h"
 
 namespace mystic {
 constexpr int VIEW_Y = 0;
@@ -37,7 +38,7 @@ void paintSprite(const uint8_t *sprite, int x, int y, uint8_t frame,
 void paintSplash(bool original);
 
 struct PortAudio {
-    static bool enabled() { return audio::on(); }
+    static bool enabled() { return tones::enabled(); }
     void on() { setSound(true); }
     void off() { setSound(false); }
     void saveOnOff() { setSound(enabled()); }
@@ -66,7 +67,7 @@ struct PortDisplay {
     Role nextRole = Skip;
     bool pressed(uint8_t b) const { return chgame.pressed(b); }
     bool justPressed(uint8_t b) const { return chgame.justPressed(b); }
-    bool everyXFrames(uint16_t n) const { return chgame.everyXFrames(n); }
+    bool everyXFrames(uint16_t n) const { return uint16_t(chgame.frameCount) % n == 0; }
     void clear() {
         memset(buffer, 0, sizeof buffer);
         memset(terrain, 0, sizeof terrain);
@@ -111,6 +112,6 @@ struct PortSprites {
     }
 };
 struct PortSound {
-    void tone(uint16_t hz, uint16_t ms) { audio::blip(hz, ms); }
+    void tone(uint16_t hz, uint16_t duration) { tones::tone(hz, duration); }
 };
 } // namespace mystic

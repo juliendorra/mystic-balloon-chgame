@@ -4,9 +4,6 @@ namespace mystic {
 Progress progress;
 static Progress stored;
 PortDisplay display;
-// The native audio service requires a non-null table even for direct blips.
-AUDIO_STEPS(toneAnchor) = { AUDIO_REST(2) };
-static const audio::Effect toneEffects[] = { AUDIO_EFFECT(toneAnchor,0) };
 
 void loadProgress() {
     Progress p;
@@ -16,7 +13,7 @@ void loadProgress() {
     else
         progress = Progress{};
     stored = progress;
-    audio::begin(toneEffects, 1, (progress.options & 1) != 0);
+    tones::begin((progress.options & 1) != 0);
 }
 
 bool storeProgress() {
@@ -31,7 +28,7 @@ bool storeProgress() {
 
 void setSound(bool on) {
     progress.options = (progress.options & ~1u) | on;
-    audio::setOn(on);
+    tones::setEnabled(on);
 }
 
 Palette palette() { return Palette((progress.options >> 1) & 3); }

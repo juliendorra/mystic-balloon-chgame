@@ -1,0 +1,35 @@
+{
+  "version": "1.2.9",
+  "firmware_bytes": 42332,
+  "firmware_crc32": "0x863402A6",
+  "firmware_sha256": "625a802492eb39924ed7cfdb1f00b21c9532116fc7bb9b5e2f02a51ce4a475d8",
+  "package_matches_firmware": true,
+  "package_sha256": "1bb11916ac6a8e5e624ebaf7ee4f8dfe5e2efa3dc1a42929b81e3399db5c6192",
+  "normal_release_uploaded": true,
+  "application_reenumerated": true,
+  "usb_port": "/dev/cu.usbmodem101",
+  "save_pages_reserved": 2,
+  "checkpoint_verified_after_sd_update": true,
+  "checkpoint": {
+    "level": 1,
+    "score": 0,
+    "total": 0,
+    "saved": 1,
+    "sound": 1,
+    "palette": 0
+  },
+  "sd_menu": {
+    "installed_at": "2026-10-25T10:17:07.669970+00:00",
+    "version": "1.2.9",
+    "path": "GAMES/MYGAMESP/MYSTICBA.CHG",
+    "old_version": "1.2.8",
+    "firmware_crc32": "0x863402A6",
+    "cart_sha256": "f6e41b9f4a7f29f33c3bc6e6eacde1ab8367d8280b1ca7982ee1b18f748d71b6",
+    "bytes": 58289,
+    "uncached_readback_after_remount": true,
+    "other_files_and_timestamps_preserved": 39,
+    "all_menu_indexes_and_covers_preserved": true,
+    "ejected_safely": true
+  },
+  "upload_record": "upload-1.2.9.txt"
+}

@@ -22,6 +22,7 @@ const FunctionPointer mainGameLoop[] = {
     stateGamePause, stateGameOver, stateMenuPlayContinue, stateMenuPlayNew,
 };
 static_assert(sizeof levels / sizeof levels[0] == TOTAL_LEVELS, "all 39 levels required");
+static bool soundSaveRequested = false;
 
 namespace mystic {
 Role spriteRole(const uint8_t *s, uint8_t frame, uint8_t mode) {
@@ -47,7 +48,7 @@ Role spriteRole(const uint8_t *s, uint8_t frame, uint8_t mode) {
 #if CHGAME_DEBUG
 bool debugCommand(char cmd, const char *args) {
     if (cmd == 'U') { mystic::framePerf.report(); return true; }
-    if (cmd == 'O') { audio::setOn(dbg::parseNum(args,10)!=0); return true; }
+    if (cmd == 'O') { mystic::tones::setEnabled(dbg::parseNum(args,10)!=0); return true; }
     if (cmd == 'C' || cmd == 'T') {
         const unsigned n=dbg::parseNum(args,10);
         if (n>3) return false;
@@ -74,7 +75,7 @@ bool debugCommand(char cmd, const char *args) {
             "MYBL state=%u level=%u x=%d y=%d sy=%d balloons=%u coins=%u total=%u key=%u score=%u spikes=%u maxheight=%u fans=%u walkers=%u saved=%u sound=%u camx=%d camy=%d view=%u palette=%u draws=%u dropped=%u\n",
             gameState, level+1, kid.pos.x, kid.pos.y, kid.speed.y,
             kid.balloons, coinsActive, totalCoins, key.haveKey, (unsigned)scorePlayer,
-            ns, maxHeight, nf, nw, progress.level+1, audio::on(), cam.pos.x, cam.pos.y, mystic::VIEW_H,
+            ns, maxHeight, nf, nw, progress.level+1, mystic::tones::enabled(), cam.pos.x, cam.pos.y, mystic::VIEW_H,
             mystic::palette(), arduboy.commandCount, arduboy.dropped);
         dbg::print(line);
         return true;
@@ -152,7 +153,10 @@ void loop() {
 #endif
     dbg::markUpdateStart();
     chgame.pollButtons();
-    if (chgame.justPressed(SELECT_BUTTON)) mystic::setSound(!audio::on());
+    if (chgame.justPressed(SELECT_BUTTON)) {
+        mystic::setSound(!mystic::tones::enabled());
+        if (gameState!=STATE_MENU_SOUNDFX) soundSaveRequested=true;
+    }
     // Resume on the following frame so START never advances a paused world.
     const bool start = chgame.justPressed(START_BUTTON);
     const bool resume = start && gameState == STATE_GAME_PAUSE;
@@ -166,24 +170,27 @@ void loop() {
     }
     const uint8_t drawnState = gameState;
     mainGameLoop[drawnState](); // native-width function pointer, never AVR pgm_read_word
-    audio::update();
 #if CHGAME_DEBUG
     const uint32_t perfGame = micros();
 #endif
     gfx_wait();
-    if (pauseSaveRequested) {
+    // Flash programming masks interrupts. Let the short tone finish first
+    // so a checkpoint/preferences write cannot stretch or drop half-waves.
+    if (pauseSaveRequested && !mystic::tones::playing()) {
         pauseSaveRequested=false;
         pauseSaveFailed=!mystic::storeProgress();
         if (!pauseSaveFailed) {
+            soundSaveRequested=false;
             gameState=STATE_MENU_MAIN;
             menuSelection=STATE_MENU_PLAY;
             cont=0;
         }
-    } else if ((gameState == STATE_GAME_NEXT_LEVEL && canPressButton) ||
+    } else if (!pauseSaveRequested && !mystic::tones::playing() &&
+        ((gameState == STATE_GAME_NEXT_LEVEL && canPressButton) ||
         gameState == STATE_GAME_OVER ||
-        (chgame.justPressed(SELECT_BUTTON) && drawnState!=STATE_MENU_SOUNDFX) ||
-        gameState == STATE_MENU_MAIN)
-        mystic::storeProgress();
+        (soundSaveRequested && drawnState!=STATE_MENU_SOUNDFX) ||
+        gameState == STATE_MENU_MAIN))
+        if (mystic::storeProgress()) soundSaveRequested=false;
     dbg::markRenderStart();
     mystic::applyPalette();
 #if CHGAME_DEBUG

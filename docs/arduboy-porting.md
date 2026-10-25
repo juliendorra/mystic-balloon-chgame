@@ -85,6 +85,24 @@ this game uses. Review the next game's API calls before reusing it. It is
 a local implementation, with game-specific saving and names, rather than
 a complete Arduboy library replacement.
 
+## Check audio units and timing
+
+Compare the actual source sound library before choosing a native adapter.
+Mystic Balloon uses ArduboyTones, whose durations are in 1/1024 seconds and
+are implemented as integer half-wave counts. CHGame's shared effects round
+pitches to 20 Hz and lengths to 2 ms. That loses audible detail in this
+game's 80–425 Hz range: 131 Hz became 140 Hz, 150 Hz became 160 Hz, and
+twenty wind pitches collapsed to two.
+
+The corrected private driver and [executable audio audit](../MysticBalloon/docs/audio-fidelity.md)
+compare original and port requests by frame, then run both timer ISRs against
+register stand-ins. Cover replacement within a frame, repeated notes, mute,
+frame-counter wrap, and saves that mask interrupts. Keep flash writes out of
+an active software-generated tone. Also distinguish frame timing from note
+length: the original Arduboy2 clock truncates `1000/60` to 16 ms, while this
+port retains 60 fps. Record that deliberate pacing difference separately
+from the fidelity of an individual note.
+
 ## Expand a scrolling viewport
 
 Changing the buffer height is only the first step. Derive these quantities

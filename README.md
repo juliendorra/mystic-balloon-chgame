@@ -75,6 +75,18 @@ local. The [art sources](MysticBalloon/tools/art/splash/README.md),
 
 ## Validation
 
+Source version **1.2.9** corrects original audio pitches, half-wave durations,
+menu clicks and long-run sound timing. It passes **452 matching sound events**
+and **180 timer cases**, plus the full local game checks. See the
+[audio audit](MysticBalloon/docs/audio-fidelity.md). The downloadable 1.2.8
+package above predates these fixes; build the current source using the
+commands above to include them. On physical CHGame Rev0, 45 scenarios passed
+with audio enabled at approximately 60 fps and zero late frames; controls,
+SAVE & QUIT and retained checkpoints also passed. The normal 1.2.9 firmware
+and SD-menu copy were installed and verified. See the
+[installation record](MysticBalloon/docs/install-audio-1.2.9.json).
+Electrical/audio capture remains pending.
+
 Release **1.2.8** was installed and checked on physical CHGame Rev0:
 all 39 levels and 45 gameplay timing scenarios sustained approximately
 60 fps with zero late frames. The worst CPU work was **14.126 ms** within

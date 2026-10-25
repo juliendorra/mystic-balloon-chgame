@@ -30,7 +30,7 @@ def asset_bytes(text):
     return arrays
 
 
-def build_runner(source, output):
+def build_runner(source, output, extra_includes=()):
     host = ROOT / "CHGame/tools/chsim/host"
     libraries = ROOT / "CHGame/platform/board/arduino/CHGame/libraries"
     gfx = libraries / "CHGfx/src"
@@ -39,7 +39,7 @@ def build_runner(source, output):
     out.mkdir(parents=True, exist_ok=True)
     sanitizers = os.environ.get("CHMB_SANITIZERS", "undefined")
     os.environ["CHSIM_FLAGS"] = f"-fsanitize={sanitizers} -fno-sanitize-recover=all"
-    sources = [source, GAME / "Port.cpp", GAME / "Color.cpp", host / "chgfx_host.cpp"]
+    sources = [source, GAME / "Port.cpp", GAME / "Color.cpp", GAME / "Tones.cpp", host / "chgfx_host.cpp"]
     sources += sorted(p for p in gfx.glob("*.cpp") if p.name != "CHGfx.cpp")
     sources += sorted(p for p in lib.rglob("*.cpp") if p.name != "Save.cpp")
     # Physical flash is word-aligned. The upstream simulator declares its
@@ -51,7 +51,7 @@ def build_runner(source, output):
     aligned_save = out / "Save_aligned.cpp"
     aligned_save.write_text(save_source.replace(declaration, "alignas(4) " + declaration))
     sources.append(aligned_save)
-    return compile_exe(sources, output, includes=[GAME, host, gfx, lib, lib / "chgame"])
+    return compile_exe(sources, output, includes=[*extra_includes, GAME, host, gfx, lib, lib / "chgame"])
 
 
 def main():

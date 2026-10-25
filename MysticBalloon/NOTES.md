@@ -8,6 +8,11 @@ submodule and shared libraries are unchanged.
 
 ## Build and run
 
+Version **1.2.9** includes the audio fidelity correction described in
+[the audio audit](docs/audio-fidelity.md). The 1.2.8 binary identities and
+hardware measurements below describe the earlier release, before this
+correction.
+
 Run these commands from the workspace root. Dependencies, board package,
 and the native RISC-V compiler are shared with Ball and Pinball.
 
@@ -26,6 +31,14 @@ python3 mysticballoon.py cart verify MysticBalloon/build/MysticBalloon.chgame
 image. Plain `check` builds locally; neither command uploads or uses CI.
 `python3 mysticballoon.py upload` explicitly installs the release on a
 connected handheld.
+
+Audio-fix version 1.2.9 builds locally at 42,332 bytes (release) and
+47,776 bytes (diagnostic), with 17,776 / 18,028 bytes static RAM and a
+separate 2,048-byte stack. Both retain the two save pages. On CHGame Rev0,
+all 45 audio-enabled performance cases passed at 59.76–60.60 fps with zero
+late frames, maximum work 13.811 ms, and a 1,232-byte stack watermark.
+The original checkpoint and preferences were retained. See
+[the 1.2.9 device record](docs/device-audio-1.2.9.json).
 
 Local builds on 2026-10-24 (CHGame 0.3.0, native GCC 16.2.0):
 
@@ -94,7 +107,8 @@ The reusable workflow is in the [Arduboy porting guide](../docs/arduboy-porting.
 
 ## Adaptation
 
-- `Port.h`/`Port.cpp` supply sprite, input and sound services. The original
+- `Port.h`/`Port.cpp` supply sprite and input services; `Tones.cpp` supplies
+  ArduboyTones-compatible playback. The original
   Arduboy libraries, AVR timers and EEPROM library are not dependencies.
 - `vec2` uses signed 16-bit components; score/checkpoint values are fixed
   32-bit values on both the host and RISC-V target. Function dispatch uses
@@ -171,10 +185,14 @@ The reusable workflow is in the [Arduboy porting guide](../docs/arduboy-porting.
 - START pauses without advancing game physics; SELECT toggles sound.
   The original Down+A pause remains. The introduction can be skipped with
   either action button. The original blank HELP page returns on A or B.
-- The tone-only audio adapter supplies a valid effect table: the native
-  audio service rejects all blips when initialized with a null table.
-  Device timing checks explicitly enable audio through a runtime override
-  and restore it afterward without changing the saved sound option.
+- The private tone driver preserves the original 2 MHz divider, half-wave
+  counts, monophonic interruption, timer phase and mute behavior. It replaces
+  the shared blip sequencer's coarse frequency/duration units. Flash saves
+  wait for the voice to finish because programming masks interrupts. SELECT
+  preferences remain pending until a safe write; SAVE & QUIT keeps the world
+  frozen while waiting. The 16-bit frame-counter wrap is retained for periodic
+  sound triggers. The port still runs at 60 fps; the original Arduboy2 frame
+  clock nominally schedules 16 ms frames. See [timing limits](docs/audio-fidelity.md).
 - Every game starts from its original physics and scoring. Each new level
   restores three balloons; the optional upstream `HARD_MODE` stays off.
 
@@ -197,6 +215,14 @@ fan-driven flight above row zero and a return in all four display modes.
 `tools/preview_scrolling.py` exports native fixtures for the corresponding
 physical-device checker, `tools/verify_scrolling_device.py`.
 
+`tools/verify_audio.py --fetch` downloads hash-pinned original game and
+Arduboy library sources once; subsequent runs are offline. It executes the
+actual original sound-trigger handlers alongside the port and compares
+452 tone requests across 57 scenarios. A separate register harness executes
+the original ArduboyTones driver and native timer ISR across 180 cases,
+checking divider, pin transitions, stop counts, mute and replacement. Source
+hashes and detailed results are in [the audio audit](docs/audio-fidelity.json).
+
 The shared simulator's pretend flash is a byte array cast to a word-aligned
 record type. The test build makes an aligned copy of that host declaration
 in `out/tests/`; physical device flash already has this alignment. Shared
@@ -208,7 +234,7 @@ this host, so the default uses UBSan.
 runs it twice and compares pixels for determinism and checks DMA hazards.
 `tools/cart.py` makes the visual-menu picture from the original title art.
 
-Debug identity: `MYBL 1.2.8`. `V` reports game state, entities, progress,
+Debug identity: `MYBL 1.2.9`. `V` reports game state, entities, progress,
 camera position, viewport height, palette and command capacity;
 `U` reports game, expansion, color, wait, submit, CPU work and intervals;
 `G 1` through `G 39` start a level for simulator/debug inspection. These
@@ -229,6 +255,14 @@ retains that candidate's binary identities; its player fixes ship with
 includes the platform references, current firmware identities and device
 results. The release CRC32 is `0x909C57E2`; its verified cartridge contains
 the exact 42,612-byte image.
+
+Installed 1.2.9 release build: 42,332 bytes, CRC32 `0x863402A6`, SHA256
+`625a802492eb39924ed7cfdb1f00b21c9532116fc7bb9b5e2f02a51ce4a475d8`.
+The [upload](docs/upload-1.2.9.txt) was accepted and the normal application
+re-enumerated on 2026-10-25. Its existing SD-menu cartridge now contains the
+same firmware. All 39 other visible files and timestamps were retained,
+and the original checkpoint/preferences were verified after the SD update.
+See [installation evidence](docs/install-audio-1.2.9.json).
 
 Release 1.2.8 SHA256:
 `cb9c6a2030be8527759a026a245a67c6c9b453e19ff4b3e50fd396b70c9dc6cf`.

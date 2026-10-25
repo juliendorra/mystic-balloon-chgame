@@ -50,6 +50,7 @@ From this workspace, build and upload with `python3 mysticballoon.py upload`. Th
 - Pause retains the frozen native world and replays only its opaque action panel; this avoids rebuilding the world while the LCD transfer is in flight.
 - `MysticBalloon.ino` uses native CHGame input, frame pacing, debug protocol, and pause controls. The game runs at 60 logic frames per second.
 - `Port.cpp` saves with the unique `MYBL` flash magic, batches writes, and retains both save pages.
+- Version **1.2.9** includes the [audio correction and audit](docs/audio-fidelity.md) preserves ArduboyTones pitches, half-wave durations and interruption rules; flash saves wait for silence. It includes original/port event comparisons and executable timer tests. The published 1.2.8 package predates this correction.
 - The original game code lives in the adjacent headers. `bitmaps.h` retains the upstream artwork and level bytes; `tools/upstream-assets.json` records their fingerprints.
 - See [NOTES.md](NOTES.md) for build, tests, packaging, and validation limits.
 - The [splash drawing sources and workflow](tools/art/splash/README.md) include the extracted original, completed drawing and native menu review in all four display modes.

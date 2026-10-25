@@ -126,17 +126,21 @@ void stateMenuSoundfx()
   sprites.drawSelfMasked(51, 44+8*settingsSelection, mystic::art::cursor, 0);
   if (arduboy.justPressed(B_BUTTON))
   {
-    if (settingsSelection<4) mystic::setPalette(mystic::Palette(settingsSelection));
+    if (settingsSelection<4) {
+      mystic::setPalette(mystic::Palette(settingsSelection));
+      sound.tone(425, 20);
+    }
     else {
       mystic::setPalette(settingsOriginalPalette);
       mystic::setSound(!arduboy.audio.enabled());
+      sound.tone(300, 20);
     }
-    sound.tone(425, 20);
     gameState = STATE_MENU_MAIN;
   }
   if (arduboy.justPressed(A_BUTTON)) {
     mystic::setPalette(settingsOriginalPalette);
     gameState = STATE_MENU_MAIN;
+    sound.tone(425, 20);
   }
 }
 

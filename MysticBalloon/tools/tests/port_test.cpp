@@ -7,13 +7,21 @@
 #undef main
 
 static void tick(uint8_t buttons = 0) {
+    const uint32_t started=micros();
     chgame.injected = buttons;
     chgame.lockstep = 1;
     loop();
     gfx_wait();
+    const uint32_t elapsed=micros()-started;
+    if (elapsed<16666) delayMicroseconds(16666-elapsed);
 }
 
 static void tap(uint8_t button) { tick(button); tick(); }
+static void finishTone(uint8_t buttons=0) {
+    for (unsigned i=0;mystic::tones::playing() && i<60;++i) tick(buttons);
+    assert(!mystic::tones::playing());
+    tick(buttons); // Commit on the first frame after the last half-wave.
+}
 
 static void startLevel(unsigned n, uint32_t entryScore=0, uint8_t entryCoins=0) {
     stateMenuPlayNew();
@@ -354,7 +362,7 @@ static void colorsTest() {
         tick(B_BUTTON);
         assert(gameState==STATE_MENU_MAIN && palette()==Palette(i));
         tick();
-        const bool sound=audio::on();
+        const bool sound=mystic::tones::enabled();
         setSound(!sound);
         assert(palette()==Palette(i));
         setSound(sound);
@@ -362,7 +370,7 @@ static void colorsTest() {
         storeProgress();
         progress=Progress{};
         loadProgress();
-        assert(palette()==Palette(i) && audio::on()==sound);
+        assert(palette()==Palette(i) && mystic::tones::enabled()==sound);
         gameState=STATE_MENU_SOUNDFX;
     }
     // Schema-1 records from the monochrome release have only the sound bit.
@@ -370,7 +378,7 @@ static void colorsTest() {
     legacy.options=0;
     assert(save::store(SAVE_MAGIC,1,legacy));
     loadProgress();
-    assert(palette()==Color && !audio::on());
+    assert(palette()==Color && !mystic::tones::enabled());
     setSound(true);
     setPalette(Color);
     puts("PASS: all 39 levels in four palettes, unchanged geometry/physics, full splash, menu selection and compatible saved preferences");
@@ -500,13 +508,15 @@ static void settingsPreviewTest() {
     tap(DOWN_BUTTON); // Sound row keeps the last preview on screen.
     assert(settingsSelection==4 && palette()==Amber);
     tap(SELECT_BUTTON); // Muting cannot accidentally persist a preview.
-    assert(!audio::on() && save::read(SAVE_MAGIC,1,sizeof(Progress))==record);
+    assert(!mystic::tones::enabled() && save::read(SAVE_MAGIC,1,sizeof(Progress))==record);
     tap(A_BUTTON);
+    finishTone();
     Progress loaded;
     assert(gameState==STATE_MENU_MAIN && palette()==Color);
     assert(save::load(SAVE_MAGIC,1,loaded) && loaded.level==checkpoint.level &&
            loaded.score==checkpoint.score && loaded.coins==checkpoint.coins && loaded.options==0);
     setSound(true);tick();tap(B_BUTTON);tap(DOWN_BUTTON);tap(B_BUTTON);
+    finishTone();
     assert(gameState==STATE_MENU_MAIN && palette()==Original);
     assert(save::load(SAVE_MAGIC,1,loaded) && ((loaded.options>>1)&3)==Original);
     tap(B_BUTTON);tap(UP_BUTTON); // Preview Color from committed Original.
@@ -514,7 +524,8 @@ static void settingsPreviewTest() {
     tap(UP_BUTTON); // Wrap to SOUND, then confirm just the sound change.
     assert(settingsSelection==4);
     tap(B_BUTTON);
-    assert(gameState==STATE_MENU_MAIN && palette()==Original && !audio::on());
+    assert(gameState==STATE_MENU_MAIN && palette()==Original && !mystic::tones::enabled());
+    finishTone();
     assert(save::load(SAVE_MAGIC,1,loaded) && loaded.options==2);
     setPalette(Color);setSound(true);tick();
     puts("PASS: live palette previews, B confirms, A cancels, SOUND restores committed palette, previews never write flash");
@@ -536,10 +547,10 @@ static void pauseTest() {
     assert(gameState==STATE_GAME_PLAYING);
     tick();
     tick(SELECT_BUTTON);
-    assert(!audio::on());
+    assert(!mystic::tones::enabled());
     tick();
     tick(SELECT_BUTTON);
-    assert(audio::on());
+    assert(mystic::tones::enabled());
     tick();
     puts("PASS: START freezes physics, camera and pixels; resume and mute work");
 }
@@ -563,7 +574,10 @@ static void pauseSaveQuitTest() {
     assert(pauseSelection==0); // Every new pause starts safely on RESUME.
     tap(DOWN_BUTTON);
     const Players beforeQuit=kid;
+    tones::tone(420,200);
     tick(B_BUTTON);
+    assert(gameState==STATE_GAME_PAUSE && pauseSaveRequested && !pauseSaveFailed);
+    finishTone(B_BUTTON);
     assert(gameState==STATE_MENU_MAIN && !pauseSaveFailed && !pauseSaveRequested);
     assert(!memcmp(&kid,&beforeQuit,sizeof kid));
     for (unsigned i=0;i<5;++i) tick(B_BUTTON);
@@ -584,6 +598,22 @@ static void pauseSaveQuitTest() {
     kid.pos=coins[0].pos;checkCollisions();
     assert(scorePlayer==1400 && totalCoins==13); // No duplicated mid-level reward.
     puts("PASS: pause selection freezes the world; SAVE & QUIT persists checkpoint and high score; CONT reloads without duplicate coins");
+}
+
+static void audioSaveTest() {
+    using namespace mystic;
+    startLevel(0);setSound(true);storeProgress();
+    gameState=STATE_GAME_PAUSE;
+    const void *before=save::read(SAVE_MAGIC,1,sizeof(Progress));
+    tones::tone(420,200);tick(SELECT_BUTTON);
+    assert(!tones::enabled() && tones::playing());
+    assert(save::read(SAVE_MAGIC,1,sizeof(Progress))==before);
+    finishTone();
+    Progress loaded;
+    assert(save::load(SAVE_MAGIC,1,loaded) && !(loaded.options&1));
+    assert(save::read(SAVE_MAGIC,1,sizeof(Progress))!=before);
+    setSound(true);gameState=STATE_MENU_MAIN;finishTone();
+    puts("PASS: flash waits for audio silence; SELECT changes persist after the tone; SAVE & QUIT waits without advancing the paused world");
 }
 
 static void pauseRenderTest() {
@@ -732,6 +762,7 @@ int main() {
     pauseTest();
     pauseRenderTest();
     pauseSaveQuitTest();
+    audioSaveTest();
     progressionTest();
     hazardsTest();
     gfx_wait();
