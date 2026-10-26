@@ -7,11 +7,12 @@ port** of TEAM a.r.g.'s **Mystic Balloon**.
 Explore all 39 original levels with the original physics, bright
 red/yellow/blue balloons and a continuous splash illustration.
 
-**[Download version 1.2.8](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.2.8)**:
-[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.2.8/MysticBalloon-1.2.8.chgame)
-or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.2.8/MysticBalloon-1.2.8-rev0.bin).
+**[Download version 1.2.9](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.2.9)**:
+[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.2.9/MysticBalloon-1.2.9.chgame)
+or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.2.9/MysticBalloon-1.2.9-rev0.bin).
 The release includes USB and SD-card installation instructions and
-checksums. No compiling needed.
+[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.2.9/SHA256SUMS.txt).
+No compiling needed.
 
 | Color — Pastel Island (default) | Original B&W |
 |:---:|:---:|
@@ -75,29 +76,26 @@ local. The [art sources](MysticBalloon/tools/art/splash/README.md),
 
 ## Validation
 
-Source version **1.2.9** corrects original audio pitches, half-wave durations,
+Release **1.2.9** corrects original audio pitches, half-wave durations,
 menu clicks and long-run sound timing. It passes **452 matching sound events**
 and **180 timer cases**, plus the full local game checks. See the
-[audio audit](MysticBalloon/docs/audio-fidelity.md). The downloadable 1.2.8
-package above predates these fixes; build the current source using the
-commands above to include them. On physical CHGame Rev0, 45 scenarios passed
-with audio enabled at approximately 60 fps and zero late frames; controls,
+[audio audit](MysticBalloon/docs/audio-fidelity.md). Both downloads above
+include these fixes. On physical CHGame Rev0, all 39 levels and six sustained
+scenarios passed with audio enabled at approximately **60 fps with zero late
+frames**; worst CPU work was **13.811 ms** within the 16.667 ms frame budget. Controls,
 SAVE & QUIT and retained checkpoints also passed. The normal 1.2.9 firmware
 and SD-menu copy were installed and verified. See the
 [installation record](MysticBalloon/docs/install-audio-1.2.9.json).
 Electrical/audio capture remains pending.
 
-Release **1.2.8** was installed and checked on physical CHGame Rev0:
-all 39 levels and 45 gameplay timing scenarios sustained approximately
-60 fps with zero late frames. The worst CPU work was **14.126 ms** within
-the 16.667 ms frame budget. Additional checks cover 12 border/ascent
+Rendering checks cover 12 border/ascent
 fixtures, all 64 player/inhale canvases and saved-preference restoration.
 The host suite includes 1,716 platform references and 320 player composites.
 
 See the [validation record](MysticBalloon/docs/platform-composite-checks.json),
 [performance measurements](MysticBalloon/docs/performance.md), and
-[port notes](MysticBalloon/NOTES.md). Exact release firmware: **42,612 bytes**,
-CRC32 **`0x909C57E2`**, built with native GCC 16.2.0. These historical binary
+[port notes](MysticBalloon/NOTES.md). Exact 1.2.9 release firmware: **42,332 bytes**,
+CRC32 **`0x863402A6`**, built with native GCC 16.2.0. Binary
 identities depend on the recorded compiler; a different toolchain may
 produce different bytes. Native compiler development is outside this repo.
 
