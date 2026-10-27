@@ -24,7 +24,7 @@ def clean(text):
 
 
 def calls(text):
-    return [re.sub(r"\s+", "", v) for v in
+    return [re.sub(r"\s+", "", re.sub(r",\s*mystic::audio::\w+\s*$", "", v)) for v in
             re.findall(r"sound\.tone\((.*?)\);", clean(text), re.S)]
 
 

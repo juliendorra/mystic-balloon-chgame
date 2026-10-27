@@ -18,8 +18,8 @@ static void tick(uint8_t buttons = 0) {
 
 static void tap(uint8_t button) { tick(button); tick(); }
 static void finishTone(uint8_t buttons=0) {
-    for (unsigned i=0;mystic::tones::playing() && i<60;++i) tick(buttons);
-    assert(!mystic::tones::playing());
+    for (unsigned i=0;!mystic::audio::saveReady() && i<60;++i) tick(buttons);
+    assert(mystic::audio::saveReady());
     tick(buttons); // Commit on the first frame after the last half-wave.
 }
 
@@ -362,7 +362,7 @@ static void colorsTest() {
         tick(B_BUTTON);
         assert(gameState==STATE_MENU_MAIN && palette()==Palette(i));
         tick();
-        const bool sound=mystic::tones::enabled();
+        const bool sound=mystic::audio::enabled();
         setSound(!sound);
         assert(palette()==Palette(i));
         setSound(sound);
@@ -370,7 +370,7 @@ static void colorsTest() {
         storeProgress();
         progress=Progress{};
         loadProgress();
-        assert(palette()==Palette(i) && mystic::tones::enabled()==sound);
+        assert(palette()==Palette(i) && mystic::audio::enabled()==sound);
         gameState=STATE_MENU_SOUNDFX;
     }
     // Schema-1 records from the monochrome release have only the sound bit.
@@ -378,7 +378,7 @@ static void colorsTest() {
     legacy.options=0;
     assert(save::store(SAVE_MAGIC,1,legacy));
     loadProgress();
-    assert(palette()==Color && !mystic::tones::enabled());
+    assert(palette()==Color && !mystic::audio::enabled());
     setSound(true);
     setPalette(Color);
     puts("PASS: all 39 levels in four palettes, unchanged geometry/physics, full splash, menu selection and compatible saved preferences");
@@ -508,7 +508,7 @@ static void settingsPreviewTest() {
     tap(DOWN_BUTTON); // Sound row keeps the last preview on screen.
     assert(settingsSelection==4 && palette()==Amber);
     tap(SELECT_BUTTON); // Muting cannot accidentally persist a preview.
-    assert(!mystic::tones::enabled() && save::read(SAVE_MAGIC,1,sizeof(Progress))==record);
+    assert(!mystic::audio::enabled() && save::read(SAVE_MAGIC,1,sizeof(Progress))==record);
     tap(A_BUTTON);
     finishTone();
     Progress loaded;
@@ -522,9 +522,9 @@ static void settingsPreviewTest() {
     tap(B_BUTTON);tap(UP_BUTTON); // Preview Color from committed Original.
     assert(palette()==Color);
     tap(UP_BUTTON); // Wrap to SOUND, then confirm just the sound change.
-    assert(settingsSelection==4);
+    assert(settingsSelection==5);
     tap(B_BUTTON);
-    assert(gameState==STATE_MENU_MAIN && palette()==Original && !mystic::tones::enabled());
+    assert(gameState==STATE_MENU_MAIN && palette()==Original && !mystic::audio::enabled());
     finishTone();
     assert(save::load(SAVE_MAGIC,1,loaded) && loaded.options==2);
     setPalette(Color);setSound(true);tick();
@@ -547,10 +547,10 @@ static void pauseTest() {
     assert(gameState==STATE_GAME_PLAYING);
     tick();
     tick(SELECT_BUTTON);
-    assert(!mystic::tones::enabled());
+    assert(!mystic::audio::enabled());
     tick();
     tick(SELECT_BUTTON);
-    assert(mystic::tones::enabled());
+    assert(mystic::audio::enabled());
     tick();
     puts("PASS: START freezes physics, camera and pixels; resume and mute work");
 }
@@ -574,7 +574,7 @@ static void pauseSaveQuitTest() {
     assert(pauseSelection==0); // Every new pause starts safely on RESUME.
     tap(DOWN_BUTTON);
     const Players beforeQuit=kid;
-    tones::tone(420,200);
+    mystic::audio::tone(420,200,mystic::audio::Hurt);
     tick(B_BUTTON);
     assert(gameState==STATE_GAME_PAUSE && pauseSaveRequested && !pauseSaveFailed);
     finishTone(B_BUTTON);
@@ -602,7 +602,7 @@ static void pauseSaveQuitTest() {
 
 static void audioSaveTest() {
     using namespace mystic;
-    startLevel(0);setSound(true);storeProgress();
+    startLevel(0);setAudioMode(mystic::audio::Beeps);setSound(true);storeProgress();
     gameState=STATE_GAME_PAUSE;
     const void *before=save::read(SAVE_MAGIC,1,sizeof(Progress));
     tones::tone(420,200);tick(SELECT_BUTTON);
@@ -712,6 +712,92 @@ static void progressionTest() {
     puts("PASS: coins, key, exit, bonuses, checkpoint reload, continue, high score, game completion");
 }
 
+static void pendingAudioSaveTest() {
+    using namespace mystic;
+    setAudioMode(mystic::audio::Beeps);setPalette(Color);setSound(true);
+    gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_SOUNDFX;
+    finishTone();storeProgress();
+    tap(B_BUTTON);
+    for (unsigned i=0;i<4;++i) tap(DOWN_BUTTON);
+    tap(B_BUTTON); // Enable ATM, then immediately leave the main menu.
+    tap(UP_BUTTON);tap(UP_BUTTON);tap(B_BUTTON);
+    assert(gameState==STATE_MENU_PLAY && mystic::audio::mode()==mystic::audio::Atm);
+    finishTone();
+    Progress loaded;
+    assert(save::load(SAVE_MAGIC,1,loaded) && !(loaded.options&8));
+    for (auto mode : {mystic::audio::Atm,mystic::audio::Beeps}) {
+        setAudioMode(mode);level=6;scorePlayer=1234;totalCoins=12;
+        coinsCollected=balloonsLeft=0;toneindex=TOTAL_TONES;canPressButton=true;
+        gameState=STATE_GAME_NEXT_LEVEL;tap(B_BUTTON);finishTone();
+        assert(gameState==STATE_GAME_PLAYING);
+        assert(save::load(SAVE_MAGIC,1,loaded) && loaded.level==6 && loaded.score==1234 && loaded.coins==12);
+    }
+    puts("PASS: confirmed audio choice and level checkpoint still save when leaving immediately during a sound effect");
+}
+
+static void commandCapacityTest() {
+    using Ref=mystic::PortDisplay::PackedSpriteRef;
+    static_assert(sizeof(Ref)==2,"two-byte Rev0 sprite reference");
+    for (uintptr_t a=0x3000;a<=0xffff;++a) {
+        const auto p=reinterpret_cast<const uint8_t *>(a);
+        assert(Ref::supported(p) && static_cast<const uint8_t *>(Ref(p))==p);
+    }
+    for (uintptr_t a=0x20000010;a<0x20003000;++a) {
+        const auto p=reinterpret_cast<const uint8_t *>(a);
+        assert(Ref::supported(p) && static_cast<const uint8_t *>(Ref(p))==p);
+    }
+    assert(!Ref::supported(reinterpret_cast<const uint8_t *>(0x20003000)));
+    assert(!Ref::supported(reinterpret_cast<const uint8_t *>(0x2fff)));
+    puts("PASS: packed sprite references round-trip flash and the SRAM small-constant pool, including particles and cursors");
+    unsigned peak=0,views=0;
+    for (unsigned n=0;n<TOTAL_LEVELS;++n) {
+        startLevel(n);
+        for (int y=-32;y<=288;y+=16) for (int x=-32;x<=288;x+=16) {
+            cam.pos=vec2(x,y);kid.pos=vec2(x+64,y+64);
+            arduboy.clear();drawGrid();enemiesUpdate();drawKid();drawHUD();
+            const unsigned used=arduboy.commandCount+arduboy.dropped;
+            if (used>peak) peak=used;
+            ++views;
+        }
+    }
+    printf("PASS: %u viewport positions across 39 levels; peak %u/%u sprite commands, no drops\n",
+           views,peak,mystic::PortDisplay::MAX_COMMANDS);
+    assert(peak<=mystic::PortDisplay::MAX_COMMANDS);
+}
+
+static void audioModesTest() {
+    using namespace mystic;
+    // Migrate every old sound/palette combination, plus both new modes.
+    for (unsigned options=0;options<16;++options) {
+        Progress p; p.level=5;p.score=1200;p.coins=12;p.options=options;
+        assert(save::store(SAVE_MAGIC,1,p));loadProgress();
+        assert(mystic::audio::mode()==((options&8) ? mystic::audio::Beeps : mystic::audio::Atm));
+        assert(mystic::audio::enabled()==bool(options&1));
+        setPalette(Amber);assert(bool(progress.options&8)==bool(options&8));
+        setSound(!bool(options&1));assert(bool(progress.options&8)==bool(options&8));
+    }
+    setAudioMode(mystic::audio::Atm);setPalette(Color);setSound(true);
+    gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_SOUNDFX;tick();
+    tap(B_BUTTON);
+    for (unsigned i=0;i<4;++i) tap(DOWN_BUTTON);
+    assert(settingsSelection==4);
+    tap(B_BUTTON);finishTone();
+    assert(gameState==STATE_MENU_MAIN && mystic::audio::mode()==mystic::audio::Beeps && palette()==Color);
+    loadProgress();assert(mystic::audio::mode()==mystic::audio::Beeps);
+    menuSelection=STATE_MENU_SOUNDFX;tap(B_BUTTON);
+    for (unsigned i=0;i<4;++i) tap(DOWN_BUTTON);
+    tap(B_BUTTON);finishTone();
+    assert(mystic::audio::mode()==mystic::audio::Atm && palette()==Color);
+    loadProgress();assert(mystic::audio::mode()==mystic::audio::Atm);
+    gameState=STATE_MENU_MAIN;tick();
+    assert(mystic::audio::song()==1); // Menu music loops but never blocks saving.
+    const auto t=mystic::audio::ticks();
+    for (unsigned i=0;i<60;++i) tick();
+    assert(mystic::audio::ticks()>t && mystic::audio::saveReady());
+    pauseSaveQuitTest(); // Checkpoint flow also works with the new default.
+    puts("PASS: all 16 save option combinations, old-record migration to ATM, CONF switches both ways, looping music and SAVE & QUIT");
+}
+
 static void hazardsTest() {
     startLevel(1);
     unsigned i=0;
@@ -765,6 +851,9 @@ int main() {
     audioSaveTest();
     progressionTest();
     hazardsTest();
+    audioModesTest();
+    pendingAudioSaveTest();
+    commandCapacityTest();
     gfx_wait();
     return 0;
 }

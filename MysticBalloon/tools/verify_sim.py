@@ -39,7 +39,7 @@ def build_runner(source, output, extra_includes=()):
     out.mkdir(parents=True, exist_ok=True)
     sanitizers = os.environ.get("CHMB_SANITIZERS", "undefined")
     os.environ["CHSIM_FLAGS"] = f"-fsanitize={sanitizers} -fno-sanitize-recover=all"
-    sources = [source, GAME / "Port.cpp", GAME / "Color.cpp", GAME / "Tones.cpp", host / "chgfx_host.cpp"]
+    sources = [source, GAME / "Port.cpp", GAME / "Color.cpp", GAME / "Tones.cpp", GAME / "Audio.cpp", host / "chgfx_host.cpp"]
     sources += sorted(p for p in gfx.glob("*.cpp") if p.name != "CHGfx.cpp")
     sources += sorted(p for p in lib.rglob("*.cpp") if p.name != "Save.cpp")
     # Physical flash is word-aligned. The upstream simulator declares its

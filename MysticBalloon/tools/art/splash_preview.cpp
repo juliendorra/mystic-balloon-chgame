@@ -22,7 +22,7 @@ int main(int argc,char **argv) {
             arduboy.clear();gameState=STATE_MENU_MAIN;menuSelection=selection+2;
             stateMenuMain();arduboy.render(false);dump(argv[1],palette,"main",selection);
         }
-        for (unsigned selection=0;selection<5;++selection) {
+        for (unsigned selection=0;selection<6;++selection) {
             arduboy.clear();gameState=STATE_MENU_SOUNDFX;settingsSelection=selection;
             stateMenuSoundfx();arduboy.render(false);dump(argv[1],palette,"config",selection);
         }

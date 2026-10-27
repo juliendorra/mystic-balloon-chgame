@@ -13,3 +13,18 @@ viewport to 128x128, adds selectable color palettes and a continuous splash
 illustration derived from the original title artwork,
 and corrects fixed-width arithmetic and the all-coins badge total. Original
 sprite shapes, 39-level order, physics, enemies and scoring are retained.
+
+Version 1.3.0 adds the title, five gameplay scores and fourteen sound effects
+from the MIT-licensed ATMlib edition by T-arg / TEAM a.r.g.:
+https://github.com/T-arg/ID-34-Mystic-Balloon
+Commit: 87354104ee5b027e1e4b1c755de1b1be76e091b9
+Only its audio is imported; the original 39 levels above remain intact.
+
+ATMlib / Squawk code: Davey Taylor (STG), Joeri Gantois (JO3RI), TEAM a.r.g.
+BSD 3-Clause; see ATMLIB-LICENSE and vendor/ATMlib/LICENSE.
+Source: https://github.com/T-arg/ATMlib
+Commit: 8fdabd2fd81082bff50e8af730cae4feff2cce99
+The RISC-V interpreter fixes and PWM backend derive from our CHGame ATM
+Soundtracks port. Mystic Balloon retains ATM's pulse/square/saw waveforms,
+enables its original sound-effect overlay, and uses the song's tempo divider.
+No NES/Game Boy arrangements from the soundtrack demo are included.

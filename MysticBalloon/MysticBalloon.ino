@@ -48,7 +48,12 @@ Role spriteRole(const uint8_t *s, uint8_t frame, uint8_t mode) {
 #if CHGAME_DEBUG
 bool debugCommand(char cmd, const char *args) {
     if (cmd == 'U') { mystic::framePerf.report(); return true; }
-    if (cmd == 'O') { mystic::tones::setEnabled(dbg::parseNum(args,10)!=0); return true; }
+    if (cmd == 'O') { mystic::audio::setEnabled(dbg::parseNum(args,10)!=0); return true; }
+    if (cmd == 'M') {
+        const unsigned n=dbg::parseNum(args,10);
+        if (n>1) return false;
+        mystic::setAudioMode(mystic::audio::Mode(n)); return true;
+    }
     if (cmd == 'C' || cmd == 'T') {
         const unsigned n=dbg::parseNum(args,10);
         if (n>3) return false;
@@ -61,7 +66,7 @@ bool debugCommand(char cmd, const char *args) {
         return true;
     }
     if (cmd == 'V') {
-        char line[352];
+        char line[416];
         unsigned ns = 0, nf = 0, nw = 0, maxHeight = 0;
         for (unsigned i = 0; i < MAX_PER_TYPE; ++i) {
             if ((spikes[i].characteristics >> 2) & 1) {
@@ -72,10 +77,10 @@ bool debugCommand(char cmd, const char *args) {
             nw += walkers[i].active;
         }
         snprintf(line, sizeof line,
-            "MYBL state=%u level=%u x=%d y=%d sy=%d balloons=%u coins=%u total=%u key=%u score=%u spikes=%u maxheight=%u fans=%u walkers=%u saved=%u sound=%u camx=%d camy=%d view=%u palette=%u draws=%u dropped=%u\n",
+            "MYBL state=%u level=%u x=%d y=%d sy=%d balloons=%u coins=%u total=%u key=%u score=%u spikes=%u maxheight=%u fans=%u walkers=%u saved=%u sound=%u audio=%u song=%u ticks=%u samples=%u camx=%d camy=%d view=%u palette=%u draws=%u dropped=%u\n",
             gameState, level+1, kid.pos.x, kid.pos.y, kid.speed.y,
             kid.balloons, coinsActive, totalCoins, key.haveKey, (unsigned)scorePlayer,
-            ns, maxHeight, nf, nw, progress.level+1, mystic::tones::enabled(), cam.pos.x, cam.pos.y, mystic::VIEW_H,
+            ns, maxHeight, nf, nw, progress.level+1, mystic::audio::enabled(), mystic::audio::mode(), mystic::audio::song(), (unsigned)mystic::audio::ticks(), (unsigned)mystic::audio::samples(), cam.pos.x, cam.pos.y, mystic::VIEW_H,
             mystic::palette(), arduboy.commandCount, arduboy.dropped);
         dbg::print(line);
         return true;
@@ -154,9 +159,10 @@ void loop() {
     dbg::markUpdateStart();
     chgame.pollButtons();
     if (chgame.justPressed(SELECT_BUTTON)) {
-        mystic::setSound(!mystic::tones::enabled());
+        mystic::setSound(!mystic::audio::enabled());
         if (gameState!=STATE_MENU_SOUNDFX) soundSaveRequested=true;
     }
+    mystic::audio::update(gameState,level);
     // Resume on the following frame so START never advances a paused world.
     const bool start = chgame.justPressed(START_BUTTON);
     const bool resume = start && gameState == STATE_GAME_PAUSE;
@@ -170,13 +176,18 @@ void loop() {
     }
     const uint8_t drawnState = gameState;
     mainGameLoop[drawnState](); // native-width function pointer, never AVR pgm_read_word
+    // Keep confirmed changes pending if a longer ATM effect outlasts the
+    // menu/level transition. Saving must not depend on staying on that page.
+    if ((drawnState==STATE_GAME_NEXT_LEVEL && canPressButton) ||
+        (drawnState==STATE_MENU_SOUNDFX && gameState!=STATE_MENU_SOUNDFX))
+        soundSaveRequested=true;
 #if CHGAME_DEBUG
     const uint32_t perfGame = micros();
 #endif
     gfx_wait();
-    // Flash programming masks interrupts. Let the short tone finish first
-    // so a checkpoint/preferences write cannot stretch or drop half-waves.
-    if (pauseSaveRequested && !mystic::tones::playing()) {
+    // Wait for effects, then briefly suspend PCM around flash writes.
+    // A looping soundtrack must never prevent checkpoints from being saved.
+    if (pauseSaveRequested && mystic::audio::saveReady()) {
         pauseSaveRequested=false;
         pauseSaveFailed=!mystic::storeProgress();
         if (!pauseSaveFailed) {
@@ -185,7 +196,8 @@ void loop() {
             menuSelection=STATE_MENU_PLAY;
             cont=0;
         }
-    } else if (!pauseSaveRequested && !mystic::tones::playing() &&
+    } else if (!pauseSaveRequested && mystic::audio::saveReady() &&
+        !(drawnState==STATE_GAME_NEXT_LEVEL && !canPressButton) &&
         ((gameState == STATE_GAME_NEXT_LEVEL && canPressButton) ||
         gameState == STATE_GAME_OVER ||
         (soundSaveRequested && drawnState!=STATE_MENU_SOUNDFX) ||

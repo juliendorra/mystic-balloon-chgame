@@ -34,5 +34,7 @@ extern ClockRegisters clockRegisters;
 #define RCC (&clockRegisters)
 enum { RCC_APB2Periph_GPIOB=1, RCC_APB2Periph_TIM1=2, TIM1_UP_IRQn=35 };
 inline void NVIC_EnableIRQ(int) {}
+inline void NVIC_DisableIRQ(int) {}
+inline void NVIC_ClearPendingIRQ(int) {}
 inline void __disable_irq() {}
 inline void __enable_irq() {}

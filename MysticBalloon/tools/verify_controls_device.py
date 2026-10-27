@@ -119,7 +119,7 @@ def main():
         tap(2)
         check(state()["palette"] == original_palette, "original palette restored before saving progress")
         to_image(d.shot(), 3).save(a.out / "title.png")
-        measure("title with dynamic balloon", 2)
+        measure("128x128 title with ATM music", 2)
         tap(4); tap(4); tap(2); tap(2)
         bank = state()
         check(bank["state"] == 6, "CONT loads the existing level checkpoint")
@@ -131,7 +131,8 @@ def main():
         panel(original_palette, 0)
         before, image = state(), d.shot()
         d.frames(60)
-        check(state() == before and d.shot() == image,
+        frozen = state()
+        check(all(frozen[k] == v for k, v in before.items() if k not in ("ticks", "samples")) and d.shot() == image,
               "paused physics, camera and whole frame remain frozen")
         tap(8)
         for p, name in enumerate(["Color", "Original B&W", "DMG", "Amber"]):
@@ -143,6 +144,10 @@ def main():
         tap(1)
         check(state()["state"] == 7, "A resumes from SAVE & QUIT without leaving")
         tap(64); panel(original_palette, 0); tap(8); tap(2)
+        deadline = time.monotonic() + 2
+        while state()["state"] == 8 and time.monotonic() < deadline:
+            time.sleep(.03)
+            d.frames(1)
         check(state()["state"] == 1 and state()["saved"] == bank["level"],
               "SAVE & QUIT returns to menu with the current checkpoint")
         to_image(d.shot(), 3).save(a.out / "saved-main.png")

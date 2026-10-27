@@ -120,7 +120,7 @@ void checkKid()
     {
       kid.frame = (++kid.frame) % 4;
       if (kid.frame % 2 == 0)
-        sound.tone(150, 20);
+        sound.tone(150, 20, mystic::audio::Step);
     }
   }
   else
@@ -180,7 +180,7 @@ void checkKid()
   // Kid on ground
   if (kid.balloons > 0 && kid.speed.y <= 0 && (solidV || solidbelow))
   {
-    if (kid.isLanding) sound.tone(80, 30);
+    if (kid.isLanding) sound.tone(80, 30, mystic::audio::Land);
     kid.speed.y = 0;
     kid.speed.x = 0;
     kid.isLanding = false;
@@ -240,7 +240,7 @@ void checkKid()
     {
       kid.actualpos.y = ((kid.pos.y + 8) >> 4) * (1 << (FIXED_POINT + 4));
       kid.speed.y = 0;
-      sound.tone(80, 30);
+      sound.tone(80, 30, mystic::audio::Land);
     }
   }
 

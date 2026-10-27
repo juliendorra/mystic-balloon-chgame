@@ -62,6 +62,8 @@ def main():
         check(row["state"]["view"]==128 and row["state"]["camy"]<=256,
               label+" uses the full viewport and retains the camera bottom cap")
         check(row["state"]["dropped"]==0, label+" retains every color overlay")
+        check(row["state"]["audio"]==0 and row["state"]["song"] in range(2,7) and row["state"]["ticks"]>0,
+              label+" runs the default ATM gameplay soundtrack")
         d.buttons(0)
 
     try:
@@ -106,7 +108,9 @@ def main():
         paused=state()
         image=d.shot()
         d.frames(60)
-        check(state()==paused and d.shot()==image,"pause freezes the world and framebuffer")
+        frozen=state()
+        check(all(frozen[k]==v for k,v in paused.items() if k not in ("ticks","samples")) and d.shot()==image,
+              "pause freezes the world and framebuffer while music continues")
         d.buttons(64)
         d.frames(1)
         d.buttons(0)

@@ -183,7 +183,7 @@ void drawGrid()
 
 void windNoise()
 {
-  if (arduboy.everyXFrames(2)) sound.tone(320 + random(20), 30);
+  if (arduboy.everyXFrames(2)) sound.tone(320 + random(20), 30, mystic::audio::Wind);
 }
 
 void kidHurt()
@@ -199,7 +199,7 @@ void kidHurt()
   {*/
     kid.isBalloon = false;
     kid.balloons--;
-    sound.tone(420, 100);
+    sound.tone(420, 100, mystic::audio::Hurt);
     kid.isImune = true;
     kid.imuneTimer = 0;
   //}
@@ -219,7 +219,7 @@ void checkCollisions()
   {
     key.active = false;
     key.haveKey = true;
-    sound.tone(420, 200);
+    sound.tone(420, 200, mystic::audio::Key);
   }
 
   // Level exit
@@ -256,7 +256,7 @@ void checkCollisions()
         --coinsActive;
         ++coinsCollected;
         ++totalCoins;
-        sound.tone(400, 200);
+        sound.tone(400, 200, mystic::audio::Coin);
         if (coinsActive == 0)
         {
           #ifndef HARD_MODE
@@ -264,7 +264,7 @@ void checkCollisions()
           #else
           scorePlayer += 1000;
           #endif
-          //sound.tone(400, 200);
+          //sound.tone(400, 200, mystic::audio::Coin);
         }
         else
         {
@@ -297,7 +297,7 @@ void checkCollisions()
               if (kid.balloons < 3) ++kid.balloons;
               else scorePlayer += 100;
               scorePlayer += 50;
-              sound.tone(200, 100);
+              sound.tone(200, 100, mystic::audio::Pop);
             }
           }
           else
@@ -309,7 +309,7 @@ void checkCollisions()
               if (kid.balloons < 3) ++kid.balloons;
               else scorePlayer += 100;
               scorePlayer += 50;
-              sound.tone(200, 100);
+              sound.tone(200, 100, mystic::audio::Pop);
             }
           }
         }

@@ -1,0 +1,38 @@
+{
+  "repository": "T-arg/ID-34-Mystic-Balloon",
+  "commit": "87354104ee5b027e1e4b1c755de1b1be76e091b9",
+  "files": {
+    "MYBL_AB/music.h": "b2037c50637cdeb428207f646b4ef741486b1bc52f7da9ac5f115a54ec924910",
+    "MYBL_AB/ATMconfig.h": "a4b1fb130e194ad0ddd244fa822e887dbe018bbb1c7c906f5898b5a1fa4e99f5"
+  },
+  "atmlib": {
+    "repository": "T-arg/ATMlib",
+    "commit": "8fdabd2fd81082bff50e8af730cae4feff2cce99",
+    "reused_from": "Chiptune"
+  },
+  "integration_sources": {
+    "MYBL_AB/menu.h": "04ad6c1c1a8efad0d8c6a0ddfb5b68dd63fd6c4f19dac22dbfc212125b44d88b",
+    "MYBL_AB/game.h": "47d6b1e8147fb31b135f02bd2229a3af9c0b3614bec7faf16ce2ab5a7bfc1e09",
+    "MYBL_AB/inputs.h": "355ef19401253c749c01e04520e12b8d48ea87780479a303876c73e1c2aa2cfe",
+    "MYBL_AB/player.h": "c138130547c3b339e892ef8b71e47a7a845ce3a5ccf5e2f34e0c402623344437",
+    "MYBL_AB/levels.h": "f956109c7b4e3aea8dbb4819a4853cdcf8dca1f0616a36c3a0725d5ccf91cc52"
+  },
+  "effect_calls": {
+    "inputs.h": [
+      "Jump"
+    ],
+    "player.h": [
+      "Step",
+      "Land",
+      "Land"
+    ],
+    "levels.h": [
+      "Wind",
+      "Hurt",
+      "Key",
+      "Coin",
+      "Pop",
+      "Pop"
+    ]
+  }
+}

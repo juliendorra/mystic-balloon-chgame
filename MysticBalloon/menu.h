@@ -58,12 +58,12 @@ void stateMenuMain()
   if (arduboy.justPressed(DOWN_BUTTON) && (menuSelection < 5))
   {
     menuSelection++;
-    sound.tone(300, 20);
+    sound.tone(300, 20, mystic::audio::Move);
   }
   if (arduboy.justPressed(UP_BUTTON) && (menuSelection > 2))
   {
     menuSelection--;
-    sound.tone(300, 20);
+    sound.tone(300, 20, mystic::audio::Move);
   }
   if (arduboy.justPressed(A_BUTTON | B_BUTTON))
   {
@@ -114,14 +114,14 @@ void stateMenuSoundfx()
 {
   drawTitleScreen();
   const byte previousSelection = settingsSelection;
-  if (arduboy.justPressed(DOWN_BUTTON)) settingsSelection = (settingsSelection+1)%5;
-  if (arduboy.justPressed(UP_BUTTON)) settingsSelection = (settingsSelection+4)%5;
+  if (arduboy.justPressed(DOWN_BUTTON)) settingsSelection = (settingsSelection+1)%6;
+  if (arduboy.justPressed(UP_BUTTON)) settingsSelection = (settingsSelection+5)%6;
   if (settingsSelection != previousSelection && settingsSelection<4)
     mystic::setPalette(mystic::Palette(settingsSelection));
   sprites.drawOverwrite(49, 40, mystic::art::configBlank, 0);
-  for (byte i=0; i<5; ++i)
+  for (byte i=0; i<6; ++i)
     sprites.drawSelfMasked(58, 44+i*8,
-        mystic::art::labels[i<4 ? i : arduboy.audio.enabled() ? 4 : 5], 0);
+        mystic::art::labels[i<4 ? i : i==4 ? (mystic::audio::mode()==mystic::audio::Atm ? 10 : 11) : arduboy.audio.enabled() ? 4 : 5], 0);
   sprites.drawSelfMasked(96, 45+8*mystic::palette(), mystic::art::selected, 0);
   sprites.drawSelfMasked(51, 44+8*settingsSelection, mystic::art::cursor, 0);
   if (arduboy.justPressed(B_BUTTON))
@@ -130,10 +130,15 @@ void stateMenuSoundfx()
       mystic::setPalette(mystic::Palette(settingsSelection));
       sound.tone(425, 20);
     }
+    else if (settingsSelection==4) {
+      mystic::setPalette(settingsOriginalPalette);
+      mystic::setAudioMode(mystic::audio::mode()==mystic::audio::Atm ? mystic::audio::Beeps : mystic::audio::Atm);
+      sound.tone(425,20);
+    }
     else {
       mystic::setPalette(settingsOriginalPalette);
       mystic::setSound(!arduboy.audio.enabled());
-      sound.tone(300, 20);
+      sound.tone(300, 20, mystic::audio::Move);
     }
     gameState = STATE_MENU_MAIN;
   }
@@ -151,12 +156,12 @@ void stateMenuPlaySelect()
   if (arduboy.justPressed(DOWN_BUTTON))
   {
     cont = 1;
-    sound.tone(300, 20);
+    sound.tone(300, 20, mystic::audio::Move);
   }
   if (arduboy.justPressed(UP_BUTTON))
   {
     cont = 0;
-    sound.tone(300, 20);
+    sound.tone(300, 20, mystic::audio::Move);
   }
   sprites.drawPlusMask(48, 58 + 9 * cont, selector_plus_mask, 0);
   if (arduboy.justPressed(B_BUTTON))

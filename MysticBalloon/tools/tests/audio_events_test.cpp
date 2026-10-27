@@ -49,7 +49,7 @@ static vec2 floorPosition() {
 int main() {
     chgame.boot(); gfx_begin(GFX_DIV2,GFX_12BPP);
 #ifndef CHMB_AUDIO_REFERENCE
-    mystic::tones::begin(true); mystic::tones::trace=audioTrace;
+    mystic::audio::begin(true,mystic::audio::Beeps); mystic::tones::trace=audioTrace;
 #endif
     reset("intro-auto");
     for (unsigned f=1;f<=251;++f) { frame(f); stateMenuIntro(); }
@@ -66,7 +66,7 @@ int main() {
 #ifdef CHMB_AUDIO_REFERENCE
     arduboy.audio.off(); frame(1,DOWN_BUTTON);
 #else
-    mystic::tones::setEnabled(false); settingsSelection=4;
+    mystic::audio::setEnabled(false); settingsSelection=5;
     settingsOriginalPalette=mystic::Color; frame(1,B_BUTTON);
 #endif
     stateMenuSoundfx();

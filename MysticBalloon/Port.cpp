@@ -8,12 +8,12 @@ PortDisplay display;
 void loadProgress() {
     Progress p;
     if (save::load(SAVE_MAGIC, 1, p) && p.level < 39 && p.coins <= 232 &&
-        p.highCoins <= 232 && p.options <= 7 && p.score <= 999999 && p.highScore <= 999999)
+        p.highCoins <= 232 && p.options <= 15 && p.score <= 999999 && p.highScore <= 999999)
         progress = p;
     else
         progress = Progress{};
     stored = progress;
-    tones::begin((progress.options & 1) != 0);
+    audio::begin((progress.options & 1) != 0, (progress.options & 8) ? audio::Beeps : audio::Atm);
 }
 
 bool storeProgress() {
@@ -21,25 +21,36 @@ bool storeProgress() {
     // bytes changed. Settings previews never call this function.
     if (!save::available()) return false;
     if (!memcmp(&progress, &stored, sizeof progress)) return true;
-    if (!save::store(SAVE_MAGIC, 1, progress)) return false;
+    audio::suspend();
+    const bool ok=save::store(SAVE_MAGIC, 1, progress);
+    audio::resume();
+    if (!ok) return false;
     stored = progress;
     return true;
 }
 
 void setSound(bool on) {
     progress.options = (progress.options & ~1u) | on;
-    tones::setEnabled(on);
+    audio::setEnabled(on);
+}
+
+void setAudioMode(audio::Mode mode) {
+    progress.options=(progress.options & ~8u) | (mode==audio::Beeps ? 8u : 0u);
+    audio::setMode(mode);
 }
 
 Palette palette() { return Palette((progress.options >> 1) & 3); }
 
 void setPalette(Palette mode) {
-    progress.options = (progress.options & 1) | (uint8_t(mode) << 1);
+    progress.options = (progress.options & ~6u) | (uint8_t(mode) << 1);
 }
 
 void PortDisplay::queue(int x, int y, const uint8_t *s, uint8_t frame, uint8_t mode) {
     const Role role = nextRole==Skip ? spriteRole(s, frame, mode) : nextRole;
     if (role == Skip) return;
+#if defined(__riscv) && !defined(CHSIM)
+    if (!PackedSpriteRef::supported(s)) { ++dropped; return; }
+#endif
     if (commandCount == MAX_COMMANDS) { ++dropped; return; }
     if (world && (role==KidMask || role==KidSuck)) {
         kidX=max(0,x);kidPage=max(0,y>>3);

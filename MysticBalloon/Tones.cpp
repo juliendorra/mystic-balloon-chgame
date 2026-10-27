@@ -10,6 +10,7 @@ void (*trace)(uint16_t, uint16_t) = nullptr;
 static uint32_t endAt = 0;
 static bool active = false, indefinite = false;
 void begin(bool on) { outputEnabled = on; active = false; }
+void end() { active=false; }
 void setEnabled(bool on) { outputEnabled = on; }
 void tone(uint16_t hz, uint16_t duration) {
     const uint16_t frequency = hz ? hz : 250;
@@ -52,6 +53,11 @@ void begin(bool on) {
 }
 
 void setEnabled(bool on) { outputEnabled = on; output(on); }
+void end() {
+    stop(); TIM1->INTFR=0;
+    NVIC_DisableIRQ(TIM1_UP_IRQn);
+    NVIC_ClearPendingIRQ(TIM1_UP_IRQn);
+}
 bool playing() { return (TIM1->CTLR1 & 1) != 0; }
 
 void tone(uint16_t hz, uint16_t duration) {

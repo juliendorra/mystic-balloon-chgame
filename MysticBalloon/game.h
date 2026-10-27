@@ -67,13 +67,13 @@ void stateGameNextLevel()
       {
         coinsCollected--;
         scorePlayer += 20;
-        sound.tone(pgm_read_byte(tones + toneindex++), 150);
+        sound.tone(pgm_read_byte(tones + toneindex++), 150, mystic::audio::Count);
       }
       else if (balloonsLeft > 0)
       {
         balloonsLeft--;
         scorePlayer += 30;
-        sound.tone(pgm_read_byte(tones + toneindex++), 150);
+        sound.tone(pgm_read_byte(tones + toneindex++), 150, mystic::audio::Count);
       }
       else
       {
@@ -82,7 +82,7 @@ void stateGameNextLevel()
         pressKeyIsVisible = !pressKeyIsVisible;
         if (toneindex < TOTAL_TONES)
         {
-          sound.tone(pgm_read_byte(tones + toneindex++), 200);
+          sound.tone(pgm_read_byte(tones + toneindex++), 200, mystic::audio::CountEnd);
           toneindex = TOTAL_TONES;
         }
         if (level >= TOTAL_LEVELS)

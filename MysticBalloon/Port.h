@@ -3,6 +3,7 @@
 #include <CHGame.h>
 #include <string.h>
 #include "Tones.h"
+#include "Audio.h"
 
 namespace mystic {
 constexpr int VIEW_Y = 0;
@@ -18,7 +19,8 @@ enum Role : uint8_t { Text, Gold, CoinInk, KeyInk, BalloonInk, KidMask,
 constexpr uint32_t SAVE_MAGIC = save::magic("MYBL");
 struct Progress {
     uint32_t score = 0, highScore = 0;
-    // Bit 0 is sound; bits 1..2 select the palette. Old records use 0/1.
+    // Bit 0 is sound, bits 1..2 palette, bit 3 selects classic beeps.
+    // Existing records therefore acquire ATM music without losing options.
     uint8_t level = 0, coins = 0, highCoins = 0, options = 1;
 };
 static_assert(sizeof(Progress) == 12, "save format must be identical on host and device");
@@ -26,6 +28,7 @@ extern Progress progress;
 void loadProgress();
 bool storeProgress();
 void setSound(bool on);
+void setAudioMode(audio::Mode mode);
 Palette palette();
 void setPalette(Palette mode);
 Role spriteRole(const uint8_t *sprite, uint8_t frame, uint8_t mode);
@@ -38,18 +41,41 @@ void paintSprite(const uint8_t *sprite, int x, int y, uint8_t frame,
 void paintSplash(bool original);
 
 struct PortAudio {
-    static bool enabled() { return tones::enabled(); }
+    static bool enabled() { return audio::enabled(); }
     void on() { setSound(true); }
     void off() { setSound(false); }
     void saveOnOff() { setSound(enabled()); }
 };
 
 struct PortDisplay {
+    // Rev0 uses flash above its 12 KiB bootloader and a low SRAM constant
+    // pool. Reuse the unavailable bootloader-address range for that pool.
+    struct PackedSpriteRef {
+        uint16_t address;
+        PackedSpriteRef() = default;
+        PackedSpriteRef(const uint8_t *p) : address(uintptr_t(p)) {}
+        operator const uint8_t *() const {
+            return reinterpret_cast<const uint8_t *>(uintptr_t(address) |
+                (address<0x3000 ? 0x20000000u : 0u));
+        }
+        static bool supported(const uint8_t *p) {
+            const uintptr_t a=uintptr_t(p);
+            return (a>=0x3000 && a<=0xffff) || (a>=0x20000010 && a<0x20003000);
+        }
+    };
+#if defined(__riscv) && !defined(CHSIM)
+    using SpriteRef = PackedSpriteRef;
+#else
+    using SpriteRef = const uint8_t *;
+#endif
     struct Command {
-        const uint8_t *sprite;
+        SpriteRef sprite;
         int8_t x, y;
         uint8_t frame, style;
     };
+#if defined(__riscv) && !defined(CHSIM)
+    static_assert(sizeof(Command)==6, "packed Rev0 flash-sprite command");
+#endif
     static constexpr unsigned MAX_COMMANDS = 128;
     PortAudio audio;
     uint8_t buffer[VIEW_W * VIEW_H / 8] = {};
@@ -112,6 +138,8 @@ struct PortSprites {
     }
 };
 struct PortSound {
-    void tone(uint16_t hz, uint16_t duration) { tones::tone(hz, duration); }
+    void tone(uint16_t hz, uint16_t duration, audio::Effect effect=audio::Select) {
+        audio::tone(hz,duration,effect);
+    }
 };
 } // namespace mystic

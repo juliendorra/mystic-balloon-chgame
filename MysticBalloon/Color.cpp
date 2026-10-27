@@ -25,9 +25,18 @@ void paintSplash(bool original) {
     uint8_t *dst=gfx_fb;
     while (dst<gfx_fb+GFX_FB_BYTES) {
         const unsigned code=*src++, count=(code&127)+1;
-        if (code&128) { memset(dst,*src++,count); }
-        else { memcpy(dst,src,count); src+=count; }
-        dst+=count;
+        if (original) {
+            const unsigned repeated=code&128 ? *src++ : 0;
+            for (unsigned i=0;i<count;++i) {
+                unsigned bits=code&128 ? repeated : *src++;
+                for (unsigned pair=0;pair<4;++pair,bits>>=2)
+                    *dst++=(bits&1) | ((bits&2)<<3);
+            }
+        } else {
+            if (code&128) { memset(dst,*src++,count); }
+            else { memcpy(dst,src,count); src+=count; }
+            dst+=count;
+        }
     }
 }
 
