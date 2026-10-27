@@ -3,26 +3,26 @@
   "checked_date": "2026-10-27",
   "builds": {
     "release": {
-      "image_bytes": 44476,
+      "image_bytes": 44568,
       "static_ram_bytes": 18140,
       "reserved_stack_bytes": 2048,
       "save_pages": 2,
-      "crc32": "0x6A745492",
-      "sha256": "e876074dcb4fe45952e64c93a51396b9f014b7530fd345fce6c90d735c67fc4b"
+      "crc32": "0x17FA0C82",
+      "sha256": "dfda6d18129fc0a5c8f787d9494e493b7af0b09e3742b6a8d702a0194f92493d"
     },
     "debug": {
-      "image_bytes": 50028,
+      "image_bytes": 50104,
       "static_ram_bytes": 18404,
       "reserved_stack_bytes": 2048,
       "save_pages": 2,
-      "crc32": "0x969849AC",
-      "sha256": "a2d9faf7295114b2e4eaff0883ce3df225d6de735eb99f496c208a3ce66ba6f5"
+      "crc32": "0xC8DC7166",
+      "sha256": "939a3b48080820ea03df30c6122ebe09a712e3fc0862ec9f1157b00fb57ee81e"
     }
   },
   "physical_device_tested": true,
   "package": {
-    "bytes": 36824,
-    "sha256": "b2c51698643bbf85366f50ad45b4790d13c87da2c17dbdc35abd84e7cd1a3361",
+    "bytes": 36944,
+    "sha256": "1fbed8d7ea7e209191eaa155a1ba2b99b6ae691b1c864e7cb1fccbd106953950",
     "exact_release_firmware": true,
     "license_files": [
       "ATMLIB-LICENSE",
@@ -107,7 +107,7 @@
     "Port.cpp": "d4b8f2592cffca0441dd988f56826799ac2167b83654cbfdf7cb10d59bcf3c69",
     "Port.h": "bf7c4b43a1e027a9f4bbed189ac34abc1097e6f510f2fe69f2a1bcb34e709baa",
     "MysticBalloon.ino": "9d5eeef8158c204df033f2403217de01b58b21e24c3ee33c1b8e063da7d71378",
-    "menu.h": "7a097028a168eb63425f83ec3de313adbef98b5b3b47b71d8193bef964ca9c00",
+    "menu.h": "aa3bcc33768ba431cde8161c0837302e67cbb5abcc75cae99bde150c8f179153",
     "game.h": "ec9a8f0cb016ae79de33bd000f9b78ccf87eb034bbbf3626e9563671bb34beb5",
     "inputs.h": "3276b8a9a8a24f8b0187714c8b3f6fa34dfcbcfd0fce4043926728f56bfc1fb1",
     "player.h": "2378300d95cd5fe7b1b3c3fbd68ec6b120c666b9eeb5ea4b9a06119b1d9b090c",
@@ -117,7 +117,8 @@
     "chgame.json": "6ee1c9a3043894c378e33fc10a2de73bd3392ed2f2669ff1be301a33c3b844c0",
     "src/MusicData.h": "1596c3669d52d746c19b20f52680eea554d23979eb3f3d698a2d0b44c6937501",
     "src/atm/ATMconfig.h": "c41b334b1e70b9b3e908c1f73b18aab4e6f125b3b8a8ad23073df635a592a9c3",
-    "src/atm/ATMlibimpl.h": "55b6a97458747e5b1435b0ac495ec9ad9aa75539fff426ed0eb3a56734324f0d"
+    "src/atm/ATMlibimpl.h": "55b6a97458747e5b1435b0ac495ec9ad9aa75539fff426ed0eb3a56734324f0d",
+    "MenuArt.h": "090fa975d21893af1748f396fe7656a515c6d7bb03fd21d7ceaf03ff58de61ca"
   },
   "physical_performance": {
     "cases": 45,
@@ -132,7 +133,9 @@
       4,
       5,
       6
-    ]
+    ],
+    "diagnostic_sha256": "a2d9faf7295114b2e4eaff0883ce3df225d6de735eb99f496c208a3ce66ba6f5",
+    "scope": "45 gameplay cases on the pre-CONF-refinement 1.3.0 diagnostic; gameplay, audio engine and renderer unchanged. Final firmware has focused physical CONF and checkpoint checks."
   },
   "sampler": {
     "samples_per_second": 31296.78642963101,
@@ -150,6 +153,64 @@
     "palette": 0,
     "audio": 0
   },
-  "normal_release_installed": true,
-  "sd_cartridge_installed": true
+  "normal_release_installed": false,
+  "sd_cartridge_installed": false,
+  "conf_checks": {
+    "checks": [
+      "installed diagnostic has the current release identity",
+      "normal CONT loads the existing checkpoint",
+      "sound rows restore the confirmed palette",
+      "Left changes audio mode immediately without leaving CONF",
+      "Right changes sound immediately without changing the confirmed palette",
+      "A restores sound, audio mode and palette together",
+      "sound rows restore the confirmed palette",
+      "audio row displays and previews mode 1",
+      "beep mode releases the PCM sampler",
+      "muting mode 1 stops the preview",
+      "B saves and returns to main menu",
+      "mode 1 and sound on survive flash reload",
+      "sound rows restore the confirmed palette",
+      "audio row displays and previews mode 0",
+      "ATM preview runs title music and the physical PCM sampler",
+      "muting mode 0 stops the preview",
+      "B saves and returns to main menu",
+      "mode 0 and sound on survive flash reload",
+      "sound rows restore the confirmed palette",
+      "B saves and returns to main menu",
+      "original checkpoint and every preference retained after all tests",
+      "no dropped menu sprites or device faults"
+    ],
+    "modes": [
+      {
+        "mode": 1,
+        "persisted_after_reload": true,
+        "sampler_active": false
+      },
+      {
+        "mode": 0,
+        "persisted_after_reload": true,
+        "sampler_active": true
+      }
+    ],
+    "firmware_sha256": "939a3b48080820ea03df30c6122ebe09a712e3fc0862ec9f1157b00fb57ee81e",
+    "hello": "MYBL 1.3.0",
+    "checkpoint_before": {
+      "level": 1,
+      "score": 0,
+      "total": 0,
+      "saved": 1,
+      "sound": 1,
+      "palette": 0,
+      "audio": 0
+    },
+    "checkpoint_after": {
+      "level": 1,
+      "score": 0,
+      "total": 0,
+      "saved": 1,
+      "sound": 1,
+      "palette": 0,
+      "audio": 0
+    }
+  }
 }

@@ -2943,5 +2943,7 @@
     "START resumes gameplay",
     "no device fault after the complete run"
   ],
-  "hello": "MYBL 1.3.0"
+  "hello": "MYBL 1.3.0",
+  "firmware_sha256": "a2d9faf7295114b2e4eaff0883ce3df225d6de735eb99f496c208a3ce66ba6f5",
+  "scope": "45 gameplay cases on the pre-CONF-refinement 1.3.0 diagnostic; gameplay, audio engine and renderer unchanged. Final firmware has focused physical CONF and checkpoint checks."
 }

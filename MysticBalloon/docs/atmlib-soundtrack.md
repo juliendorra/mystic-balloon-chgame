@@ -142,10 +142,14 @@ original checkpoint, palette and sound preference are retained. Records:
 [controls](device-controls-audio-1.3.0.json),
 [audio modes](device-audio-modes-1.3.0.json).
 
-The normal release and SD-menu cartridge are installed and verified. The
-checkpoint and preferences are retained; remount/readback verifies the
-40 other visible card files and their timestamps unchanged. The card was
-safely ejected. [Installation record](install-audio-1.3.0.json).
+The final CONF refinement passes focused physical checks for Left/Right
+changes, both saved audio choices, mute, cancel and checkpoint retention.
+The 45-case gameplay benchmark above was performed before that menu-only
+refinement; the audio engine, renderer and gameplay are unchanged.
+An earlier 1.3.0 firmware and SD cartridge were installed and read back,
+preserving all 40 other visible files and timestamps. USB disconnected after
+the final CONF checks, so the final normal firmware and SD update are pending
+reconnection. [Installation record](install-audio-1.3.0.json).
 
 The diagnostic uses plain 32-bit `%u` fields for counters: the device's
 minimal formatter did not correctly emit the initial `%lu` tick field.

@@ -1,5 +1,5 @@
 {
-  "firmware_sha256": "a2d9faf7295114b2e4eaff0883ce3df225d6de735eb99f496c208a3ce66ba6f5",
+  "firmware_sha256": "939a3b48080820ea03df30c6122ebe09a712e3fc0862ec9f1157b00fb57ee81e",
   "emulator_sha256": "6000336402008d4bb7f033f2fbc561dcb030afd159a8540bc94c8bcbee03d83c",
   "gameplay_window_fps": 60.0,
   "cases": [
@@ -11,12 +11,12 @@
       "mode": 0,
       "ticks": 152,
       "phases": [
-        219,
-        245,
-        20,
-        194,
-        130,
-        113
+        148,
+        247,
+        184,
+        107,
+        166,
+        204
       ],
       "faults": false
     },
@@ -28,12 +28,12 @@
       "mode": 0,
       "ticks": 272,
       "phases": [
-        219,
-        245,
-        17,
-        74,
-        176,
-        153
+        148,
+        247,
+        7,
+        213,
+        125,
+        228
       ],
       "faults": false
     },
@@ -45,19 +45,19 @@
       "mode": 1,
       "ticks": 0,
       "phases": [
-        56,
-        15,
-        108,
-        194,
-        196,
-        7
+        36,
+        96,
+        158,
+        113,
+        250,
+        14
       ],
       "faults": false
     },
     {
       "case": "saved-beeps-reboot",
       "seconds": 3,
-      "frames": 89,
+      "frames": 90,
       "state": 0,
       "mode": 1,
       "ticks": 0,
@@ -77,14 +77,14 @@
       "frames": 428,
       "state": 1,
       "mode": 0,
-      "ticks": 110,
+      "ticks": 111,
       "phases": [
-        15,
-        84,
-        142,
-        147,
-        73,
-        42
+        119,
+        83,
+        66,
+        85,
+        32,
+        231
       ],
       "faults": false
     }

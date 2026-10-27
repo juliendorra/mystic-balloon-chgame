@@ -15,9 +15,11 @@ The release includes USB and SD-card installation instructions and
 No compiling needed.
 
 Version **1.3.0** plays the ATMlib title tune, five gameplay tunes and
-tracker effects by default. In **CONF**, B on **ATM MUSIC / BEEP SFX**
-switches to the classic audio and saves the choice. SELECT mutes either
-mode. Existing checkpoints and palettes are retained.
+tracker effects by default. In **CONF**, Left/Right changes **AUDIO ATM/BEEP**
+and **SOUND ON/OFF** immediately. Sound rows preview the selected audio
+and show its current state, using the confirmed color scheme. B saves;
+A cancels all previews. SELECT mutes either mode. Existing checkpoints
+and palettes are retained.
 [Soundtrack implementation and checks](MysticBalloon/docs/atmlib-soundtrack.md).
 
 | Color — Pastel Island (default) | Original B&W |
@@ -98,14 +100,15 @@ no drops. The host suite also checks 1,716 platform references and 320 player
 composites. Actual RISC-V firmware passes the native emulator's mode/reboot
 checks and a measured 60 fps gameplay window.
 
-The normal release and SD-menu cartridge were installed and verified, with
-the existing checkpoint and other card files retained. See the
-[build/check record](MysticBalloon/docs/soundtrack-checks.json),
+The final CONF controls pass focused physical tests for live changes,
+mute, save/cancel and checkpoint retention. The gameplay benchmark above
+predates that menu refinement; gameplay, audio and rendering are unchanged.
+See the [build/check record](MysticBalloon/docs/soundtrack-checks.json),
 [device results](MysticBalloon/docs/device-audio-1.3.0.json), and
-[installation record](MysticBalloon/docs/install-audio-1.3.0.json).
+[CONF checks](MysticBalloon/docs/device-audio-modes-1.3.0.json).
 Electrical waveform and acoustic equivalence remain unmeasured.
 
-Exact release firmware: **44,476 bytes**, CRC32 **`0x6A745492`**, built with
+Exact release firmware: **44,568 bytes**, CRC32 **`0x17FA0C82`**, built with
 native GCC 16.2.0. Static RAM is **18,140 bytes**, with a separate 2,048-byte
 stack and both save pages retained. Binary identities depend on the recorded
 compiler. See the [port notes](MysticBalloon/NOTES.md) and
