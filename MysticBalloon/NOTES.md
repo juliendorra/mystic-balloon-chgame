@@ -8,6 +8,13 @@ submodule and shared libraries are unchanged.
 
 ## Build and run
 
+Version **1.3.0** adds [the ATMlib soundtrack](docs/atmlib-soundtrack.md) by
+default. CONF switches to the faithful classic beeps and persists the choice.
+Existing progress and palettes are retained. The source score, library,
+generation tools and their MIT/BSD licenses are included for reproducibility.
+Both the digital engine and actual RISC-V firmware have dedicated checks;
+physical 1.2.9 measurements below describe the older beep-only firmware.
+
 Version **1.2.9** includes the audio fidelity correction described in
 [the audio audit](docs/audio-fidelity.md). The 1.2.8 binary identities and
 hardware measurements below describe the earlier release, before this
@@ -31,6 +38,16 @@ python3 mysticballoon.py cart verify MysticBalloon/build/MysticBalloon.chgame
 image. Plain `check` builds locally; neither command uploads or uses CI.
 `python3 mysticballoon.py upload` explicitly installs the release on a
 connected handheld.
+
+Version 1.3.0 builds at 44,476 bytes (release) and 50,028 bytes (diagnostic),
+with 18,140 / 18,404 bytes static RAM and a separate 2,048-byte stack. Both
+save pages are retained. All 45 physical ATM-audio scenarios passed at
+approximately 60 fps with zero late frames and no dropped commands; maximum
+CPU work was 15.966 ms and stack use 1,328 bytes. All five gameplay tunes,
+both saved audio choices, palettes and pause/checkpoint controls passed.
+The normal release and SD-menu cartridge are installed, preserving the
+existing checkpoint and the 40 other visible card files. See the
+[1.3.0 installation record](docs/install-audio-1.3.0.json).
 
 Audio-fix version 1.2.9 builds locally at 42,332 bytes (release) and
 47,776 bytes (diagnostic), with 17,776 / 18,028 bytes static RAM and a

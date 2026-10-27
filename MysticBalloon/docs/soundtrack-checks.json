@@ -1,0 +1,155 @@
+{
+  "version": "1.3.0",
+  "checked_date": "2026-10-27",
+  "builds": {
+    "release": {
+      "image_bytes": 44476,
+      "static_ram_bytes": 18140,
+      "reserved_stack_bytes": 2048,
+      "save_pages": 2,
+      "crc32": "0x6A745492",
+      "sha256": "e876074dcb4fe45952e64c93a51396b9f014b7530fd345fce6c90d735c67fc4b"
+    },
+    "debug": {
+      "image_bytes": 50028,
+      "static_ram_bytes": 18404,
+      "reserved_stack_bytes": 2048,
+      "save_pages": 2,
+      "crc32": "0x969849AC",
+      "sha256": "a2d9faf7295114b2e4eaff0883ce3df225d6de735eb99f496c208a3ce66ba6f5"
+    }
+  },
+  "physical_device_tested": true,
+  "package": {
+    "bytes": 36824,
+    "sha256": "b2c51698643bbf85366f50ad45b4790d13c87da2c17dbdc35abd84e7cd1a3361",
+    "exact_release_firmware": true,
+    "license_files": [
+      "ATMLIB-LICENSE",
+      "LICENSE",
+      "NOTICE"
+    ]
+  },
+  "tracker_checks": {
+    "events": 15303,
+    "original_native_traces_identical": true,
+    "songs": 7,
+    "effects": 14,
+    "trace_ticks_per_song": 2049,
+    "sample_rate": 31250,
+    "wavs": [
+      {
+        "song": 1,
+        "samples": 2285593,
+        "min": 44,
+        "max": 211,
+        "sha256": "984c467f12a64dd0982f7d7b47de1a74c3e878d9fe5ed4fced3a1eae41b434be"
+      },
+      {
+        "song": 2,
+        "samples": 2129937,
+        "min": 92,
+        "max": 163,
+        "sha256": "6f50647c15ea75fb03581037d133b6d9235ebfbb507d28151f8202acfa8ea082"
+      },
+      {
+        "song": 3,
+        "samples": 2285593,
+        "min": 92,
+        "max": 163,
+        "sha256": "ec034fd53cfccddfac47df7ed05aa0c0dea3ca77df31179dbb9fe5dd18b04abb"
+      },
+      {
+        "song": 4,
+        "samples": 2666500,
+        "min": 92,
+        "max": 163,
+        "sha256": "84fc140fdc5b9d44ac6520d70393fcf8247d54a5a0d4d53bdf9f223d76046ee3"
+      },
+      {
+        "song": 5,
+        "samples": 1777687,
+        "min": 92,
+        "max": 163,
+        "sha256": "df5aa923138039745f50f576d4c2b46f68aa41cf054eb582bf02016ffcdb288c"
+      },
+      {
+        "song": 6,
+        "samples": 1597468,
+        "min": 92,
+        "max": 163,
+        "sha256": "8691edcfb95f8b896f09020d77b3030a587cff32fae46ba8f410dad2be6ba0df"
+      }
+    ],
+    "limits": [
+      "Digital engine and host register checks; hardware timing and speaker output require device measurements."
+    ]
+  },
+  "classic_checks": {
+    "events": 452,
+    "timer_cases": 180,
+    "event_traces_identical": true,
+    "all_timer_comparisons_passed": true
+  },
+  "render_checks": {
+    "viewport_positions": 17199,
+    "peak_sprite_commands": 104,
+    "capacity": 128,
+    "drops": 0,
+    "monochrome_splash_pixels_unchanged": 16384,
+    "mono_rle_before": 4020,
+    "mono_rle_after": 1764
+  },
+  "source_sha256": {
+    "Audio.cpp": "db58234cf9c77e1026d0757757e93fade3a0ce036bc8e67338b8459d1671ae85",
+    "Audio.h": "fdb17ced0e58bca94b4e1b799b6bca7f6b4c3aa00e5219e945320fc0328fc6ff",
+    "Tones.cpp": "4eca092c2bb50963efb62504514a856813f13553e8ea70cc50d96a6bbfe8ffc7",
+    "Port.cpp": "d4b8f2592cffca0441dd988f56826799ac2167b83654cbfdf7cb10d59bcf3c69",
+    "Port.h": "bf7c4b43a1e027a9f4bbed189ac34abc1097e6f510f2fe69f2a1bcb34e709baa",
+    "MysticBalloon.ino": "9d5eeef8158c204df033f2403217de01b58b21e24c3ee33c1b8e063da7d71378",
+    "menu.h": "7a097028a168eb63425f83ec3de313adbef98b5b3b47b71d8193bef964ca9c00",
+    "game.h": "ec9a8f0cb016ae79de33bd000f9b78ccf87eb034bbbf3626e9563671bb34beb5",
+    "inputs.h": "3276b8a9a8a24f8b0187714c8b3f6fa34dfcbcfd0fce4043926728f56bfc1fb1",
+    "player.h": "2378300d95cd5fe7b1b3c3fbd68ec6b120c666b9eeb5ea4b9a06119b1d9b090c",
+    "levels.h": "b12c51bce93ce11c89df71a14374e5b542b9cecd108bcc37036703ac804e687c",
+    "Color.cpp": "117476fd440823f308151f3e5505336e5fcef1d00c812e62cf04ed4611991319",
+    "config.h": "dff3417d8915b2679d2565f43c369560fd925f200bc82a3380dc13a6e4d09371",
+    "chgame.json": "6ee1c9a3043894c378e33fc10a2de73bd3392ed2f2669ff1be301a33c3b844c0",
+    "src/MusicData.h": "1596c3669d52d746c19b20f52680eea554d23979eb3f3d698a2d0b44c6937501",
+    "src/atm/ATMconfig.h": "c41b334b1e70b9b3e908c1f73b18aab4e6f125b3b8a8ad23073df635a592a9c3",
+    "src/atm/ATMlibimpl.h": "55b6a97458747e5b1435b0ac495ec9ad9aa75539fff426ed0eb3a56734324f0d"
+  },
+  "physical_performance": {
+    "cases": 45,
+    "fps_min": 59.95,
+    "fps_max": 61.27,
+    "max_cpu_us": 15966,
+    "late_frames": 0,
+    "max_stack_bytes": 1328,
+    "gameplay_songs": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  "sampler": {
+    "samples_per_second": 31296.78642963101,
+    "seconds": 0.5080713330025901,
+    "counter_before": 649,
+    "counter_after": 16550,
+    "diagnostic_sha256": "a2d9faf7295114b2e4eaff0883ce3df225d6de735eb99f496c208a3ce66ba6f5"
+  },
+  "checkpoint_retained": {
+    "level": 1,
+    "score": 0,
+    "total": 0,
+    "saved": 1,
+    "sound": 1,
+    "palette": 0,
+    "audio": 0
+  },
+  "normal_release_installed": true,
+  "sd_cartridge_installed": true
+}

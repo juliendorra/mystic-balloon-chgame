@@ -27,7 +27,9 @@ Most levels have six coins; level 23 has four in the original map. Each coin awa
 
 ## How to play
 
-Choose **PLAY**, then **NEW** to start or **CONT** to resume the saved level. **INFO** shows the high score. Under **CONF**, Up/Down previews **COLOR**, **ORIGINAL** (black and white), **DMG GREEN**, or **AMBER** immediately. B confirms the highlighted palette; A goes back and restores the previous choice. Confirming **SOUND** toggles sound while retaining the previously confirmed palette. Previews do not write flash. Color is the default.
+Choose **PLAY**, then **NEW** to start or **CONT** to resume the saved level. **INFO** shows the high score. Under **CONF**, Up/Down previews **COLOR**, **ORIGINAL** (black and white), **DMG GREEN**, or **AMBER** immediately. B confirms the highlighted palette; A goes back and restores the previous choice. On the **ATM MUSIC / BEEP SFX** row, B switches between the new soundtrack and the classic sound effects. On **SOUND ON/OFF**, B toggles all sound. Both sound controls retain the confirmed palette. Previews do not write flash. Color and ATM music are the defaults; the audio choice is saved with your checkpoint/preferences.
+
+Version **1.3.0** includes the ATMlib edition's title tune, five gameplay tunes and fourteen tracker effects. The gameplay tunes rotate by level; music continues during pause. **BEEP SFX** restores the faithful, single-voice 1.2.9 sound without background music. SELECT mutes either mode. Existing saves keep their progress, palette and sound setting, and default to ATM music. See the [soundtrack implementation and checks](docs/atmlib-soundtrack.md).
 
 Press START to pause. Choose **SAVE & QUIT** with Up/Down and B to save the current level checkpoint and return to the main menu. **CONT** restarts that level with three balloons and its entry score/coins; unbanked mid-level rewards are reset. The best score reached is retained. A, START or **RESUME** returns to the frozen game. The simulator keeps saves only for the current process.
 
@@ -50,7 +52,7 @@ From this workspace, build and upload with `python3 mysticballoon.py upload`. Th
 - Pause retains the frozen native world and replays only its opaque action panel; this avoids rebuilding the world while the LCD transfer is in flight.
 - `MysticBalloon.ino` uses native CHGame input, frame pacing, debug protocol, and pause controls. The game runs at 60 logic frames per second.
 - `Port.cpp` saves with the unique `MYBL` flash magic, batches writes, and retains both save pages.
-- Version **1.2.9** includes the [audio correction and audit](docs/audio-fidelity.md) preserves ArduboyTones pitches, half-wave durations and interruption rules; flash saves wait for silence. It includes original/port event comparisons and executable timer tests. The published 1.2.8 package predates this correction.
+- **BEEP SFX** retains the [1.2.9 audio correction](docs/audio-fidelity.md): ArduboyTones pitches, half-wave durations and interruption rules. Flash saves wait for effects, then briefly suspend PCM while writing so a looping soundtrack cannot block saves.
 - The original game code lives in the adjacent headers. `bitmaps.h` retains the upstream artwork and level bytes; `tools/upstream-assets.json` records their fingerprints.
 - See [NOTES.md](NOTES.md) for build, tests, packaging, and validation limits.
 - The [splash drawing sources and workflow](tools/art/splash/README.md) include the extracted original, completed drawing and native menu review in all four display modes.
@@ -61,3 +63,5 @@ From this workspace, build and upload with `python3 mysticballoon.py upload`. Th
 ## Credits
 
 Mystic Balloon (Arduboy 1.7.2), copyright (c) 2016 TEAM a.r.g., is licensed under the [MIT License](LICENSE). Original credits: GAVENO, CastPixel, JO3RI, Martian220 (2016–2018); thanks to MLXXXP for the original migration to Arduboy2. See [NOTICE](NOTICE) and the [original source](https://github.com/Team-ARG-Museum/ID-34-Mystic-Balloon).
+
+Music and tracker effects come from [T-arg's ATMlib edition](https://github.com/T-arg/ID-34-Mystic-Balloon), also MIT licensed. ATMlib / Squawk by Davey Taylor (STG), Joeri Gantois (JO3RI) and TEAM a.r.g. is [BSD 3-Clause](ATMLIB-LICENSE). Its RISC-V backend reuses the work from our 8-bit soundtrack demo, with the original ATM pulse/square/saw waveforms.

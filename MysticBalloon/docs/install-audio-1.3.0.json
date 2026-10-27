@@ -1,0 +1,39 @@
+{
+  "version": "1.3.0",
+  "image_bytes": 44476,
+  "static_ram_bytes": 18140,
+  "reserved_stack_bytes": 2048,
+  "save_pages": 2,
+  "crc32": "0x6A745492",
+  "sha256": "e876074dcb4fe45952e64c93a51396b9f014b7530fd345fce6c90d735c67fc4b",
+  "package_sha256": "b2c51698643bbf85366f50ad45b4790d13c87da2c17dbdc35abd84e7cd1a3361",
+  "package_matches_firmware": true,
+  "normal_release_uploaded": true,
+  "application_reenumerated": true,
+  "checkpoint_verified_after_sd_update": true,
+  "checkpoint": {
+    "level": 1,
+    "score": 0,
+    "total": 0,
+    "saved": 1,
+    "sound": 1,
+    "palette": 0,
+    "audio": 0
+  },
+  "sd_menu": {
+    "installed_at": "2026-10-27T08:31:56.964879+00:00",
+    "version": "1.3.0",
+    "path": "GAMES/MYGAMESP/MYSTICBA.CHG",
+    "old_version": "1.2.9",
+    "firmware_crc32": "0x6A745492",
+    "cart_sha256": "5a9cfd4e9e28dbe2f85f8f43337743c8006d6dbf2c916d7f2512ee0d52869e90",
+    "bytes": 63606,
+    "uncached_readback_after_remount": true,
+    "other_files_and_timestamps_preserved": 40,
+    "all_menu_indexes_and_covers_preserved": true,
+    "ejected_safely": true
+  },
+  "core_commit_workspace": "75581911fa2fc2da04d62a0fd55655c2ce707d0a",
+  "core_commit_dedicated": "4bb5393e15b6f67a174d7b481c6f9fd21e882ebc",
+  "upload_record": "upload-1.3.0.txt"
+}

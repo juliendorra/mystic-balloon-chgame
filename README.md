@@ -7,12 +7,18 @@ port** of TEAM a.r.g.'s **Mystic Balloon**.
 Explore all 39 original levels with the original physics, bright
 red/yellow/blue balloons and a continuous splash illustration.
 
-**[Download version 1.2.9](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.2.9)**:
-[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.2.9/MysticBalloon-1.2.9.chgame)
-or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.2.9/MysticBalloon-1.2.9-rev0.bin).
+**[Download version 1.3.0](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.3.0)**:
+[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.3.0/MysticBalloon-1.3.0.chgame)
+or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.3.0/MysticBalloon-1.3.0-rev0.bin).
 The release includes USB and SD-card installation instructions and
-[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.2.9/SHA256SUMS.txt).
+[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.3.0/SHA256SUMS.txt).
 No compiling needed.
+
+Version **1.3.0** plays the ATMlib title tune, five gameplay tunes and
+tracker effects by default. In **CONF**, B on **ATM MUSIC / BEEP SFX**
+switches to the classic audio and saves the choice. SELECT mutes either
+mode. Existing checkpoints and palettes are retained.
+[Soundtrack implementation and checks](MysticBalloon/docs/atmlib-soundtrack.md).
 
 | Color — Pastel Island (default) | Original B&W |
 |:---:|:---:|
@@ -76,32 +82,39 @@ local. The [art sources](MysticBalloon/tools/art/splash/README.md),
 
 ## Validation
 
-Release **1.2.9** corrects original audio pitches, half-wave durations,
-menu clicks and long-run sound timing. It passes **452 matching sound events**
-and **180 timer cases**, plus the full local game checks. See the
-[audio audit](MysticBalloon/docs/audio-fidelity.md). Both downloads above
-include these fixes. On physical CHGame Rev0, all 39 levels and six sustained
-scenarios passed with audio enabled at approximately **60 fps with zero late
-frames**; worst CPU work was **13.811 ms** within the 16.667 ms frame budget. Controls,
-SAVE & QUIT and retained checkpoints also passed. The normal 1.2.9 firmware
-and SD-menu copy were installed and verified. See the
-[installation record](MysticBalloon/docs/install-audio-1.2.9.json).
-Electrical/audio capture remains pending.
+On physical CHGame Rev0, all **45 gameplay/performance scenarios** passed
+with ATM audio enabled at approximately **60 fps with zero late frames**
+and no dropped sprites. All five gameplay tunes ran. Maximum CPU work was
+**15.966 ms** within the 16.667 ms frame budget, with a **1,328-byte** stack
+watermark. Live palette previews, paused pixels in all four display modes,
+SAVE & QUIT, CONT and both saved audio choices passed. A sampler counter
+confirms approximately 31,250 PCM samples/second.
 
-Rendering checks cover 12 border/ascent
-fixtures, all 64 player/inhale canvases and saved-preference restoration.
-The host suite includes 1,716 platform references and 320 player composites.
+The original and native ATM interpreters produce **15,303 matching tracker
+states**, with six non-clipping PCM renders. Classic mode retains **452
+matching sound events** and **180 timer cases**. A survey of **17,199 viewport
+positions** across all 39 levels peaks at 104 of 128 sprite commands, with
+no drops. The host suite also checks 1,716 platform references and 320 player
+composites. Actual RISC-V firmware passes the native emulator's mode/reboot
+checks and a measured 60 fps gameplay window.
 
-See the [validation record](MysticBalloon/docs/platform-composite-checks.json),
-[performance measurements](MysticBalloon/docs/performance.md), and
-[port notes](MysticBalloon/NOTES.md). Exact 1.2.9 release firmware: **42,332 bytes**,
-CRC32 **`0x863402A6`**, built with native GCC 16.2.0. Binary
-identities depend on the recorded compiler; a different toolchain may
-produce different bytes. Native compiler development is outside this repo.
+The normal release and SD-menu cartridge were installed and verified, with
+the existing checkpoint and other card files retained. See the
+[build/check record](MysticBalloon/docs/soundtrack-checks.json),
+[device results](MysticBalloon/docs/device-audio-1.3.0.json), and
+[installation record](MysticBalloon/docs/install-audio-1.3.0.json).
+Electrical waveform and acoustic equivalence remain unmeasured.
+
+Exact release firmware: **44,476 bytes**, CRC32 **`0x6A745492`**, built with
+native GCC 16.2.0. Static RAM is **18,140 bytes**, with a separate 2,048-byte
+stack and both save pages retained. Binary identities depend on the recorded
+compiler. See the [port notes](MysticBalloon/NOTES.md) and
+[original tone audit](MysticBalloon/docs/audio-fidelity.md).
 
 ## License and credits
 
-[MIT](LICENSE). Original Mystic Balloon (Arduboy 1.7.2), copyright © 2016
+Game and scores: [MIT](LICENSE). ATMlib: [BSD 3-Clause](MysticBalloon/ATMLIB-LICENSE).
+Original Mystic Balloon (Arduboy 1.7.2), copyright © 2016
 TEAM a.r.g.; credits to GAVENO, CastPixel, JO3RI and Martian220, with thanks
 to MLXXXP for the Arduboy2 migration. The original sprite and level arrays
 match [upstream commit 58743b6](https://github.com/Team-ARG-Museum/ID-34-Mystic-Balloon/tree/58743b6b52f1aa9f7bc39efd807034a83ebed9a6).

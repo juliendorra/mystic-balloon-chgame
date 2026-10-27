@@ -1,0 +1,32 @@
+{
+  "checks": [
+    "both physical menu switches persisted",
+    "PCM active in ATM and stopped in BEEP SFX",
+    "native menu cursors retained",
+    "original checkpoint/palette/sound retained"
+  ],
+  "modes": [
+    {
+      "mode": 1,
+      "persisted_after_reload": true,
+      "sampler_active": false,
+      "no_dropped_cursor": true
+    },
+    {
+      "mode": 0,
+      "persisted_after_reload": true,
+      "sampler_active": true,
+      "no_dropped_cursor": true
+    }
+  ],
+  "hello": "MYBL 1.3.0",
+  "checkpoint": {
+    "level": 1,
+    "score": 0,
+    "total": 0,
+    "saved": 1,
+    "sound": 1,
+    "palette": 0,
+    "audio": 0
+  }
+}
