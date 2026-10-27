@@ -23,15 +23,20 @@ Each existing game trigger names its semantic effect; its two legacy tone
 arguments are unchanged. This distinguishes jump from enemy absorption and
 key from coin, which shared the same beep in the old edition.
 
-CONF's **ATM MUSIC / BEEP SFX** row switches both music and effects. **BEEP
-SFX** uses the actual 1.2.9 ArduboyTones-compatible GPIO driver, with no
-background music. **SOUND ON/OFF** and SELECT apply to either mode.
+CONF's **AUDIO ATM/BEEP** row displays the current engine. Left/Right
+switches music and effects immediately; **AUDIO BEEP** uses the actual
+1.2.9 ArduboyTones-compatible GPIO driver, with no background music.
+Left/Right on **SOUND ON/OFF**, or SELECT, mutes either mode. Both sound
+rows restore the confirmed palette and preview jump, coin and landing
+effects every 72 frames while enabled; ATM also plays its menu tune.
+B confirms all current choices; A restores the palette, mode and sound
+setting from entry. No preview writes flash.
 
 The 12-byte save layout and schema remain unchanged. Options bit 3 selects
 classic beeps; zero selects ATM. Old records therefore default to the new
 soundtrack while preserving sound enable, palette, scores and checkpoint.
 Changing a palette preserves the audio bit. Confirmed choices are saved;
-palette previews remain temporary.
+all previews remain temporary until confirmed.
 
 ## Reusing the 8-bit soundtrack port
 
@@ -84,8 +89,8 @@ unsupported addresses, and a round-trip test covers both spaces. The survey chec
 17,199 viewport positions across all 39 levels; the peak is 104 commands,
 with no dropped commands.
 
-The release image is **44,476 bytes**, with **18,140 bytes** static RAM.
-The diagnostic image is **50,028 bytes**, with **18,404 bytes** static RAM.
+The release image is **44,568 bytes**, with **18,140 bytes** static RAM.
+The diagnostic image is **50,104 bytes**, with **18,404 bytes** static RAM.
 Both reserve a separate 2,048-byte stack and retain both save pages.
 The package contains the exact release binary plus both MIT and BSD license
 texts. [Build identities and check results](soundtrack-checks.json).
@@ -110,7 +115,8 @@ music channel and all four tally notes. Six complete PCM WAVs under
 checks cover mute, flash suspension, resume and driver mode changes.
 
 The game integration suite checks all 16 saved option combinations, migration,
-CONF switches both ways, palette preview, looping menu music, pause and
+Left/Right changes in CONF, state labels, repeating previews, mute silence,
+cancel/confirm, palette restoration, looping menu music, pause and
 SAVE & QUIT with ATM audio. The classic mode still passes **452 sound events
 across 57 scenarios** and **180 actual timer-driver cases**. Undefined-behavior
 sanitization is enabled. The normal `check` command includes the soundtrack

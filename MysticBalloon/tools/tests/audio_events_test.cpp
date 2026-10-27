@@ -67,7 +67,7 @@ int main() {
     arduboy.audio.off(); frame(1,DOWN_BUTTON);
 #else
     mystic::audio::setEnabled(false); settingsSelection=5;
-    settingsOriginalPalette=mystic::Color; frame(1,B_BUTTON);
+    settingsOriginalPalette=mystic::Color; settingsOriginalOptions=9; frame(1,RIGHT_BUTTON);
 #endif
     stateMenuSoundfx();
     reset("config-back"); frame(1,A_BUTTON); stateMenuSoundfx();

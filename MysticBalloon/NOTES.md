@@ -9,7 +9,8 @@ submodule and shared libraries are unchanged.
 ## Build and run
 
 Version **1.3.0** adds [the ATMlib soundtrack](docs/atmlib-soundtrack.md) by
-default. CONF switches to the faithful classic beeps and persists the choice.
+default. In CONF, Left/Right changes the audio engine and sound state,
+with live audible previews. B saves; A restores all entry preferences.
 Existing progress and palettes are retained. The source score, library,
 generation tools and their MIT/BSD licenses are included for reproducibility.
 Both the digital engine and actual RISC-V firmware have dedicated checks;
@@ -39,7 +40,7 @@ image. Plain `check` builds locally; neither command uploads or uses CI.
 `python3 mysticballoon.py upload` explicitly installs the release on a
 connected handheld.
 
-Version 1.3.0 builds at 44,476 bytes (release) and 50,028 bytes (diagnostic),
+Version 1.3.0 builds at 44,568 bytes (release) and 50,104 bytes (diagnostic),
 with 18,140 / 18,404 bytes static RAM and a separate 2,048-byte stack. Both
 save pages are retained. All 45 physical ATM-audio scenarios passed at
 approximately 60 fps with zero late frames and no dropped commands; maximum

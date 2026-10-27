@@ -505,8 +505,12 @@ static void settingsPreviewTest() {
         assert(settingsSelection==p && palette()==Palette(p));
         assert(save::read(SAVE_MAGIC,1,sizeof(Progress))==record);
     }
-    tap(DOWN_BUTTON); // Sound row keeps the last preview on screen.
-    assert(settingsSelection==4 && palette()==Amber);
+    tap(DOWN_BUTTON); // Leaving color previews restores the confirmed palette.
+    assert(settingsSelection==4 && palette()==Color);
+    tap(DOWN_BUTTON);
+    assert(settingsSelection==5 && palette()==Color);
+    tap(UP_BUTTON);
+    assert(settingsSelection==4 && palette()==Color);
     tap(SELECT_BUTTON); // Muting cannot accidentally persist a preview.
     assert(!mystic::audio::enabled() && save::read(SAVE_MAGIC,1,sizeof(Progress))==record);
     tap(A_BUTTON);
@@ -514,7 +518,8 @@ static void settingsPreviewTest() {
     Progress loaded;
     assert(gameState==STATE_MENU_MAIN && palette()==Color);
     assert(save::load(SAVE_MAGIC,1,loaded) && loaded.level==checkpoint.level &&
-           loaded.score==checkpoint.score && loaded.coins==checkpoint.coins && loaded.options==0);
+           loaded.score==checkpoint.score && loaded.coins==checkpoint.coins && loaded.options==1);
+    assert(mystic::audio::enabled());
     setSound(true);tick();tap(B_BUTTON);tap(DOWN_BUTTON);tap(B_BUTTON);
     finishTone();
     assert(gameState==STATE_MENU_MAIN && palette()==Original);
@@ -523,12 +528,57 @@ static void settingsPreviewTest() {
     assert(palette()==Color);
     tap(UP_BUTTON); // Wrap to SOUND, then confirm just the sound change.
     assert(settingsSelection==5);
+    tap(RIGHT_BUTTON);
+    assert(gameState==STATE_MENU_SOUNDFX && !mystic::audio::enabled());
     tap(B_BUTTON);
     assert(gameState==STATE_MENU_MAIN && palette()==Original && !mystic::audio::enabled());
     finishTone();
     assert(save::load(SAVE_MAGIC,1,loaded) && loaded.options==2);
     setPalette(Color);setSound(true);tick();
     puts("PASS: live palette previews, B confirms, A cancels, SOUND restores committed palette, previews never write flash");
+}
+
+static unsigned previewCount;
+static uint16_t previewNotes[16];
+static void previewTrace(uint16_t hz,uint16_t) {
+    if (mystic::audio::enabled() && previewCount<16) previewNotes[previewCount++]=hz;
+}
+
+static void settingsAudioPreviewTest() {
+    using namespace mystic;
+    setPalette(DMG);setAudioMode(mystic::audio::Beeps);setSound(true);
+    gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_SOUNDFX;finishTone();
+    const void *record=save::read(SAVE_MAGIC,1,sizeof(Progress));
+    tap(B_BUTTON);
+    previewCount=0;mystic::tones::trace=previewTrace;
+    tap(DOWN_BUTTON); // Amber is temporary.
+    tap(DOWN_BUTTON); // Audio row restores confirmed DMG and starts samples.
+    assert(settingsSelection==4 && palette()==DMG);
+    for (unsigned i=0;i<142;++i) tick();
+    assert(previewCount==6);
+    for (unsigned i=0;i<6;++i) assert(previewNotes[i]==(i%3==0 ? 200 : i%3==1 ? 400 : 80));
+    tap(DOWN_BUTTON);tap(RIGHT_BUTTON);
+    assert(settingsSelection==5 && !mystic::audio::enabled() && gameState==STATE_MENU_SOUNDFX);
+    previewCount=0;
+    for (unsigned i=0;i<150;++i) tick();
+    assert(previewCount==0 && save::read(SAVE_MAGIC,1,sizeof(Progress))==record);
+    tap(LEFT_BUTTON);
+    assert(mystic::audio::enabled() && previewCount==2 && previewNotes[0]==300 && previewNotes[1]==200);
+    tap(UP_BUTTON);tap(LEFT_BUTTON);
+    assert(gameState==STATE_MENU_SOUNDFX && mystic::audio::mode()==mystic::audio::Atm && palette()==DMG);
+    assert(mystic::audio::song()==1 && !mystic::audio::saveReady()); // Real tracker preview effect.
+    tap(DOWN_BUTTON);tap(LEFT_BUTTON);
+    assert(!mystic::audio::enabled());
+    const auto stopped=mystic::audio::ticks();
+    for (unsigned i=0;i<80;++i) tick();
+    assert(mystic::audio::ticks()==stopped);
+    tap(A_BUTTON);finishTone();
+    assert(gameState==STATE_MENU_MAIN && palette()==DMG && mystic::audio::enabled() &&
+           mystic::audio::mode()==mystic::audio::Beeps);
+    assert(save::read(SAVE_MAGIC,1,sizeof(Progress))==record);
+    mystic::tones::trace=nullptr;
+    setPalette(Color);setAudioMode(mystic::audio::Atm);setSound(true);finishTone();
+    puts("PASS: Left/Right previews both audio states in CONF, repeating beep/ATM samples, mute silence, A restores all options without flash writes");
 }
 
 static void pauseTest() {
@@ -719,7 +769,7 @@ static void pendingAudioSaveTest() {
     finishTone();storeProgress();
     tap(B_BUTTON);
     for (unsigned i=0;i<4;++i) tap(DOWN_BUTTON);
-    tap(B_BUTTON); // Enable ATM, then immediately leave the main menu.
+    tap(RIGHT_BUTTON);tap(B_BUTTON); // Enable ATM, then immediately leave the main menu.
     tap(UP_BUTTON);tap(UP_BUTTON);tap(B_BUTTON);
     assert(gameState==STATE_MENU_PLAY && mystic::audio::mode()==mystic::audio::Atm);
     finishTone();
@@ -781,12 +831,12 @@ static void audioModesTest() {
     tap(B_BUTTON);
     for (unsigned i=0;i<4;++i) tap(DOWN_BUTTON);
     assert(settingsSelection==4);
-    tap(B_BUTTON);finishTone();
+    tap(RIGHT_BUTTON);tap(B_BUTTON);finishTone();
     assert(gameState==STATE_MENU_MAIN && mystic::audio::mode()==mystic::audio::Beeps && palette()==Color);
     loadProgress();assert(mystic::audio::mode()==mystic::audio::Beeps);
     menuSelection=STATE_MENU_SOUNDFX;tap(B_BUTTON);
     for (unsigned i=0;i<4;++i) tap(DOWN_BUTTON);
-    tap(B_BUTTON);finishTone();
+    tap(LEFT_BUTTON);tap(B_BUTTON);finishTone();
     assert(mystic::audio::mode()==mystic::audio::Atm && palette()==Color);
     loadProgress();assert(mystic::audio::mode()==mystic::audio::Atm);
     gameState=STATE_MENU_MAIN;tick();
@@ -842,6 +892,7 @@ int main() {
     scrollingTest();
     colorsTest();
     settingsPreviewTest();
+    settingsAudioPreviewTest();
     colorBlitTest();
     playerCompositeTest();
     brightBalloonsTest();

@@ -65,7 +65,8 @@ def main():
         assert 59.5<=fps<=60.5,fps
         mode_binary=directory/'modes.bin';shutil.copyfile(binary,mode_binary)
         buttons=['b@1.2:0.1','down@1.6:0.1','down@1.9:0.1','b@2.3:0.1',
-                 'down@2.7:0.1','down@3.0:0.1','down@3.3:0.1','down@3.6:0.1','b@4.0:0.1']
+                 'down@2.7:0.1','down@3.0:0.1','down@3.3:0.1','down@3.6:0.1',
+                 'right@4.0:0.1','b@4.4:0.1']
         for name,seconds,presses,mode in [('atm-to-beeps',8,buttons,1),
                 ('saved-beeps-reboot',3,[],1),('beeps-to-atm',8,buttons,0)]:
             case=run(name,mode_binary,seconds,presses,save=True)

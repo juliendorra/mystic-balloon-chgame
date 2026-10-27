@@ -16,6 +16,8 @@
 byte sparkleFrames = 0;
 byte cont = 0;
 byte settingsSelection = 0;
+byte settingsOriginalOptions = 1;
+byte settingsPreviewTimer = 0;
 mystic::Palette settingsOriginalPalette = mystic::Color;
 
 extern void drawNumbers(byte numbersX, byte numbersY, byte fontType, byte data);
@@ -69,8 +71,10 @@ void stateMenuMain()
   {
     gameState = menuSelection;
     if (gameState == STATE_MENU_SOUNDFX) {
+      settingsOriginalOptions = progress.options;
       settingsOriginalPalette = mystic::palette();
       settingsSelection = settingsOriginalPalette;
+      settingsPreviewTimer = 0;
     }
     sound.tone(425, 20);
   }
@@ -116,8 +120,15 @@ void stateMenuSoundfx()
   const byte previousSelection = settingsSelection;
   if (arduboy.justPressed(DOWN_BUTTON)) settingsSelection = (settingsSelection+1)%6;
   if (arduboy.justPressed(UP_BUTTON)) settingsSelection = (settingsSelection+5)%6;
-  if (settingsSelection != previousSelection && settingsSelection<4)
-    mystic::setPalette(mystic::Palette(settingsSelection));
+  if (settingsSelection != previousSelection)
+    mystic::setPalette(settingsSelection<4 ? mystic::Palette(settingsSelection) : settingsOriginalPalette);
+  const bool adjust = settingsSelection>=4 && arduboy.justPressed(LEFT_BUTTON | RIGHT_BUTTON);
+  if (adjust) {
+    if (settingsSelection==4)
+      mystic::setAudioMode(mystic::audio::mode()==mystic::audio::Atm ? mystic::audio::Beeps : mystic::audio::Atm);
+    else mystic::setSound(!arduboy.audio.enabled());
+    sound.tone(300,20,mystic::audio::Move);
+  }
   sprites.drawOverwrite(49, 40, mystic::art::configBlank, 0);
   for (byte i=0; i<6; ++i)
     sprites.drawSelfMasked(58, 44+i*8,
@@ -126,27 +137,28 @@ void stateMenuSoundfx()
   sprites.drawSelfMasked(51, 44+8*settingsSelection, mystic::art::cursor, 0);
   if (arduboy.justPressed(B_BUTTON))
   {
-    if (settingsSelection<4) {
-      mystic::setPalette(mystic::Palette(settingsSelection));
-      sound.tone(425, 20);
-    }
-    else if (settingsSelection==4) {
-      mystic::setPalette(settingsOriginalPalette);
-      mystic::setAudioMode(mystic::audio::mode()==mystic::audio::Atm ? mystic::audio::Beeps : mystic::audio::Atm);
-      sound.tone(425,20);
-    }
-    else {
-      mystic::setPalette(settingsOriginalPalette);
-      mystic::setSound(!arduboy.audio.enabled());
-      sound.tone(300, 20, mystic::audio::Move);
-    }
+    if (settingsSelection<4) mystic::setPalette(mystic::Palette(settingsSelection));
+    sound.tone(425,20);
     gameState = STATE_MENU_MAIN;
+    return;
   }
   if (arduboy.justPressed(A_BUTTON)) {
     mystic::setPalette(settingsOriginalPalette);
+    mystic::setAudioMode((settingsOriginalOptions&8) ? mystic::audio::Beeps : mystic::audio::Atm);
+    mystic::setSound(settingsOriginalOptions&1);
     gameState = STATE_MENU_MAIN;
     sound.tone(425, 20);
+    return;
   }
+  // Short, repeating gameplay samples make both modes audible without
+  // leaving CONF. Muting stops previews; changing a value restarts them.
+  if (settingsSelection!=previousSelection || adjust || arduboy.justPressed(SELECT_BUTTON))
+    settingsPreviewTimer=0;
+  if (settingsSelection<4 || !arduboy.audio.enabled() || adjust) return;
+  if (settingsPreviewTimer==0) sound.tone(200,100,mystic::audio::Jump);
+  if (settingsPreviewTimer==16) sound.tone(400,200,mystic::audio::Coin);
+  if (settingsPreviewTimer==36) sound.tone(80,30,mystic::audio::Land);
+  settingsPreviewTimer=(settingsPreviewTimer+1)%72;
 }
 
 void stateMenuPlaySelect()
