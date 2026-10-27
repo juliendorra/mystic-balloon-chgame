@@ -106,6 +106,9 @@ predates that menu refinement; gameplay, audio and rendering are unchanged.
 See the [build/check record](MysticBalloon/docs/soundtrack-checks.json),
 [device results](MysticBalloon/docs/device-audio-1.3.0.json), and
 [CONF checks](MysticBalloon/docs/device-audio-modes-1.3.0.json).
+The published normal firmware and SD cartridge are installed and verified,
+with the current checkpoint, preferences and all other card files retained.
+[Installation record](MysticBalloon/docs/install-audio-1.3.0.json).
 Electrical waveform and acoustic equivalence remain unmeasured.
 
 Exact release firmware: **44,568 bytes**, CRC32 **`0x17FA0C82`**, built with

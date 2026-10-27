@@ -1,9 +1,10 @@
 port    : <CHGame USB port>
-image   : MysticBalloon/build/release/MysticBalloon.ino.bin  (44476 bytes)
+image   : MysticBalloon/build/release/MysticBalloon.ino.bin  (44568 bytes)
 region  : 0x3000 + 50944 bytes
-crc32   : 0x6A745492
+crc32   : 0x17FA0C82
 erase   : 0.00 s
-write   : 1.45 s  (29.9 KiB/s, 256 B chunks)
-total   : 1.59 s  -- image accepted and marked valid
+write   : 1.50 s  (29.0 KiB/s, 256 B chunks)
+readback: not available (bootloader v3 has no READ; END checked the CRC in flash)
+total   : 1.64 s  -- image accepted and marked valid
 sent RUN
 running : application is up on <CHGame USB port>

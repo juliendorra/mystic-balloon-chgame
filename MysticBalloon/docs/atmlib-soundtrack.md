@@ -146,10 +146,12 @@ The final CONF refinement passes focused physical checks for Left/Right
 changes, both saved audio choices, mute, cancel and checkpoint retention.
 The 45-case gameplay benchmark above was performed before that menu-only
 refinement; the audio engine, renderer and gameplay are unchanged.
-An earlier 1.3.0 firmware and SD cartridge were installed and read back,
-preserving all 40 other visible files and timestamps. USB disconnected after
-the final CONF checks, so the final normal firmware and SD update are pending
-reconnection. [Installation record](install-audio-1.3.0.json).
+The final normal firmware and SD cartridge match the published 1.3.0
+release. The bootloader accepted the firmware with a device-verified CRC;
+the game re-enumerated after RUN. Uncached SD readback after remount verified
+the cartridge and all 40 other visible files and their timestamps. The card
+was safely ejected. The current checkpoint and all preferences were retained
+through the update. [Installation record](install-audio-1.3.0.json).
 
 The diagnostic uses plain 32-bit `%u` fields for counters: the device's
 minimal formatter did not correctly emit the initial `%lu` tick field.

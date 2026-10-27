@@ -145,16 +145,16 @@
     "diagnostic_sha256": "a2d9faf7295114b2e4eaff0883ce3df225d6de735eb99f496c208a3ce66ba6f5"
   },
   "checkpoint_retained": {
-    "level": 1,
-    "score": 0,
-    "total": 0,
-    "saved": 1,
+    "level": 8,
+    "score": 9400,
+    "total": 32,
+    "saved": 8,
     "sound": 1,
     "palette": 0,
     "audio": 0
   },
-  "normal_release_installed": false,
-  "sd_cartridge_installed": false,
+  "normal_release_installed": true,
+  "sd_cartridge_installed": true,
   "conf_checks": {
     "checks": [
       "installed diagnostic has the current release identity",

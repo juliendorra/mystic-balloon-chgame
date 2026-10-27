@@ -46,9 +46,9 @@ save pages are retained. All 45 physical ATM-audio scenarios passed at
 approximately 60 fps with zero late frames and no dropped commands; maximum
 CPU work was 15.966 ms and stack use 1,328 bytes. All five gameplay tunes,
 both saved audio choices, palettes and pause/checkpoint controls passed.
-The final CONF controls passed physical checks. Its normal firmware and SD
-update await USB reconnection; the earlier 1.3.0 installation preserved the
-checkpoint and all 40 other visible card files. See the
+The final CONF controls passed physical checks. The published normal firmware
+and SD cartridge are installed and verified, preserving the current checkpoint,
+all preferences, and all 40 other visible card files and timestamps. See the
 [1.3.0 installation record](docs/install-audio-1.3.0.json).
 
 Audio-fix version 1.2.9 builds locally at 42,332 bytes (release) and
