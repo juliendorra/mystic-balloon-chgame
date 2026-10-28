@@ -7,12 +7,21 @@ port** of TEAM a.r.g.'s **Mystic Balloon**.
 Explore all 39 original levels with the original physics, bright
 red/yellow/blue balloons and a continuous splash illustration.
 
-**[Download version 1.3.0](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.3.0)**:
-[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.3.0/MysticBalloon-1.3.0.chgame)
-or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.3.0/MysticBalloon-1.3.0-rev0.bin).
+**[Download version 1.4.0](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.4.0)**:
+[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/MysticBalloon-1.4.0.chgame)
+or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/MysticBalloon-1.4.0-rev0.bin).
 The release includes USB and SD-card installation instructions and
-[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.3.0/SHA256SUMS.txt).
+[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/SHA256SUMS.txt).
 No compiling needed.
+
+Version **1.4.0** adds independent saved runs and mid-level resume. **PLAY**
+shows **NEW**, an empty line, then your runs labelled by **level and percentage**.
+The last played run is selected automatically; use Up/Down and **B to load**.
+NEW keeps existing progress. HELP now explains controls, loading and saving. With an SD card, eight runs live in
+`MYBLSAVE.DAT`, isolated from other games. Without SD, four runs use the
+shared flash fallback. Pause, then **SAVE & QUIT**, to resume at the same
+position with your coins, key, balloons and enemy state restored.
+[Save-system behavior and checks](MysticBalloon/docs/save-system.md).
 
 Version **1.3.0** plays the ATMlib title tune, five gameplay tunes and
 tracker effects by default. In **CONF**, Left/Right changes **AUDIO ATM/BEEP**
@@ -35,7 +44,35 @@ The same title screen and gameplay sequence are shown in all four modes.
 The default **Pastel Island** color palette is inspired by Yoshi's Island.
 CONF also offers **Original B&W**, **Game Boy DMG** and **Amber**, with live
 previews. START pauses; **SAVE & QUIT** returns to the main menu and keeps
-the level-entry checkpoint. [Controls and game rules](MysticBalloon/README.md).
+your current run. [Controls and game rules](MysticBalloon/README.md).
+
+## Install 1.4.0 and prepare SD saves
+
+Download the [.chgame package](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/MysticBalloon-1.4.0.chgame)
+and install it using the CHGame cart tools. The [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/MysticBalloon-1.4.0-rev0.bin)
+is available for direct USB flashing to CHGame Rev0. Both contain the same
+normal release firmware, with both flash save pages preserved.
+
+For SD saves, open the console's SD card reader and prepare the card once
+with the standalone [prepare_saves.py helper](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/prepare_saves.py)
+(Python 3; no extra dependencies):
+
+```sh
+python3 prepare_saves.py --card "/path/to/mounted/card"
+```
+
+Replace the path with your actual SD mount, such as `/Volumes/NO NAME` on
+macOS. The helper creates a missing `MYBLSAVE.DAT`, preserves valid existing
+runs, and refuses to replace damaged saves. Safely eject the card before
+starting the game. An existing valid legacy flash checkpoint imports into
+the first run; its old format only retained the level entrance.
+Back up `MYBLSAVE.DAT` to keep all your runs.
+
+From a source checkout, the launcher also prepares saves automatically:
+
+```sh
+python3.12 mysticballoon.py cart deploy MysticBalloon-1.4.0.chgame --card "/path/to/mounted/card"
+```
 
 ## Build and upload
 
@@ -84,42 +121,43 @@ local. The [art sources](MysticBalloon/tools/art/splash/README.md),
 
 ## Validation
 
-On physical CHGame Rev0, all **45 gameplay/performance scenarios** passed
-with ATM audio enabled at approximately **60 fps with zero late frames**
-and no dropped sprites. All five gameplay tunes ran. Maximum CPU work was
-**15.966 ms** within the 16.667 ms frame budget, with a **1,328-byte** stack
-watermark. Live palette previews, paused pixels in all four display modes,
-SAVE & QUIT, CONT and both saved audio choices passed. A sampler counter
-confirms approximately 31,250 PCM samples/second.
+Version 1.4.0 passed the deterministic host suite with undefined-behavior
+checks, including independent NEW runs, loading through the actual menu,
+last-played selection, HELP content in all four palettes, exact mid-level
+round trips, legacy migration,
+foreign-game flash protection, full-slot refusal and all **512 interrupted
+SD-sector write positions**. The sprite/level data and all 39 maps remain
+unchanged. The production splash is losslessly compressed to make room
+for saves, with all four modes checked against the source pixels.
 
-The original and native ATM interpreters produce **15,303 matching tracker
-states**, with six non-clipping PCM renders. Classic mode retains **452
-matching sound events** and **180 timer cases**. A survey of **17,199 viewport
-positions** across all 39 levels peaks at 104 of 128 sprite commands, with
-no drops. The host suite also checks 1,716 platform references and 320 player
-composites. Actual RISC-V firmware passes the native emulator's mode/reboot
-checks and a measured 60 fps gameplay window.
+On physical CHGame Rev0, SD storage, NEW, a real coin collision, pause,
+SAVE & QUIT, mid-level loading and preservation of an older run passed.
+A one-second resumed gameplay window rendered 61 frames with zero late
+frames and a 1,600-byte stack watermark. The final menu loaded the original
+level-16 checkpoint with its score and campaign coins intact. The normal
+firmware and SD cartridge were installed and checked, preserving all 41
+other card files. [Installation record](MysticBalloon/docs/install-saves-1.4.0.json).
 
-The final CONF controls pass focused physical tests for live changes,
-mute, save/cancel and checkpoint retention. The gameplay benchmark above
-predates that menu refinement; gameplay, audio and rendering are unchanged.
-See the [build/check record](MysticBalloon/docs/soundtrack-checks.json),
-[device results](MysticBalloon/docs/device-audio-1.3.0.json), and
+Exact 1.4.0 firmware: **49,644 bytes**, CRC32 **`0x2A72DF24`**. Static RAM is
+**18,112 bytes**, with a separate **2,048-byte** stack and both flash save
+pages retained. The bootloader verified the programmed CRC; its version
+does not support independent byte readback. These are the same bytes in
+the release package and firmware download.
+
+The existing audio checks retain **15,303 matching ATM tracker states**,
+six non-clipping PCM renders, **452 matching classic sound events** and
+**180 timer cases**. The viewport survey covers **17,199 positions**,
+plus 1,716 platform references and 320 player composites. The 1.3.0 physical
+45-scenario gameplay/audio benchmark is historical; see its
+[device results](MysticBalloon/docs/device-audio-1.3.0.json) and
 [CONF checks](MysticBalloon/docs/device-audio-modes-1.3.0.json).
-The published normal firmware and SD cartridge are installed and verified,
-with the current checkpoint, preferences and all other card files retained.
-[Installation record](MysticBalloon/docs/install-audio-1.3.0.json).
-Electrical waveform and acoustic equivalence remain unmeasured.
-
-Exact release firmware: **44,568 bytes**, CRC32 **`0x17FA0C82`**, built with
-native GCC 16.2.0. Static RAM is **18,140 bytes**, with a separate 2,048-byte
-stack and both save pages retained. Binary identities depend on the recorded
-compiler. See the [port notes](MysticBalloon/NOTES.md) and
-[original tone audit](MysticBalloon/docs/audio-fidelity.md).
+SD-controller power-loss behavior and overnight electrical retention are
+not measured by the software failure-injection tests.
 
 ## License and credits
 
 Game and scores: [MIT](LICENSE). ATMlib: [BSD 3-Clause](MysticBalloon/ATMLIB-LICENSE).
+The private CHSd-derived save driver is [MIT licensed](MysticBalloon/SAVE-CARD-LICENSE).
 Original Mystic Balloon (Arduboy 1.7.2), copyright © 2016
 TEAM a.r.g.; credits to GAVENO, CastPixel, JO3RI and Martian220, with thanks
 to MLXXXP for the Arduboy2 migration. The original sprite and level arrays

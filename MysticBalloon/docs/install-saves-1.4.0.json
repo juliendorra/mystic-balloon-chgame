@@ -1,0 +1,32 @@
+{
+  "version": "1.4.0",
+  "installed_at": "2026-10-28T20:25:39.033682+00:00",
+  "firmware_bytes": 49644,
+  "firmware_sha256": "ff92498572ec46786cd6b01f925ee5091df71f574a791feb4ef4ef7658176a20",
+  "firmware_crc32": "2a72df24",
+  "bootloader_verified_crc": true,
+  "independent_flash_readback_available": false,
+  "application_running": true,
+  "static_ram_bytes": 18112,
+  "reserved_stack_bytes": 2048,
+  "flash_save_pages_preserved": 2,
+  "sd_cartridge_updated_and_readback_verified": true,
+  "other_card_files_unchanged": 41,
+  "temporary_test_runs_removed": true,
+  "preserved_run": {
+    "level": 16,
+    "score": 16090,
+    "campaign_coins": 57
+  },
+  "save_backend": "SD",
+  "saved_runs": 1,
+  "last_played_slot": 0,
+  "fault": "FAULT none",
+  "menu": "NEW, empty line, saved runs; last played selected; B LOAD",
+  "host_checks": "full deterministic port suite with UBSan; menu NEW/LOAD/preselection; all 512 interrupted SD-sector positions",
+  "package_matches_installed_firmware": true,
+  "all_saved_runs_unchanged_by_help_update": true,
+  "help_instructions_checked_in_all_four_palettes": true,
+  "save_checks_diagnostic_crc32": "db9d0270",
+  "validation_sequence": "Physical save/menu checks followed by the HELP-only rendering fix, full host regression checks and installation of this final normal firmware"
+}
