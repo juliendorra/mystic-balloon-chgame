@@ -60,7 +60,7 @@ struct Spike
 struct Fan
 {
   vec2 pos;
-  vec2 particles[5];
+  vec2 particles[MAX_FAN_PARTICLES];
   int height;
   bool active;
   uint8_t dir;
@@ -203,9 +203,9 @@ void fansCreate(vec2 pos, byte height, uint8_t dir = FAN_UP)
   }
 }
 
-void enemiesUpdate()
+void enemiesUpdate(bool advance=true)
 {
-  if (arduboy.everyXFrames(8))
+  if (advance && arduboy.everyXFrames(8))
   {
     walkerFrame = (++walkerFrame) % 2;
     coinFrame = (++coinFrame) % 4;
@@ -238,14 +238,14 @@ void enemiesUpdate()
     }
   }
 
-  if (arduboy.everyXFrames(4)) fanFrame = (++fanFrame) % 3;
+  if (advance && arduboy.everyXFrames(4)) fanFrame = (++fanFrame) % 3;
   for (byte i = 0; i < MAX_PER_TYPE; ++i)
   {
     // Fans
     if (fans[i].active)
     {
       // Update
-      if (arduboy.everyXFrames(2))
+      if (advance && arduboy.everyXFrames(2))
         for (byte a = 0; a < MAX_FAN_PARTICLES; ++a)
         {
           // Update Particles
@@ -279,7 +279,7 @@ void enemiesUpdate()
     // Walkers
     if (walkers[i].active)
     {
-      if (arduboy.everyXFrames(2) && walkers[i].HP > 0 && !walkers[i].hurt)
+      if (advance && arduboy.everyXFrames(2) && walkers[i].HP > 0 && !walkers[i].hurt)
       {
         if (!gridGetSolid((walkers[i].pos.x + 4 + (walkers[i].direction * 5)) >> 4, walkers[i].pos.y >> 4)
             && gridGetSolid((walkers[i].pos.x + 4 + (walkers[i].direction * 5)) >> 4, (walkers[i].pos.y >> 4) + 1))

@@ -21,23 +21,24 @@ void applyPalette() {
 }
 
 void paintSplash(bool original) {
+#if CHGAME_DEBUG && !defined(CHSIM) && !defined(CHMB_FULL_DIAGNOSTICS)
+    // Keep the hardware save diagnostic within Rev0 flash. The release and
+    // host visual checks always decode the complete production artwork.
+    memset(gfx_fb,0,GFX_FB_BYTES);return;
+#else
     const uint8_t *src=original ? art::splashMono : art::splashColor;
     uint8_t *dst=gfx_fb;
     while (dst<gfx_fb+GFX_FB_BYTES) {
-        const unsigned code=*src++, count=(code&127)+1;
-        if (original) {
-            const unsigned repeated=code&128 ? *src++ : 0;
-            for (unsigned i=0;i<count;++i) {
-                unsigned bits=code&128 ? repeated : *src++;
-                for (unsigned pair=0;pair<4;++pair,bits>>=2)
-                    *dst++=(bits&1) | ((bits&2)<<3);
-            }
-        } else {
-            if (code&128) { memset(dst,*src++,count); }
-            else { memcpy(dst,src,count); src+=count; }
-            dst+=count;
+        unsigned flags=*src++;
+        for (unsigned bit=0;bit<8 && dst<gfx_fb+GFX_FB_BYTES;++bit,flags>>=1) {
+            if (flags&1) {
+                const unsigned word=src[0]|(unsigned(src[1])<<8);src+=2;
+                const uint8_t *from=dst-(word&4095)-1;
+                for (unsigned n=(word>>12)+3;n;--n) *dst++=*from++;
+            } else *dst++=*src++;
         }
     }
+#endif
 }
 
 static inline __attribute__((always_inline)) void rowColors(unsigned role, unsigned frame,

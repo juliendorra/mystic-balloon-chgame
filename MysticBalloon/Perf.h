@@ -2,7 +2,7 @@
 #include <CHGame.h>
 
 namespace mystic {
-#if CHGAME_DEBUG
+#if CHGAME_DEBUG && (defined(CHSIM) || defined(CHMB_FULL_DIAGNOSTICS))
 struct FramePerf {
     enum { Game, Wait, Expand, Chrome, Submit, Work, Interval, Count };
     uint32_t frames = 0, previous = 0, sum[Count] = {}, peak[Count] = {};

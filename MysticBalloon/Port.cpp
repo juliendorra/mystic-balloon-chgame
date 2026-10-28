@@ -1,32 +1,17 @@
 #include "Port.h"
+#include "Saves.h"
 
 namespace mystic {
 Progress progress;
-static Progress stored;
 PortDisplay display;
 
 void loadProgress() {
-    Progress p;
-    if (save::load(SAVE_MAGIC, 1, p) && p.level < 39 && p.coins <= 232 &&
-        p.highCoins <= 232 && p.options <= 15 && p.score <= 999999 && p.highScore <= 999999)
-        progress = p;
-    else
-        progress = Progress{};
-    stored = progress;
+    saves::begin();
     audio::begin((progress.options & 1) != 0, (progress.options & 8) ? audio::Beeps : audio::Atm);
 }
 
 bool storeProgress() {
-    // Commit checkpoints, records and confirmed preferences only when their
-    // bytes changed. Settings previews never call this function.
-    if (!save::available()) return false;
-    if (!memcmp(&progress, &stored, sizeof progress)) return true;
-    audio::suspend();
-    const bool ok=save::store(SAVE_MAGIC, 1, progress);
-    audio::resume();
-    if (!ok) return false;
-    stored = progress;
-    return true;
+    return saves::preferences();
 }
 
 void setSound(bool on) {

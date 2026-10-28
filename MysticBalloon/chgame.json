@@ -2,18 +2,41 @@
   "id": "mystic-balloon",
   "title": "MYSTIC BALLOON",
   "author": "TEAM a.r.g.; CHGame port",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Mystic Balloon with Pastel Island colors, a continuous 128x128 splash illustration and a full scrolling world. Choose Color, Original B&W, Game Boy DMG, or Amber in CONF. Explore 39 original levels.",
   "genre": "Platformer",
   "license": "MIT AND BSD-3-Clause",
   "sourceUrl": "https://github.com/Team-ARG-Museum/ID-34-Mystic-Balloon",
-  "licenseFiles": ["LICENSE", "NOTICE", "ATMLIB-LICENSE"],
+  "licenseFiles": [
+    "LICENSE",
+    "NOTICE",
+    "ATMLIB-LICENSE",
+    "SAVE-CARD-LICENSE"
+  ],
   "buttons": [
-    {"control": "LEFT/RIGHT", "action": "Move"},
-    {"control": "UP/DOWN", "action": "Look; UP enters an unlocked door"},
-    {"control": "B", "action": "Jump; press again in the air and hold to float; confirm menus"},
-    {"control": "A", "action": "Inhale enemies and coins; back in menus"},
-    {"control": "START", "action": "Pause or resume; hold 3 seconds for the game menu"},
-    {"control": "SELECT", "action": "Toggle sound"}
+    {
+      "control": "LEFT/RIGHT",
+      "action": "Move"
+    },
+    {
+      "control": "UP/DOWN",
+      "action": "Look; UP enters an unlocked door"
+    },
+    {
+      "control": "B",
+      "action": "Jump; press again in the air and hold to float; confirm menus"
+    },
+    {
+      "control": "A",
+      "action": "Inhale enemies and coins; back in menus"
+    },
+    {
+      "control": "START",
+      "action": "Pause or resume; hold 3 seconds for the game menu"
+    },
+    {
+      "control": "SELECT",
+      "action": "Toggle sound"
+    }
   ]
 }

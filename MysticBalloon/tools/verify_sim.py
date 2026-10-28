@@ -39,7 +39,8 @@ def build_runner(source, output, extra_includes=()):
     out.mkdir(parents=True, exist_ok=True)
     sanitizers = os.environ.get("CHMB_SANITIZERS", "undefined")
     os.environ["CHSIM_FLAGS"] = f"-fsanitize={sanitizers} -fno-sanitize-recover=all"
-    sources = [source, GAME / "Port.cpp", GAME / "Color.cpp", GAME / "Tones.cpp", GAME / "Audio.cpp", host / "chgfx_host.cpp"]
+    sources = [source, GAME / "Port.cpp", GAME / "Color.cpp", GAME / "Tones.cpp", GAME / "Audio.cpp",
+               GAME / "Saves.cpp", GAME / "SaveCard.cpp", host / "chgfx_host.cpp"]
     sources += sorted(p for p in gfx.glob("*.cpp") if p.name != "CHGfx.cpp")
     sources += sorted(p for p in lib.rglob("*.cpp") if p.name != "Save.cpp")
     # Physical flash is word-aligned. The upstream simulator declares its
@@ -49,7 +50,12 @@ def build_runner(source, output, extra_includes=()):
     declaration = "static uint8_t simFlash[2][PAGE];"
     assert declaration in save_source
     aligned_save = out / "Save_aligned.cpp"
-    aligned_save.write_text(save_source.replace(declaration, "alignas(4) " + declaration))
+    aligned_save.write_text(save_source.replace(declaration, "alignas(4) " + declaration)+'''
+namespace chmbtest {
+void clearFlash() { memset(save::simFlash,255,sizeof save::simFlash);save::lastSeq=0;save::broken=false; }
+void corruptFlash(unsigned page,unsigned byte) { save::simFlash[page][byte]^=128; }
+}
+''')
     sources.append(aligned_save)
     return compile_exe(sources, output, includes=[*extra_includes, GAME, host, gfx, lib, lib / "chgame"])
 

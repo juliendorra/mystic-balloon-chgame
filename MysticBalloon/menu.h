@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include "globals.h"
 #include "MenuArt.h"
+#include "Saves.h"
+#include "SaveMenuArt.h"
 
 #define FONT_TINY                 0
 #define FONT_SMALL                1
@@ -19,6 +21,7 @@ byte settingsSelection = 0;
 byte settingsOriginalOptions = 1;
 byte settingsPreviewTimer = 0;
 mystic::Palette settingsOriginalPalette = mystic::Color;
+bool saveMenuError=false;
 
 extern void drawNumbers(byte numbersX, byte numbersY, byte fontType, byte data);
 
@@ -70,6 +73,10 @@ void stateMenuMain()
   if (arduboy.justPressed(A_BUTTON | B_BUTTON))
   {
     gameState = menuSelection;
+    if (gameState==STATE_MENU_PLAY) {
+      cont=mystic::saves::active<mystic::saves::count ? mystic::saves::active+1 : 0;
+      saveMenuError=false;
+    }
     if (gameState == STATE_MENU_SOUNDFX) {
       settingsOriginalOptions = progress.options;
       settingsOriginalPalette = mystic::palette();
@@ -164,22 +171,14 @@ void stateMenuSoundfx()
 void stateMenuPlaySelect()
 {
   drawTitleScreen();
-  sprites.drawOverwrite(53, 58, continueMenu, 0);
-  if (arduboy.justPressed(DOWN_BUTTON))
-  {
-    cont = 1;
-    sound.tone(300, 20, mystic::audio::Move);
-  }
-  if (arduboy.justPressed(UP_BUTTON))
-  {
-    cont = 0;
-    sound.tone(300, 20, mystic::audio::Move);
-  }
-  sprites.drawPlusMask(48, 58 + 9 * cont, selector_plus_mask, 0);
+  if (mystic::saves::action!=mystic::saves::None) return;
+  const unsigned rows=mystic::saves::count+1;
+  if (cont>=rows) cont=0;
+  if (arduboy.justPressed(DOWN_BUTTON)) { cont=(cont+1)%rows;sound.tone(300,20,mystic::audio::Move);saveMenuError=false; }
+  if (arduboy.justPressed(UP_BUTTON)) { cont=(cont+rows-1)%rows;sound.tone(300,20,mystic::audio::Move);saveMenuError=false; }
   if (arduboy.justPressed(B_BUTTON))
   {
-    gameState = STATE_GAME_PLAYCONTNEW + cont;
-    cont = 0;
+    mystic::saves::action=cont ? mystic::saves::Load : mystic::saves::New;
     sound.tone(425, 20);
   }
   if (arduboy.justPressed(A_BUTTON))
@@ -189,5 +188,58 @@ void stateMenuPlaySelect()
   }
 }
 
+// Native overlay, drawn only after gfx_wait(): reading the save file shares
+// the panel's SPI bus and the renderer's scratch buffer.
+static void saveText(int x,int y,const char *s,uint8_t=1) {
+  for (;*s;++s,x+=4) {
+    unsigned c=uint8_t(*s);if (c<32 || c>90) continue;
+    for (unsigned col=0;col<3;++col) {
+      unsigned bits=saveGlyphs[(c-32)*3+col];
+      for (unsigned row=0;row<5;++row,bits>>=1) if (bits&1)
+        gfx_fb[(y+row)*64+(x+col)/2]|=1u<<(((x+col)&1)*4);
+    }
+  }
+}
+void paintHelpMenu() {
+  memset(gfx_fb,0,GFX_FB_BYTES);
+  for (unsigned y=4;y<124;++y) {
+    uint8_t *row=gfx_fb+y*64+2;
+    if (y==4 || y==123) memset(row,0x11,60);
+    row[0]|=1;row[59]|=0x10;
+  }
+  saveText(56,11,"HELP");
+  const char *lines[]={"LEFT/RIGHT MOVE","B JUMP","B AGAIN + HOLD FLOAT",
+      "A INHALE","UP AT DOOR EXIT","FIND KEY TO UNLOCK","COINS ADD POINTS",
+      "START PAUSE","PAUSE: SAVE & QUIT","PLAY: B LOAD A RUN","NEW KEEPS OTHER RUNS"};
+  for (unsigned i=0;i<11;++i) saveText(10,24+i*8,lines[i]);
+  saveText(48,114,"A/B BACK");
+}
+void paintSaveMenu() {
+  using namespace mystic::saves;
+  Store s;const bool available=read(s);
+  for (unsigned y=40;y<122;++y) {
+    uint8_t *row=gfx_fb+y*64+9;
+    memset(row,y==40 || y==121 ? 0x11 : 0,47);
+    row[0]|=1;row[46]|=0x10;
+  }
+  saveText(43,44,"SAVED RUNS",1);
+  // NEW stays visible above an empty row. Scroll only the saved runs;
+  // selection indices remain contiguous so the spacer cannot be selected.
+  if (!cont) saveText(23,54,">",1);
+  saveText(32,54,"NEW",1);
+  const unsigned first=cont>4 ? cont-3 : 1;
+  for (unsigned row=first;row<=count && row<first+4;++row) {
+    const unsigned y=74+(row-first)*9;
+    if (row==cont) saveText(23,y,">",1);
+    if (available && row<=s.count) {
+      char name[24];label(s.runs[row-1],name);saveText(32,y,name,1);
+      char id[2]={char('0'+row),0};saveText(103,y,id,1);
+    }
+  }
+  const char *hint=saveMenuError ? (count>=capacity() && !cont ? "SAVES FULL" : "SAVE FAILED") :
+      status==Sd ? "SD CARD" : status==NeedsSetup ? "SET UP SD SAVES" :
+      status==ForeignFlash ? "INSERT SD CARD" : status==Damaged || status==WriteFailed ? "SAVE ERROR" : "FLASH ONLY";
+  saveText(24,108,hint,1);saveText(24,116,cont ? "B LOAD  A BACK" : "B NEW   A BACK",1);
+}
 
 #endif

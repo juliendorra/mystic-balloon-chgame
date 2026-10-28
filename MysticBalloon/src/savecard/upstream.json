@@ -1,0 +1,9 @@
+{
+  "sdk_commit": "e1f8d05940ddb7bbef89c13326da75c003f02904",
+  "files": {
+    "Fat.h": "5aafbfc81c87a64da4db59900118bc7820dd94e8555e8a1c7b8038ddbca81183",
+    "Fat.cpp": "c834a1658da0caddeebcaa973654768758f2b4687d36dc507e74fe2485b37510",
+    "SdSpi.h": "bc34831fae6729d42544d772719b030ca1518a388db51f7e7a4ce2ca0144c629",
+    "SdSpi.cpp": "dd7c6e14b7e67785bbd0f8ae8e69f6610c61f5ca152fd370e01800b1ea975eb9"
+  }
+}

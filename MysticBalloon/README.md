@@ -27,11 +27,17 @@ Most levels have six coins; level 23 has four in the original map. Each coin awa
 
 ## How to play
 
-Choose **PLAY**, then **NEW** to start or **CONT** to resume the saved level. **INFO** shows the high score. Under **CONF**, Up/Down previews **COLOR**, **ORIGINAL** (black and white), **DMG GREEN**, or **AMBER** immediately. Moving onto either sound row restores the confirmed palette. On **AUDIO ATM/BEEP** and **SOUND ON/OFF**, Left/Right changes the current state without leaving CONF. While sound is on, these rows play repeating jump, coin and landing samples in the selected mode; ATM also plays the menu tune. B saves the current choices and returns; A cancels all previews and restores the previous palette, audio mode and sound setting. Previews do not write flash. Color and ATM music are the defaults; preferences are saved with your checkpoint.
+Choose **PLAY** to see **NEW** at the top, an empty line, then the saved runs, named by their level and percentage, such as **LEVEL 16 0%**. The last played run is preselected. Use **Up/Down** to choose and **B** to load; B on NEW creates a separate run and keeps the others. There are eight slots on SD, or four in flash; a full list refuses NEW instead of overwriting progress. The percentage counts the level's coins and key. Loading a mid-level run opens paused, ready for RESUME.
+
+**HELP** shows the controls, door/key rules, loading runs, and SAVE & QUIT. A or B returns to the main menu.
+
+**CONF** still previews COLOR, ORIGINAL, DMG GREEN and AMBER with Up/Down. Sound rows restore the confirmed palette. Left/Right changes **AUDIO ATM/BEEP** and **SOUND ON/OFF**, with audible previews. B saves; A cancels all previews. SELECT mutes either mode.
+
+Version **1.4.0** saves full gameplay state to **MYBLSAVE.DAT** on the SD card by default. Pause/SAVE & QUIT retains your actual position, coins, key, balloons and enemy state. The old level-entry checkpoint is migrated into the first run. See the [save-system behavior, setup and checks](docs/save-system.md). The installer prepares the journal without replacing existing saves.
 
 Version **1.3.0** includes the ATMlib edition's title tune, five gameplay tunes and fourteen tracker effects. The gameplay tunes rotate by level; music continues during pause. **AUDIO BEEP** restores the faithful, single-voice 1.2.9 sound without background music. SELECT mutes either mode. Existing saves keep their progress, palette and sound setting, and default to ATM music. See the [soundtrack implementation and checks](docs/atmlib-soundtrack.md).
 
-Press START to pause. Choose **SAVE & QUIT** with Up/Down and B to save the current level checkpoint and return to the main menu. **CONT** restarts that level with three balloons and its entry score/coins; unbanked mid-level rewards are reset. The best score reached is retained. A, START or **RESUME** returns to the frozen game. The simulator keeps saves only for the current process.
+Press START to pause. **SAVE & QUIT** commits the active run and returns to the menu after a successful save. Loading that run restores its mid-level state; old imported saves start at their saved level's entrance. A, START or **RESUME** continues the paused game. Death keeps the last playable save. The simulator can use a persistent SD journal with `CHMB_SAVE_CARD=/path/to/MYBLSAVE.DAT`; its flash stand-in lasts only for the current process.
 
 Gameplay fills all 128×128 pixels at the original pixel scale, including the original HUD and pause badge. Red, yellow and blue balloons match the lives display; the character has a light peach face against a soft cyan sky and mint terrain. The splash is one continuous 128×128 illustration extending the original child, balloon and enemy composition, with the original title lettering. The camera scrolls within the 384×384 levels. Added control/status panels remain removed.
 

@@ -8,6 +8,7 @@
 #include "enemies.h"
 #include "elements.h"
 #include "levels.h"
+#include "SaveGame.h"
 
 #define TOTAL_TONES 10
 PROGMEM const byte tones[] = {
@@ -151,6 +152,9 @@ void stateGameNextLevel()
 
 void stateGamePlaying()
 {
+  const uint32_t beforeScore=scorePlayer;
+  const byte beforeLives=kid.balloons;
+  const bool beforeKey=key.haveKey;
   checkInputs();
   checkKid();
   updateCamera();
@@ -162,6 +166,9 @@ void stateGamePlaying()
   drawHUD();
 
   checkCollisions();
+  if (!kid.balloons) runSaveKind=0; // Retain the last playable save on death.
+  else if (scorePlayer!=beforeScore || kid.balloons!=beforeLives || key.haveKey!=beforeKey)
+    runSaveKind=1;
 }
 
 

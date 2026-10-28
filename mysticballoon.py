@@ -61,6 +61,11 @@ def main():
     python = Path(env.get("CHGAME_TOOL_PYTHON", PYTHON))
     if not python.is_file():
         raise SystemExit("Python tools are missing: run python3.12 mysticballoon.py setup.")
+    if args[:2] == ["cart", "deploy"]:
+        for i, value in enumerate(args):
+            card = args[i+1] if value == "--card" and i+1 < len(args) else value[7:] if value.startswith("--card=") else None
+            if card:
+                run(python, ROOT / "MysticBalloon/tools/prepare_saves.py", "--card", card)
     return subprocess.call([str(python), str(SDK / "tools/chgame.py"),
                             "--sketch", str(ROOT / "MysticBalloon"), *args], cwd=ROOT, env=env)
 

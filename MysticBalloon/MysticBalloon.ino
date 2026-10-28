@@ -47,7 +47,9 @@ Role spriteRole(const uint8_t *s, uint8_t frame, uint8_t mode) {
 
 #if CHGAME_DEBUG
 bool debugCommand(char cmd, const char *args) {
+#if defined(CHSIM) || defined(CHMB_FULL_DIAGNOSTICS)
     if (cmd == 'U') { mystic::framePerf.report(); return true; }
+#endif
     if (cmd == 'O') { mystic::audio::setEnabled(dbg::parseNum(args,10)!=0); return true; }
     if (cmd == 'M') {
         const unsigned n=dbg::parseNum(args,10);
@@ -77,14 +79,16 @@ bool debugCommand(char cmd, const char *args) {
             nw += walkers[i].active;
         }
         snprintf(line, sizeof line,
-            "MYBL state=%u level=%u x=%d y=%d sy=%d balloons=%u coins=%u total=%u key=%u score=%u spikes=%u maxheight=%u fans=%u walkers=%u saved=%u sound=%u audio=%u song=%u ticks=%u samples=%u camx=%d camy=%d view=%u palette=%u draws=%u dropped=%u\n",
+            "MYBL state=%u level=%u x=%d y=%d sy=%d balloons=%u coins=%u total=%u key=%u score=%u spikes=%u maxheight=%u fans=%u walkers=%u saved=%u sound=%u audio=%u song=%u ticks=%u samples=%u camx=%d camy=%d view=%u palette=%u draws=%u dropped=%u slots=%u slot=%u media=%u\n",
             gameState, level+1, kid.pos.x, kid.pos.y, kid.speed.y,
             kid.balloons, coinsActive, totalCoins, key.haveKey, (unsigned)scorePlayer,
             ns, maxHeight, nf, nw, progress.level+1, mystic::audio::enabled(), mystic::audio::mode(), mystic::audio::song(), (unsigned)mystic::audio::ticks(), (unsigned)mystic::audio::samples(), cam.pos.x, cam.pos.y, mystic::VIEW_H,
-            mystic::palette(), arduboy.commandCount, arduboy.dropped);
+            mystic::palette(), arduboy.commandCount, arduboy.dropped,
+            mystic::saves::count,mystic::saves::active,mystic::saves::status);
         dbg::print(line);
         return true;
     }
+#if defined(CHSIM) || defined(CHMB_FULL_DIAGNOSTICS)
     if (cmd == 'D') {
         // Static native pixel reference for all twelve poses and four inhale
         // frames. Lockstep keeps this diagnostic canvas until the next frame.
@@ -99,10 +103,12 @@ bool debugCommand(char cmd, const char *args) {
         mystic::applyPalette();arduboy.render(true);gfx_flushAsync();
         return true;
     }
+#endif
     if (cmd == 'G') {
         const unsigned n = dbg::parseNum(args, 10);
         if (n < 1 || n > TOTAL_LEVELS) return false;
         stateMenuPlayNew();
+        mystic::saves::active=mystic::saves::NO_RUN;runSaveKind=0;
         level = n - 1;
         setKid();
         enemiesInit();
@@ -130,7 +136,7 @@ bool debugCommand(char cmd, const char *args) {
     if (cmd == 'R') {
         // Discard diagnostic level/position changes and reload saved options.
         mystic::loadProgress();
-        gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;cont=0;
+        gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;cont=0;runSaveKind=0;
         return true;
     }
     return false;
@@ -153,7 +159,7 @@ void setup() {
 void loop() {
     dbg::poll();
     if (!chgame.nextFrame()) { dbg::waitInput(); return; }
-#if CHGAME_DEBUG
+#if CHGAME_DEBUG && (defined(CHSIM) || defined(CHMB_FULL_DIAGNOSTICS))
     const uint32_t perfStart = micros();
 #endif
     dbg::markUpdateStart();
@@ -171,31 +177,52 @@ void loop() {
         sparkleFrames = (sparkleFrames + 1) % 5;
     if (gameState != STATE_GAME_PAUSE) arduboy.clear();
     else {
-        if (!arduboy.paused) { pauseSelection=0; pauseSaveFailed=false; }
+        if (!arduboy.paused) {
+            pauseSelection=0;pauseSaveFailed=false;
+            frozenPhase=chgame.frameCount%40;runSaveKind=1;
+        }
         arduboy.beginPause();
     }
     const uint8_t drawnState = gameState;
     mainGameLoop[drawnState](); // native-width function pointer, never AVR pgm_read_word
     // Keep confirmed changes pending if a longer ATM effect outlasts the
     // menu/level transition. Saving must not depend on staying on that page.
-    if ((drawnState==STATE_GAME_NEXT_LEVEL && canPressButton) ||
-        (drawnState==STATE_MENU_SOUNDFX && gameState!=STATE_MENU_SOUNDFX))
+    if (drawnState==STATE_GAME_NEXT_LEVEL && canPressButton) runSaveKind=2;
+    if (drawnState==STATE_MENU_SOUNDFX && gameState!=STATE_MENU_SOUNDFX)
         soundSaveRequested=true;
-#if CHGAME_DEBUG
+#if CHGAME_DEBUG && (defined(CHSIM) || defined(CHMB_FULL_DIAGNOSTICS))
     const uint32_t perfGame = micros();
 #endif
     gfx_wait();
     // Wait for effects, then briefly suspend PCM around flash writes.
     // A looping soundtrack must never prevent checkpoints from being saved.
-    if (pauseSaveRequested && mystic::audio::saveReady()) {
+    if (mystic::saves::action!=mystic::saves::None && mystic::audio::saveReady()) {
+        bool ok=false;
+        if (mystic::saves::action==mystic::saves::New) {
+            ok=mystic::saves::create();
+            if (ok) stateMenuPlayNew();
+        } else {
+            mystic::saves::Run run;
+            ok=mystic::saves::select(cont-1,run);
+            if (ok) restoreRun(run);
+        }
+        saveMenuError=!ok;mystic::saves::action=mystic::saves::None;runSaveKind=0;
+    } else if (pauseSaveRequested && mystic::audio::saveReady()) {
         pauseSaveRequested=false;
-        pauseSaveFailed=!mystic::storeProgress();
+        const auto run=captureRun(true);
+        pauseSaveFailed=!mystic::saves::checkpoint(run);
         if (!pauseSaveFailed) {
+            runSaveKind=0;
             soundSaveRequested=false;
             gameState=STATE_MENU_MAIN;
             menuSelection=STATE_MENU_PLAY;
             cont=0;
         }
+    } else if (runSaveKind && mystic::audio::saveReady() &&
+        ((runSaveKind==2 && canPressButton) || gameState==STATE_GAME_PLAYING ||
+         gameState==STATE_GAME_PAUSE || gameState==STATE_GAME_OVER)) {
+        const auto run=captureRun(runSaveKind==1);
+        pauseSaveFailed=!mystic::saves::checkpoint(run);runSaveKind=0;
     } else if (!pauseSaveRequested && mystic::audio::saveReady() &&
         !(drawnState==STATE_GAME_NEXT_LEVEL && !canPressButton) &&
         ((gameState == STATE_GAME_NEXT_LEVEL && canPressButton) ||
@@ -205,23 +232,25 @@ void loop() {
         if (mystic::storeProgress()) soundSaveRequested=false;
     dbg::markRenderStart();
     mystic::applyPalette();
-#if CHGAME_DEBUG
+#if CHGAME_DEBUG && (defined(CHSIM) || defined(CHMB_FULL_DIAGNOSTICS))
     const uint32_t perfWait = micros();
 #endif
-    const bool fullScreen=drawnState==STATE_GAME_PLAYING || drawnState==STATE_GAME_PAUSE;
+    const bool fullScreen=arduboy.world;
     const bool pauseOverlay=drawnState==STATE_GAME_PAUSE && arduboy.world;
     if (!pauseOverlay) arduboy.renderBase(fullScreen);
-#if CHGAME_DEBUG
+#if CHGAME_DEBUG && (defined(CHSIM) || defined(CHMB_FULL_DIAGNOSTICS))
     const uint32_t perfExpand = micros();
 #endif
     if (pauseOverlay) arduboy.renderPause();
     else arduboy.renderColors(fullScreen);
-#if CHGAME_DEBUG
+    if (drawnState==STATE_MENU_PLAY && !arduboy.world) paintSaveMenu();
+    if (drawnState==STATE_MENU_HELP) paintHelpMenu();
+#if CHGAME_DEBUG && (defined(CHSIM) || defined(CHMB_FULL_DIAGNOSTICS))
     const uint32_t perfChrome = micros();
 #endif
     dbg::markRenderEnd();
     gfx_flushAsync();
-#if CHGAME_DEBUG
+#if CHGAME_DEBUG && (defined(CHSIM) || defined(CHMB_FULL_DIAGNOSTICS))
     mystic::framePerf.record(perfStart, perfGame, perfWait, perfExpand, perfChrome, micros());
 #endif
     if (resume && gameState==STATE_GAME_PAUSE) gameState = STATE_GAME_PLAYING;

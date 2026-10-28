@@ -28,3 +28,9 @@ The RISC-V interpreter fixes and PWM backend derive from our CHGame ATM
 Soundtracks port. Mystic Balloon retains ATM's pulse/square/saw waveforms,
 enables its original sound-effect overlay, and uses the song's tempo divider.
 No NES/Game Boy arrangements from the soundtrack demo are included.
+
+Per-game SD save storage (1.4.0): the private FAT reader and SPI driver in
+src/savecard/ are adapted from CHGame/CHSd by bateske, MIT licensed.
+See SAVE-CARD-LICENSE and src/savecard/upstream.json. The adaptation adds
+single-sector writes to a preallocated save file and leaves FAT metadata
+unchanged during gameplay.

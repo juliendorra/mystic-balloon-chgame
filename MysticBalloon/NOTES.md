@@ -8,6 +8,13 @@ submodule and shared libraries are unchanged.
 
 ## Build and run
 
+Version **1.4.0** adds independent saved runs and SD-first persistence.
+NEW preserves the existing runs, labels show level/percentage, and mid-level
+worlds resume paused. Flash fallback refuses foreign ownership. The original
+level-16 save is migrated to the SD journal. See [storage design, precedent
+and recovery checks](docs/save-system.md). The 1.3.0 measurements below are
+historical; current build/install identities are recorded separately.
+
 Version **1.3.0** adds [the ATMlib soundtrack](docs/atmlib-soundtrack.md) by
 default. In CONF, Left/Right changes the audio engine and sound state,
 with live audible previews. B saves; A restores all entry preferences.
