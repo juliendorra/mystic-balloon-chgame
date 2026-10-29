@@ -25,6 +25,9 @@ bool saveMenuError=false;
 
 extern void drawNumbers(byte numbersX, byte numbersY, byte fontType, byte data);
 
+// Back wins if both buttons are held: never accept an unwanted menu action.
+static bool menuAccept() { return arduboy.justPressed(A_BUTTON) && !arduboy.pressed(B_BUTTON); }
+
 void drawTitleScreen()
 {
   arduboy.title = true;
@@ -32,7 +35,7 @@ void drawTitleScreen()
 
 void stateMenuIntro()
 {
-  if (arduboy.justPressed(A_BUTTON | B_BUTTON))
+  if (menuAccept() || arduboy.justPressed(B_BUTTON))
   {
     gameState = STATE_MENU_MAIN;
     sound.tone(425, 20);
@@ -47,7 +50,7 @@ void stateMenuIntro()
   else
   {
     drawTitleScreen();
-    if ((globalCounter > 250) || arduboy.justPressed(A_BUTTON | B_BUTTON))
+    if ((globalCounter > 250) || menuAccept() || arduboy.justPressed(B_BUTTON))
     {
       gameState = STATE_MENU_MAIN;
       sound.tone(425, 20);
@@ -70,7 +73,7 @@ void stateMenuMain()
     menuSelection--;
     sound.tone(300, 20, mystic::audio::Move);
   }
-  if (arduboy.justPressed(A_BUTTON | B_BUTTON))
+  if (menuAccept())
   {
     gameState = menuSelection;
     if (gameState==STATE_MENU_PLAY) {
@@ -90,7 +93,7 @@ void stateMenuMain()
 
 void stateMenuHelp()
 {
-  if (arduboy.justPressed(A_BUTTON | B_BUTTON))
+  if (menuAccept() || arduboy.justPressed(B_BUTTON))
   {
     gameState = STATE_MENU_MAIN;
     sound.tone(425, 20);
@@ -114,7 +117,7 @@ void stateMenuInfo()
   }
   sprites.drawSelfMasked(30, 28, badgeHighScore, 0);
   drawNumbers(55, 30, FONT_BIG, DATA_SCORE);
-  if (arduboy.justPressed(A_BUTTON | B_BUTTON))
+  if (menuAccept() || arduboy.justPressed(B_BUTTON))
   {
     gameState = STATE_MENU_MAIN;
     sound.tone(425, 20);
@@ -142,14 +145,15 @@ void stateMenuSoundfx()
         mystic::art::labels[i<4 ? i : i==4 ? (mystic::audio::mode()==mystic::audio::Atm ? 10 : 11) : arduboy.audio.enabled() ? 4 : 5], 0);
   sprites.drawSelfMasked(96, 45+8*mystic::palette(), mystic::art::selected, 0);
   sprites.drawSelfMasked(51, 44+8*settingsSelection, mystic::art::cursor, 0);
-  if (arduboy.justPressed(B_BUTTON))
+  sprites.drawOverwrite(40,96,mystic::art::labels[14],0);
+  if (menuAccept())
   {
     if (settingsSelection<4) mystic::setPalette(mystic::Palette(settingsSelection));
     sound.tone(425,20);
     gameState = STATE_MENU_MAIN;
     return;
   }
-  if (arduboy.justPressed(A_BUTTON)) {
+  if (arduboy.justPressed(B_BUTTON)) {
     mystic::setPalette(settingsOriginalPalette);
     mystic::setAudioMode((settingsOriginalOptions&8) ? mystic::audio::Beeps : mystic::audio::Atm);
     mystic::setSound(settingsOriginalOptions&1);
@@ -176,12 +180,12 @@ void stateMenuPlaySelect()
   if (cont>=rows) cont=0;
   if (arduboy.justPressed(DOWN_BUTTON)) { cont=(cont+1)%rows;sound.tone(300,20,mystic::audio::Move);saveMenuError=false; }
   if (arduboy.justPressed(UP_BUTTON)) { cont=(cont+rows-1)%rows;sound.tone(300,20,mystic::audio::Move);saveMenuError=false; }
-  if (arduboy.justPressed(B_BUTTON))
+  if (menuAccept())
   {
     mystic::saves::action=cont ? mystic::saves::Load : mystic::saves::New;
     sound.tone(425, 20);
   }
-  if (arduboy.justPressed(A_BUTTON))
+  if (arduboy.justPressed(B_BUTTON))
   {
     gameState = STATE_MENU_MAIN;
     sound.tone(425, 20);
@@ -210,9 +214,9 @@ void paintHelpMenu() {
   saveText(56,11,"HELP");
   const char *lines[]={"LEFT/RIGHT MOVE","B JUMP","B AGAIN + HOLD FLOAT",
       "A INHALE","UP AT DOOR EXIT","FIND KEY TO UNLOCK","COINS ADD POINTS",
-      "START PAUSE","PAUSE: SAVE & QUIT","PLAY: B LOAD A RUN","NEW KEEPS OTHER RUNS"};
+      "START PAUSE","PAUSE: RESTART / SAVE","PLAY: A LOAD A RUN","NEW KEEPS OTHER RUNS"};
   for (unsigned i=0;i<11;++i) saveText(10,24+i*8,lines[i]);
-  saveText(48,114,"A/B BACK");
+  saveText(42,114,"A OK  B BACK");
 }
 void paintSaveMenu() {
   using namespace mystic::saves;
@@ -239,7 +243,7 @@ void paintSaveMenu() {
   const char *hint=saveMenuError ? (count>=capacity() && !cont ? "SAVES FULL" : "SAVE FAILED") :
       status==Sd ? "SD CARD" : status==NeedsSetup ? "SET UP SD SAVES" :
       status==ForeignFlash ? "INSERT SD CARD" : status==Damaged || status==WriteFailed ? "SAVE ERROR" : "FLASH ONLY";
-  saveText(24,108,hint,1);saveText(24,116,cont ? "B LOAD  A BACK" : "B NEW   A BACK",1);
+  saveText(24,108,hint,1);saveText(24,116,cont ? "A LOAD  B BACK" : "A NEW   B BACK",1);
 }
 
 #endif

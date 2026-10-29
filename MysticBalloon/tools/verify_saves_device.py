@@ -28,13 +28,13 @@ def main():
   raise AssertionError(s)
  def reset():d.cmd('R');d.frames(2)
  def new_run():
-  reset();s=state();tap(2)
+  reset();s=state();tap(1)
   for _ in range(s['slot']+1 if s['slots'] else 0):tap(4)
-  tap(2);return wait_for(lambda s:s['state']==6)
+  tap(1);return wait_for(lambda s:s['state']==6)
  try:
   report['hello']=d.handshake();d.cmd('L1');d.buttons(0);reset();initial=state();report['before']=initial
   check(initial['media']==1 and initial['slots']<=6,'SD is the primary backend and has space for the test runs')
-  tap(2);to_image(d.shot(),3).save(a.out/'saved-runs-before.png');tap(2)
+  tap(1);to_image(d.shot(),3).save(a.out/'saved-runs-before.png');tap(1)
   original=wait_for(lambda s:s['state']==6);report['original']=original
   check(original['level']==16 and original['score']==16090 and original['total']==57,'original level-16 checkpoint and score migrated from flash to SD')
   created=new_run();check(created['slots']==initial['slots']+1 and created['level']==1,'NEW creates an independent level-1 run')
@@ -46,24 +46,24 @@ def main():
    if kind==160:coin=(x*16+2,y*16);break
    if kind==96:i+=1
   assert coin
-  d.frames(30);tap(2);wait_for(lambda s:s['state']==7)
+  d.frames(30);tap(1);wait_for(lambda s:s['state']==7)
   d.cmd(f'J {coin[0]} {coin[1]} 0');d.frames(1);time.sleep(.4);d.frames(4)
   collected=state();check(collected['coins']==5 and collected['score']==200,'normal coin collision advances the new run without touching the old one')
   tap(64);time.sleep(.3);d.frames(4);paused=state();image=d.shot();d.frames(20)
   stable=state();check(all(stable[k]==paused[k] for k in ('x','y','score','coins','balloons')) and d.shot()==image,'paused gameplay state and pixels stay frozen while saving')
-  tap(8);tap(2);wait_for(lambda s:s['state']==1);reset();tap(2)
-  to_image(d.shot(),3).save(a.out/'saved-runs-progress.png');tap(2)
+  tap(8);tap(8);tap(1);wait_for(lambda s:s['state']==1);reset();tap(1)
+  to_image(d.shot(),3).save(a.out/'saved-runs-progress.png');tap(1)
   resumed=wait_for(lambda s:s['state']==8);report['resumed']=resumed
   check(resumed['coins']==5 and resumed['score']==200 and resumed['level']==1 and resumed['balloons']==paused['balloons'],'SAVE & QUIT and reload retain mid-level coins, score and balloons')
   check(resumed['x']==paused['x'] and resumed['y']==paused['y'],'mid-level load restores the actual player position')
-  tap(2);wait_for(lambda s:s['state']==7);d.cmd('L0');time.sleep(.2);d.cmd('P','PERF');start=time.monotonic();time.sleep(1);d.cmd('L1');elapsed=time.monotonic()-start
+  tap(1);wait_for(lambda s:s['state']==7);d.cmd('L0');time.sleep(.2);d.cmd('P','PERF');start=time.monotonic();time.sleep(1);d.cmd('L1');elapsed=time.monotonic()-start
   perf={k:int(v) for k,v in (part.split('=') for part in d.cmd('P','PERF').split()[1:])};report['performance']=dict(seconds=elapsed,**perf)
   check(perf['late']==0 and perf['stk']<1900,'resumed gameplay has zero late frames and fits the 2 KiB stack')
   third=new_run();check(third['slots']==initial['slots']+2,'another NEW preserves both previous runs')
-  reset();tap(2)
+  reset();tap(1)
   # Current slot is the latest; move to the original run at row one.
   for _ in range(third['slot']):tap(4)
-  tap(2);retained=wait_for(lambda s:s['state']==6)
+  tap(1);retained=wait_for(lambda s:s['state']==6)
   check(retained['level']==original['level'] and retained['score']==original['score'] and retained['total']==original['total'],'original save is still selectable and unchanged after two NEW runs')
   check(d.cmd('!','FAULT')=='FAULT none','no recorded device fault')
   reset();d.cmd('L0')

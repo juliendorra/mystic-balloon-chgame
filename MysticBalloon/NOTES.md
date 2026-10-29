@@ -8,6 +8,25 @@ submodule and shared libraries are unchanged.
 
 ## Build and run
 
+Version **1.4.1** restores RESTART LEVEL to the START pause menu alongside
+RESUME and SAVE & QUIT. Restart commits a fresh level-entry checkpoint for
+the active run, rolling back the attempt's score and coins. Schema-2 runs
+migrate to schema 3 so future entry scores survive mid-level saves/reloads.
+The normal build retains both flash pages. The published 1.4.0 validation
+records below are historical; current checks include the focused native
+menu/restart diagnostic and SD save migration readback.
+All menus use A to accept and B to go back or cancel. This includes CONF,
+saved runs, level-start prompts and pause actions; the original B jump /
+A inhale gameplay controls remain unchanged.
+
+For focused Rev0 menu/save checks, build with `--debug -D=-DCHMB_MENU_DIAGNOSTICS=1`
+and use `tools/verify_restart_device.py`. This variant keeps the compact
+V/J/R commands and the core screenshot/performance protocol while omitting
+the full debug canvas, profiler and splash. Both save pages remain free.
+The verifier appends one temporary run and changes preferences: back up
+the SD journal first and restore it after the checks. Normal release
+firmware retains the full splash and gameplay renderer.
+
 Version **1.4.0** adds independent saved runs and SD-first persistence.
 NEW preserves the existing runs, labels show level/percentage, and mid-level
 worlds resume paused. Flash fallback refuses foreign ownership. The original

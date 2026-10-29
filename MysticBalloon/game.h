@@ -19,6 +19,7 @@ PROGMEM const byte tones[] = {
 byte toneindex = 0;
 byte pauseSelection = 0;
 bool pauseSaveRequested = false;
+bool pauseRestartRequested = false;
 bool pauseSaveFailed = false;
 
 void stateMenuPlayNew()
@@ -134,8 +135,9 @@ void stateGameNextLevel()
   if (canPressButton)
   {
 
-    if (pressKeyIsVisible) sprites.drawOverwrite(38, 29, badgePressKey, 0);
-    if (arduboy.justPressed(A_BUTTON | B_BUTTON))
+    if (pressKeyIsVisible) sprites.drawOverwrite(38,29,mystic::art::labels[13],0);
+    if (arduboy.justPressed(B_BUTTON)) { gameState=STATE_MENU_MAIN;return; }
+    if (menuAccept())
     {
       toneindex = 0;
       sound.tone(425, 20);
@@ -174,18 +176,25 @@ void stateGamePlaying()
 
 void stateGamePause()
 {
-  if (arduboy.justPressed(UP_BUTTON | DOWN_BUTTON)) pauseSelection ^= 1;
-  sprites.drawOverwrite(20, 36, mystic::art::pausePanel, 0);
+  if (!pauseSaveRequested && !pauseRestartRequested) {
+    if (arduboy.justPressed(DOWN_BUTTON)) pauseSelection=(pauseSelection+1)%3;
+    if (arduboy.justPressed(UP_BUTTON)) pauseSelection=(pauseSelection+2)%3;
+  }
+  for (unsigned row=0;row<8;++row)
+    sprites.drawOverwrite(20,36+row*8,mystic::art::pausePanel,row==0 ? 0 : row==7 ? 2 : 1);
   sprites.drawOverwrite((mystic::VIEW_W - badgePause[0]) / 2,
                         38, badgePause, 0);
   sprites.drawSelfMasked(43, 64, mystic::art::labels[6], 0);
-  sprites.drawSelfMasked(43, 74, mystic::art::labels[7], 0);
+  sprites.drawSelfMasked(43, 74, mystic::art::labels[12], 0);
+  sprites.drawSelfMasked(43, 84, mystic::art::labels[7], 0);
   sprites.drawSelfMasked(32, 64+10*pauseSelection, mystic::art::cursor, 0);
   const uint8_t *hint=mystic::art::labels[pauseSaveFailed ? 9 : 8];
-  sprites.drawSelfMasked((mystic::VIEW_W-hint[0])/2, 84, hint, 0);
-  if (arduboy.justPressed(A_BUTTON)) gameState = STATE_GAME_PLAYING;
-  else if (arduboy.justPressed(B_BUTTON)) {
+  sprites.drawSelfMasked((mystic::VIEW_W-hint[0])/2, 94, hint, 0);
+  if (pauseSaveRequested || pauseRestartRequested) return;
+  if (arduboy.justPressed(B_BUTTON)) gameState = STATE_GAME_PLAYING;
+  else if (menuAccept()) {
     if (!pauseSelection) gameState = STATE_GAME_PLAYING;
+    else if (pauseSelection==1) pauseRestartRequested=true;
     else {
       if (scorePlayer > progress.highScore) {
         progress.highScore = scorePlayer;
@@ -214,7 +223,8 @@ void stateGameOver()
     progress.highScore = scorePlayer;
   }
 
-  if (arduboy.justPressed(A_BUTTON | B_BUTTON))
+  sprites.drawOverwrite(43,5,mystic::art::labels[8],0);
+  if (menuAccept() || arduboy.justPressed(B_BUTTON))
   {
     gameState = STATE_MENU_MAIN;
   }

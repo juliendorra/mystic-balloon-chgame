@@ -41,23 +41,23 @@ def main():
 
     def open_audio():
         current = state()
-        tap(8); tap(8); tap(2)
+        tap(8); tap(8); tap(1)
         for _ in range(4 - current['palette']):
             tap(8)
         check(state()['state'] == 5 and state()['palette'] == current['palette'],
               'sound rows restore the confirmed palette')
 
     def confirm():
-        tap(2)
+        tap(1)
         time.sleep(.65); d.frames(3)
-        check(state()['state'] == 1, 'B saves and returns to main menu')
+        check(state()['state'] == 1, 'A saves and returns to main menu')
 
     try:
         report['hello'] = d.handshake()
         check(report['hello'] == 'MYBL ' + json.loads((GAME / 'chgame.json').read_text())['version'],
               'installed diagnostic has the current release identity')
         d.cmd('L1'); d.buttons(0); reload()
-        tap(2); tap(2)
+        tap(1); tap(1)
         before = state()
         keys = ('level', 'score', 'total', 'saved', 'sound', 'palette', 'audio')
         baseline = {k: before[k] for k in keys}
@@ -70,9 +70,9 @@ def main():
         tap(8); tap(32)
         check(state()['sound'] != baseline['sound'] and state()['palette'] == baseline['palette'],
               'Right changes sound immediately without changing the confirmed palette')
-        tap(1)
+        tap(2)
         check(all(state()[k] == baseline[k] for k in ('sound', 'palette', 'audio')),
-              'A restores sound, audio mode and palette together')
+              'B restores sound, audio mode and palette together')
         reload()
 
         for wanted in (1, 0):
@@ -109,7 +109,7 @@ def main():
         tap(8)
         if state()['sound'] != baseline['sound']:
             tap(32)
-        confirm(); reload(); tap(2); tap(2)
+        confirm(); reload(); tap(1); tap(1)
         final = {k: state()[k] for k in keys}
         check(final == baseline, 'original checkpoint and every preference retained after all tests')
         report['checkpoint_after'] = final

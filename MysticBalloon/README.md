@@ -10,14 +10,13 @@ Find the key and float to the exit through 39 levels of fans, spikes, and walkin
 |---|---|
 | Left / Right | Move |
 | Up / Down | Look vertically; Up enters a door after finding the key |
-| B | Jump; press again in the air, then hold, to float with balloons |
-| A | Inhale enemies and nearby coins |
+| B | Jump; press again in the air, then hold, to float with balloons; back in menus |
+| A | Inhale enemies and nearby coins; accept in menus |
 | START | Pause / resume |
 | SELECT | Turn sound on / off |
-| Up / Down, B while paused | Select and confirm RESUME or SAVE & QUIT |
-| A while paused | Resume |
-| D-pad, B, A in menus | Choose, confirm, back; either action button selects on the main menu |
-| Down + A | Original pause shortcut; release, then A or B resumes |
+| Up / Down, A while paused | Select and confirm RESUME, RESTART LEVEL, or SAVE & QUIT |
+| B while paused | Back to gameplay without executing the selected action |
+| D-pad, A, B in menus | Choose, accept, back; B never accepts a main-menu item |
 
 ## Rules
 
@@ -27,17 +26,17 @@ Most levels have six coins; level 23 has four in the original map. Each coin awa
 
 ## How to play
 
-Choose **PLAY** to see **NEW** at the top, an empty line, then the saved runs, named by their level and percentage, such as **LEVEL 16 0%**. The last played run is preselected. Use **Up/Down** to choose and **B** to load; B on NEW creates a separate run and keeps the others. There are eight slots on SD, or four in flash; a full list refuses NEW instead of overwriting progress. The percentage counts the level's coins and key. Loading a mid-level run opens paused, ready for RESUME.
+Choose **PLAY** to see **NEW** at the top, an empty line, then the saved runs, named by their level and percentage, such as **LEVEL 16 0%**. The last played run is preselected. Use **Up/Down** to choose and **A** to load; A on NEW creates a separate run and keeps the others. B returns to the main menu. There are eight slots on SD, or four in flash; a full list refuses NEW instead of overwriting progress. The percentage counts the level's coins and key. Loading a mid-level run opens paused, ready for RESUME.
 
-**HELP** shows the controls, door/key rules, loading runs, and SAVE & QUIT. A or B returns to the main menu.
+**HELP** shows the controls, door/key rules, loading runs, and SAVE & QUIT. A acknowledges the page; B goes back.
 
-**CONF** still previews COLOR, ORIGINAL, DMG GREEN and AMBER with Up/Down. Sound rows restore the confirmed palette. Left/Right changes **AUDIO ATM/BEEP** and **SOUND ON/OFF**, with audible previews. B saves; A cancels all previews. SELECT mutes either mode.
+**CONF** still previews COLOR, ORIGINAL, DMG GREEN and AMBER with Up/Down. Sound rows restore the confirmed palette. Left/Right changes **AUDIO ATM/BEEP** and **SOUND ON/OFF**, with audible previews. A saves; B cancels all previews. SELECT mutes either mode.
 
 Version **1.4.0** saves full gameplay state to **MYBLSAVE.DAT** on the SD card by default. Pause/SAVE & QUIT retains your actual position, coins, key, balloons and enemy state. The old level-entry checkpoint is migrated into the first run. See the [save-system behavior, setup and checks](docs/save-system.md). The installer prepares the journal without replacing existing saves.
 
 Version **1.3.0** includes the ATMlib edition's title tune, five gameplay tunes and fourteen tracker effects. The gameplay tunes rotate by level; music continues during pause. **AUDIO BEEP** restores the faithful, single-voice 1.2.9 sound without background music. SELECT mutes either mode. Existing saves keep their progress, palette and sound setting, and default to ATM music. See the [soundtrack implementation and checks](docs/atmlib-soundtrack.md).
 
-Press START to pause. **SAVE & QUIT** commits the active run and returns to the menu after a successful save. Loading that run restores its mid-level state; old imported saves start at their saved level's entrance. A, START or **RESUME** continues the paused game. Death keeps the last playable save. The simulator can use a persistent SD journal with `CHMB_SAVE_CARD=/path/to/MYBLSAVE.DAT`; its flash stand-in lasts only for the current process.
+Press START to pause. **RESTART LEVEL** (added in **1.4.1**) returns the active run to its current level's entrance with three balloons, fresh enemies, coins and key. It rolls back that attempt's score and campaign coins, preserves the other runs, and commits the restart before changing the paused world. **SAVE & QUIT** still keeps the exact mid-level state. Press A to execute the highlighted action; B or START resumes gameplay. At a level-start prompt, A starts playing and B returns to the main menu. If A and B are pressed together, back takes priority. Death keeps the last playable save. The simulator can use a persistent SD journal with `CHMB_SAVE_CARD=/path/to/MYBLSAVE.DAT`; its flash stand-in lasts only for the current process.
 
 Gameplay fills all 128×128 pixels at the original pixel scale, including the original HUD and pause badge. Red, yellow and blue balloons match the lives display; the character has a light peach face against a soft cyan sky and mint terrain. The splash is one continuous 128×128 illustration extending the original child, balloon and enemy composition, with the original title lettering. The camera scrolls within the 384×384 levels. Added control/status panels remain removed.
 

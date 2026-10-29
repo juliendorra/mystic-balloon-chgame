@@ -50,7 +50,7 @@ static void saveSystemTest() {
     char path[]="/tmp/mybl-save-XXXXXX";int fd=mkstemp(path);assert(fd>=0);close(fd);
     seedCard(path);setenv("CHMB_SAVE_CARD",path,1);loadProgress();assert(ss::status==ss::Sd && !ss::count);
     gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;runSaveKind=0;
-    tap(B_BUTTON);tap(B_BUTTON);finishTone();
+    tap(A_BUTTON);tap(A_BUTTON);finishTone();
     assert(ss::count==1 && gameState==STATE_GAME_NEXT_LEVEL);
     startLevel(5,1400,13);coins[5].active=false;coinsActive=5;coinsCollected=1;
     key.haveKey=true;key.active=false;kid.actualpos=vec2(3200,5120);kid.pos=kid.actualpos>>5;
@@ -58,24 +58,24 @@ static void saveSystemTest() {
     const auto snapshot=captureRun(true);assert(ss::valid([&]{ss::Store s;s.count=1;s.active=0;s.runs[0]=snapshot;return s;}(),8));
     assert(ss::checkpoint(snapshot));char name[24];ss::label(snapshot,name);assert(!strcmp(name,"LEVEL 06 28%"));
     ss::Store before;assert(ss::read(before));
-    gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;tap(B_BUTTON);tap(UP_BUTTON);tap(B_BUTTON);finishTone();
+    gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;tap(A_BUTTON);tap(UP_BUTTON);tap(A_BUTTON);finishTone();
     ss::Store after;assert(ss::read(after));assert(after.count==2 && !memcmp(&after.runs[0],&snapshot,sizeof snapshot));
     // Reopening PLAY selects the last played run. The empty line is visual,
-    // never a cursor stop, and B on a saved row actually restores that run.
-    gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;tap(B_BUTTON);
+    // never a cursor stop, and A on a saved row actually restores that run.
+    gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;tap(A_BUTTON);
     assert(cont==2);
     tap(DOWN_BUTTON);assert(cont==0);
     tap(DOWN_BUTTON);assert(cont==1);
     tap(UP_BUTTON);assert(cont==0);
     tap(DOWN_BUTTON);assert(cont==1);
-    tap(B_BUTTON);finishTone();
+    tap(A_BUTTON);finishTone();
     ss::Run chosen;
     assert(ss::active==0);
     assert(gameState==STATE_GAME_PAUSE && kid.actualpos.x==3200 && kid.actualpos.y==5120 && kid.speed.y==-17);
     assert(!coins[5].active && key.haveKey && !key.active && walkers[0].HP==12 && kid.balloons==2);
     const auto restored=captureRun(true);assert(!memcmp(&restored,&snapshot,sizeof snapshot));
-    loadProgress();gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;tap(B_BUTTON);assert(cont==1);
-    tap(A_BUTTON);
+    loadProgress();gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;tap(A_BUTTON);assert(cont==1);
+    tap(B_BUTTON);
     auto dead=snapshot;dead.balloons=0;dead.kidFlags|=1024;assert(ss::checkpoint(dead));
     ss::Store playable;assert(ss::read(playable));assert(!memcmp(&playable.runs[0],&snapshot,sizeof snapshot));
     assert(save::store(other,1,other));assert(save::store(other,1,other));ss::testFlashOwners(other,other);
@@ -84,6 +84,38 @@ static void saveSystemTest() {
     setSound(false);setPalette(Amber);setAudioMode(mystic::audio::Beeps);assert(storeProgress());
     assert(save::load(other,1,marker) && marker==other);
     puts("PASS: real NEW menu creates a separate run, labelled level/percentage; exact gameplay state and preferences survive reboot and foreign-game flash writes");
+    // Retry a partially completed level through the actual START menu.
+    auto retry=snapshot;retry.entryScore=1400;retry.score=1900;retry.total=14;
+    assert(ss::checkpoint(retry));restoreRun(retry);
+    ss::Store untouched;assert(ss::read(untouched));
+    tap(UP_BUTTON);assert(pauseSelection==2); // Up wraps to SAVE & QUIT.
+    tap(DOWN_BUTTON);assert(pauseSelection==0);
+    tap(DOWN_BUTTON);assert(pauseSelection==1);
+    card::testCutAfter(0);tap(A_BUTTON);finishTone();
+    assert(gameState==STATE_GAME_PAUSE && pauseSaveFailed && kid.actualpos.x==retry.x);
+    ss::Store failed;assert(ss::read(failed));assert(!memcmp(&failed.runs[0],&retry,sizeof retry));
+    card::testCutAfter(-1);setSound(true);sound.tone(300,1000);
+    tap(A_BUTTON);assert(pauseRestartRequested);
+    tap(START_BUTTON);assert(gameState==STATE_GAME_PAUSE && pauseRestartRequested);
+    setSound(false);finishTone();
+    assert(gameState==STATE_GAME_NEXT_LEVEL && level==5 && scorePlayer==1400 && totalCoins==13);
+    ss::Store restarted;assert(ss::read(restarted));
+    assert(restarted.count==2 && restarted.active==0 && !(restarted.runs[0].objects&ss::MID_LEVEL));
+    assert(ss::percent(restarted.runs[0])==0 && restarted.runs[0].entryScore==1400);
+    assert(!memcmp(&restarted.runs[1],&untouched.runs[1],sizeof(ss::Run)));
+    while (!canPressButton) tick();
+    tick(A_BUTTON);
+    assert(gameState==STATE_GAME_PLAYING && kid.balloons==3 && key.active && !key.haveKey && coinsActive==6);
+    tick();coins[0].pos=kid.pos;checkCollisions();
+    assert(scorePlayer>1400 && coinsCollected==1 && totalCoins==14);
+    tap(START_BUTTON);tap(DOWN_BUTTON);tap(DOWN_BUTTON);assert(pauseSelection==2);
+    tap(A_BUTTON);finishTone();assert(gameState==STATE_MENU_MAIN);
+    loadProgress();tap(A_BUTTON);tap(A_BUTTON);finishTone();
+    assert(gameState==STATE_GAME_PAUSE && levelEntryScore==1400);
+    tap(DOWN_BUTTON);tap(A_BUTTON);finishTone();
+    assert(gameState==STATE_GAME_NEXT_LEVEL && scorePlayer==1400 && totalCoins==13 && coinsCollected==0);
+    assert(ss::read(restarted) && !memcmp(&restarted.runs[1],&untouched.runs[1],sizeof(ss::Run)));
+    puts("PASS: RESTART LEVEL resets the active level and entry score after reload; failures retain the paused world and other runs never change");
     uint8_t baseline[1536];readFixture(path,baseline,sizeof baseline);ss::Store baseStore;assert(ss::read(baseStore));
     for (unsigned cut=0;cut<512;++cut) {
         writeFixture(path,baseline,sizeof baseline);loadProgress();card::testCutAfter(cut);

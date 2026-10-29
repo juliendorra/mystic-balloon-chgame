@@ -1,13 +1,13 @@
 wait 1
-tap B
+tap A
 rec start 4
 wait 60
 rec stop 01_title
-tap B
+tap A
 tap DOWN
-tap B
+tap A
 wait 24
-tap B
+tap A
 rec start 4
 hold RIGHT
 wait 42

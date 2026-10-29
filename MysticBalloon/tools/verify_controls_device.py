@@ -67,7 +67,7 @@ def main():
     def panel(palette, selection):
         shot = d.shot()
         expected = (GAME / f"out/splash-review/{palette}_pause_{selection}.bin").read_bytes()
-        for y in range(36, 92):
+        for y in range(36, 100):
             for x in range(20, 108):
                 i, shift = y * 64 + x // 2, (x & 1) * 4
                 assert (shot[i] >> shift) & 15 == (expected[i] >> shift) & 15
@@ -86,9 +86,9 @@ def main():
         original_sound, original_palette = initial["sound"], initial["palette"]
         d.cmd("O 1")
         if initial["state"] == 0:
-            tap(2)
+            tap(1)
         check(state()["state"] == 1, "boot reaches main menu")
-        tap(8); tap(8); tap(2)
+        tap(8); tap(8); tap(1)
         check(state()["state"] == 5, "CONF opens through normal controls")
         for _ in range(original_palette):
             tap(4)
@@ -101,30 +101,30 @@ def main():
                   palette_rgb(shot[8192:])[0] == rgb,
                   name + " is previewed immediately by cursor movement")
             to_image(shot, 3).save(a.out / f"preview-{name}.png")
-        tap(1)
-        check(state()["state"] == 1 and state()["palette"] == original_palette,
-              "A cancels the preview and restores the previous palette")
         tap(2)
+        check(state()["state"] == 1 and state()["palette"] == original_palette,
+              "B cancels the preview and restores the previous palette")
+        tap(1)
         for _ in range(3 - original_palette):
             tap(8)
-        tap(2)
-        check(state()["state"] == 1 and state()["palette"] == 3, "B confirms the highlighted palette")
-        tap(2); tap(4)
-        check(state()["palette"] == 2, "moving up previews DMG")
         tap(1)
-        check(state()["palette"] == 3, "cancel restores the newly confirmed palette")
+        check(state()["state"] == 1 and state()["palette"] == 3, "A confirms the highlighted palette")
+        tap(1); tap(4)
+        check(state()["palette"] == 2, "moving up previews DMG")
         tap(2)
+        check(state()["palette"] == 3, "cancel restores the newly confirmed palette")
+        tap(1)
         for _ in range(3 - original_palette):
             tap(4)
-        tap(2)
+        tap(1)
         check(state()["palette"] == original_palette, "original palette restored before saving progress")
         to_image(d.shot(), 3).save(a.out / "title.png")
         measure("128x128 title with ATM music", 2)
-        tap(4); tap(4); tap(2); tap(2)
+        tap(4); tap(4); tap(1); tap(1)
         bank = state()
         check(bank["state"] == 6, "CONT loads the existing level checkpoint")
         evidence["checkpoint"] = {k: bank[k] for k in ("level", "score", "total")}
-        d.frames(30); tap(2)
+        d.frames(30); tap(1)
         check(state()["state"] == 7, "saved level starts normally")
         tap(64)
         check(state()["state"] == 8, "START opens pause")
@@ -141,9 +141,9 @@ def main():
             panel(p, 1)
             measure(name + " pause menu", 2)
         d.cmd(f"C {original_palette}")
-        tap(1)
-        check(state()["state"] == 7, "A resumes from SAVE & QUIT without leaving")
-        tap(64); panel(original_palette, 0); tap(8); tap(2)
+        tap(2)
+        check(state()["state"] == 7, "B returns from pause without leaving")
+        tap(64); panel(original_palette, 0); tap(8); tap(8); tap(1)
         deadline = time.monotonic() + 2
         while state()["state"] == 8 and time.monotonic() < deadline:
             time.sleep(.03)
@@ -151,12 +151,12 @@ def main():
         check(state()["state"] == 1 and state()["saved"] == bank["level"],
               "SAVE & QUIT returns to menu with the current checkpoint")
         to_image(d.shot(), 3).save(a.out / "saved-main.png")
-        tap(2); tap(2)
+        tap(1); tap(1)
         continued = state()
-        check(continued["state"] == 6 and all(continued[k] == bank[k] for k in ("level", "score", "total"))
+        check(continued["state"] == 8 and all(continued[k] == bank[k] for k in ("level", "score", "total"))
               and continued["balloons"] == 3,
-              "normal CONT reloads saved level, score and coins with three balloons")
-        d.frames(30); tap(2); tap(64)
+              "normal LOAD opens paused with saved level, score and coins with three balloons")
+        d.frames(30); tap(1); tap(64)
         check(d.cmd("!", "FAULT") == "FAULT none", "no recorded device fault")
     finally:
         (a.out / "results.json").write_text(json.dumps(evidence, indent=2) + "\n")

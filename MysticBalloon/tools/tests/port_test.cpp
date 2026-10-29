@@ -363,7 +363,7 @@ static void colorsTest() {
     tick();
     for (unsigned i=0; i<4; ++i) {
         settingsSelection=i;
-        tick(B_BUTTON);
+        tick(A_BUTTON);
         assert(gameState==STATE_MENU_MAIN && palette()==Palette(i));
         tick();
         const bool sound=mystic::audio::enabled();
@@ -503,7 +503,7 @@ static void settingsPreviewTest() {
     setPalette(Color);setSound(true);tick();
     const Progress checkpoint=progress;
     const auto record=saveGeneration();
-    tap(B_BUTTON);
+    tap(A_BUTTON);
     assert(gameState==STATE_MENU_SOUNDFX && settingsSelection==0);
     for (unsigned p=1;p<4;++p) {
         tap(DOWN_BUTTON);
@@ -518,29 +518,29 @@ static void settingsPreviewTest() {
     assert(settingsSelection==4 && palette()==Color);
     tap(SELECT_BUTTON); // Muting cannot accidentally persist a preview.
     assert(!mystic::audio::enabled() && saveGeneration()==record);
-    tap(A_BUTTON);
+    tap(B_BUTTON);
     finishTone();
     Progress loaded;
     assert(gameState==STATE_MENU_MAIN && palette()==Color);
     assert(savedProgress(loaded) && loaded.level==checkpoint.level &&
            loaded.score==checkpoint.score && loaded.coins==checkpoint.coins && loaded.options==1);
     assert(mystic::audio::enabled());
-    setSound(true);tick();tap(B_BUTTON);tap(DOWN_BUTTON);tap(B_BUTTON);
+    setSound(true);tick();tap(A_BUTTON);tap(DOWN_BUTTON);tap(A_BUTTON);
     finishTone();
     assert(gameState==STATE_MENU_MAIN && palette()==Original);
     assert(savedProgress(loaded) && ((loaded.options>>1)&3)==Original);
-    tap(B_BUTTON);tap(UP_BUTTON); // Preview Color from committed Original.
+    tap(A_BUTTON);tap(UP_BUTTON); // Preview Color from committed Original.
     assert(palette()==Color);
     tap(UP_BUTTON); // Wrap to SOUND, then confirm just the sound change.
     assert(settingsSelection==5);
     tap(RIGHT_BUTTON);
     assert(gameState==STATE_MENU_SOUNDFX && !mystic::audio::enabled());
-    tap(B_BUTTON);
+    tap(A_BUTTON);
     assert(gameState==STATE_MENU_MAIN && palette()==Original && !mystic::audio::enabled());
     finishTone();
     assert(savedProgress(loaded) && loaded.options==2);
     setPalette(Color);setSound(true);tick();
-    puts("PASS: live palette previews, B confirms, A cancels, SOUND restores committed palette, previews never write flash");
+    puts("PASS: live palette previews, A confirms, B cancels, SOUND restores committed palette, previews never write flash");
 }
 
 static unsigned previewCount;
@@ -554,7 +554,7 @@ static void settingsAudioPreviewTest() {
     setPalette(DMG);setAudioMode(mystic::audio::Beeps);setSound(true);
     gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_SOUNDFX;finishTone();
     const auto record=saveGeneration();
-    tap(B_BUTTON);
+    tap(A_BUTTON);
     previewCount=0;mystic::tones::trace=previewTrace;
     tap(DOWN_BUTTON); // Amber is temporary.
     tap(DOWN_BUTTON); // Audio row restores confirmed DMG and starts samples.
@@ -577,13 +577,13 @@ static void settingsAudioPreviewTest() {
     const auto stopped=mystic::audio::ticks();
     for (unsigned i=0;i<80;++i) tick();
     assert(mystic::audio::ticks()==stopped);
-    tap(A_BUTTON);finishTone();
+    tap(B_BUTTON);finishTone();
     assert(gameState==STATE_MENU_MAIN && palette()==DMG && mystic::audio::enabled() &&
            mystic::audio::mode()==mystic::audio::Beeps);
     assert(saveGeneration()==record);
     mystic::tones::trace=nullptr;
     setPalette(Color);setAudioMode(mystic::audio::Atm);setSound(true);finishTone();
-    puts("PASS: Left/Right previews both audio states in CONF, repeating beep/ATM samples, mute silence, A restores all options without flash writes");
+    puts("PASS: Left/Right previews both audio states in CONF, repeating beep/ATM samples, mute silence, B restores all options without flash writes");
 }
 
 static void pauseTest() {
@@ -620,17 +620,17 @@ static void pauseRenderTest() {
         memcpy(world,gfx_fb,sizeof world);
         tap(START_BUTTON);
         const unsigned commands=arduboy.commandCount;
-        for (unsigned option : {0u,1u,0u}) {
-            if (pauseSelection!=option) tap(DOWN_BUTTON);
+        for (unsigned option : {0u,1u,2u,0u}) {
+            while (pauseSelection!=option) tap(DOWN_BUTTON);
             assert(arduboy.commandCount==commands && !arduboy.dropped);
             memcpy(overlay,gfx_fb,sizeof overlay);
             arduboy.render(true); // Independent full-world replay reference.
             assert(!memcmp(overlay,gfx_fb,sizeof overlay));
             for (unsigned y=0;y<128;++y) for (unsigned x=0;x<64;++x)
-                if (y<36 || y>=92 || x<10 || x>=54)
+                if (y<36 || y>=100 || x<10 || x>=54)
                     assert(gfx_fb[y*64+x]==world[y*64+x]);
         }
-        tap(A_BUTTON);
+        tap(B_BUTTON);
     }
     setPalette(Color);
     puts("PASS: pause-only replay matches full rendering in all four palettes; switching options preserves the frozen world");
@@ -719,12 +719,42 @@ static void hazardsTest() {
 
 #include "save_cases.h"
 
+static void menuButtonsTest() {
+    using namespace mystic;
+    chmbtest::clearFlash();loadProgress();
+    gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;finishTone();
+    tap(B_BUTTON);assert(gameState==STATE_MENU_MAIN && saves::count==0);
+    tap(A_BUTTON|B_BUTTON);assert(gameState==STATE_MENU_MAIN && saves::count==0);
+    tap(A_BUTTON);assert(gameState==STATE_MENU_PLAY);
+    tap(A_BUTTON|B_BUTTON);assert(gameState==STATE_MENU_MAIN && saves::count==0);
+    tap(A_BUTTON);tap(A_BUTTON);finishTone();
+    assert(saves::count==1 && gameState==STATE_GAME_NEXT_LEVEL);
+    while (!canPressButton) tick();
+    tap(B_BUTTON);assert(gameState==STATE_MENU_MAIN && saves::count==1);
+    tap(A_BUTTON);tap(A_BUTTON);finishTone();
+    assert(gameState==STATE_GAME_NEXT_LEVEL);
+    while (!canPressButton) tick();
+    tick(A_BUTTON);assert(gameState==STATE_GAME_PLAYING);tick();
+    for (unsigned choice=1;choice<=2;++choice) {
+        tap(START_BUTTON);
+        for (unsigned i=0;i<choice;++i) tap(DOWN_BUTTON);
+        tap(choice==1 ? B_BUTTON : A_BUTTON|B_BUTTON);
+        assert(gameState==STATE_GAME_PLAYING && !pauseRestartRequested && !pauseSaveRequested);
+    }
+    gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_SOUNDFX;finishTone();
+    const auto options=progress.options;const auto generation=saveGeneration();
+    tap(A_BUTTON);tap(DOWN_BUTTON);tap(A_BUTTON|B_BUTTON);finishTone();
+    assert(gameState==STATE_MENU_MAIN && progress.options==options && saveGeneration()==generation);
+    puts("PASS: A accepts, B backs out across menus and level prompts; B wins simultaneous buttons without creating, restarting or quitting a run");
+}
+
 static void helpMenuTest() {
     for (unsigned palette=0;palette<4;++palette) {
         mystic::setPalette(mystic::Palette(palette));
         gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_HELP;
         finishTone();const auto generation=saveGeneration();
-        tap(B_BUTTON);assert(gameState==STATE_MENU_HELP);
+        tap(B_BUTTON);assert(gameState==STATE_MENU_MAIN);
+        tap(A_BUTTON);assert(gameState==STATE_MENU_HELP);
         // Check actual rendered instruction rows, excluding the border.
         // A blank handler or title-only page must fail in every palette.
         for (unsigned line=0;line<11;++line) {
@@ -735,11 +765,11 @@ static void helpMenuTest() {
         }
         assert(gfx_paletteOut(0)!=gfx_paletteOut(1));
         tap(A_BUTTON);assert(gameState==STATE_MENU_MAIN);
-        tap(B_BUTTON);assert(gameState==STATE_MENU_HELP);
+        tap(A_BUTTON);assert(gameState==STATE_MENU_HELP);
         tap(B_BUTTON);assert(gameState==STATE_MENU_MAIN);
         finishTone();assert(saveGeneration()==generation);
     }
-    puts("PASS: HELP shows all 11 instruction rows in four palettes; A/B return without changing saves");
+    puts("PASS: HELP shows all 11 instruction rows in four palettes; A acknowledges, B returns without changing saves");
 }
 
 int main() {
@@ -763,6 +793,7 @@ int main() {
     hazardsTest();
     commandCapacityTest();
     saveSystemTest();
+    menuButtonsTest();
     helpMenuTest();
     gfx_wait();
     return 0;

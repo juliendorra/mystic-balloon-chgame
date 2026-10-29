@@ -1,9 +1,9 @@
-# Live preview, commit, pause/save/quit, and normal CONT controls.
+# Live preview, commit, pause/restart/save/quit, and saved-run loading.
 wait 1
-tap B
+tap A
 tap DOWN
 tap DOWN
-tap B
+tap A
 snap conf_color
 tap DOWN
 snap conf_original
@@ -11,19 +11,21 @@ tap DOWN
 snap conf_dmg
 tap DOWN
 snap conf_amber
-tap B
+tap A
 say G 6
 wait 2
 tap START
 snap pause_resume
 tap DOWN
+snap pause_restart
+tap DOWN
 snap pause_save_quit
-tap B
+tap A
 snap saved_main_menu
-tap B
-tap B
+tap A
+tap A
 wait 30
-tap B
+tap A
 snap continued
 say V
 say C 0

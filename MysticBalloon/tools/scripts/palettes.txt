@@ -1,11 +1,11 @@
 wait 1
-tap B
+tap A
 snap splash
 tap DOWN
 tap DOWN
-tap B
-snap conf
 tap A
+snap conf
+tap B
 say G 1
 wait 2
 say C 0

@@ -23,6 +23,11 @@ void loop() {}
 #undef main
 
 static const char *scenario="initial";
+#ifdef CHMB_AUDIO_REFERENCE
+constexpr uint8_t MENU_ACCEPT=B_BUTTON, MENU_BACK=A_BUTTON;
+#else
+constexpr uint8_t MENU_ACCEPT=A_BUTTON, MENU_BACK=B_BUTTON;
+#endif
 void audioTrace(uint16_t hz,uint16_t duration) {
     printf("SND %s %u %u %u %u\n",scenario,unsigned(chgame.frameCount),hz,duration,arduboy.audio.enabled());
 }
@@ -56,12 +61,18 @@ int main() {
     reset("intro-late-skip"); globalCounter=200; frame(201,A_BUTTON); stateMenuIntro();
     reset("main-menu"); menuSelection=3;
     frame(1,DOWN_BUTTON); stateMenuMain(); frame(2,UP_BUTTON); stateMenuMain();
-    frame(3,B_BUTTON); stateMenuMain();
-    reset("help-back"); frame(1,A_BUTTON); stateMenuHelp();
-    reset("info-back"); frame(1,B_BUTTON); stateMenuInfo();
+    frame(3,MENU_ACCEPT); stateMenuMain();
+    reset("help-back"); frame(1,MENU_BACK); stateMenuHelp();
+    reset("info-back"); frame(1,MENU_BACK); stateMenuInfo();
     reset("play-menu");
     frame(1,DOWN_BUTTON); stateMenuPlaySelect(); frame(2,UP_BUTTON); stateMenuPlaySelect();
-    frame(3,B_BUTTON); stateMenuPlaySelect(); frame(4,A_BUTTON); stateMenuPlaySelect();
+    frame(3,MENU_ACCEPT); stateMenuPlaySelect();
+#ifndef CHMB_AUDIO_REFERENCE
+    // The port commits deferred card I/O in loop(); isolate the next
+    // handler fixture from that pending action without touching storage.
+    mystic::saves::action=mystic::saves::None;
+#endif
+    frame(4,MENU_BACK); stateMenuPlaySelect();
     reset("config-enable");
 #ifdef CHMB_AUDIO_REFERENCE
     arduboy.audio.off(); frame(1,DOWN_BUTTON);
@@ -70,11 +81,11 @@ int main() {
     settingsOriginalPalette=mystic::Color; settingsOriginalOptions=9; frame(1,RIGHT_BUTTON);
 #endif
     stateMenuSoundfx();
-    reset("config-back"); frame(1,A_BUTTON); stateMenuSoundfx();
+    reset("config-back"); frame(1,MENU_BACK); stateMenuSoundfx();
     reset("next-level-enter"); canPressButton=true; toneindex=10;
-    frame(1,B_BUTTON); stateGameNextLevel();
+    frame(1,MENU_ACCEPT); stateGameNextLevel();
     reset("same-frame-menu"); menuSelection=3;
-    frame(1,UP_BUTTON|DOWN_BUTTON|B_BUTTON); stateMenuMain();
+    frame(1,UP_BUTTON|DOWN_BUTTON|MENU_ACCEPT); stateMenuMain();
     reset("jump"); frame(1,B_BUTTON); checkInputs();
     reset("footsteps"); const vec2 floor=floorPosition();
     for (unsigned f=0;f<128;++f) {
@@ -139,7 +150,7 @@ int main() {
     }
     reset("bonus-cross-wrap"); coinsCollected=6; balloonsLeft=3; level=1;
     for (unsigned f=65515;f<65740;++f) { frame(f); stateGameNextLevel(); }
-    reset("pause-silent"); frame(1); stateGamePause(); frame(2,A_BUTTON); stateGamePause();
-    reset("game-over-silent"); frame(1,A_BUTTON); stateGameOver();
+    reset("pause-silent"); frame(1); stateGamePause(); frame(2,MENU_BACK); stateGamePause();
+    reset("game-over-silent"); frame(1,MENU_ACCEPT); stateGameOver();
     return 0;
 }

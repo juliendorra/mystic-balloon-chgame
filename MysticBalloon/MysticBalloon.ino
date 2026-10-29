@@ -47,6 +47,7 @@ Role spriteRole(const uint8_t *s, uint8_t frame, uint8_t mode) {
 
 #if CHGAME_DEBUG
 bool debugCommand(char cmd, const char *args) {
+#ifndef CHMB_MENU_DIAGNOSTICS
 #if defined(CHSIM) || defined(CHMB_FULL_DIAGNOSTICS)
     if (cmd == 'U') { mystic::framePerf.report(); return true; }
 #endif
@@ -67,7 +68,23 @@ bool debugCommand(char cmd, const char *args) {
         gfx_flushAsync();
         return true;
     }
+#endif
     if (cmd == 'V') {
+#ifdef CHMB_MENU_DIAGNOSTICS
+        char line[320];
+        const int32_t values[]={
+            gameState,level+1,kid.pos.x,kid.pos.y,(unsigned)scorePlayer,totalCoins,
+            coinsActive,key.haveKey,kid.balloons,progress.level+1,mystic::audio::enabled(),
+            mystic::palette(),mystic::audio::mode(),mystic::saves::count,mystic::saves::active,
+            mystic::saves::status,cont,pauseSelection,(unsigned)levelEntryScore,arduboy.dropped};
+        const char *names="state\0level\0x\0y\0score\0total\0coins\0key\0balloons\0saved\0sound\0palette\0audio\0slots\0slot\0media\0choice\0pause\0entry\0dropped";
+        char *p=fmtStr(line,"MYBL");
+        for (auto value:values) {
+            *p++=' ';p=fmtStr(p,names);names+=strlen(names)+1;
+            *p++='=';p=fmtInt(p,value);
+        }
+        *p++='\n';*p=0;
+#else
         char line[416];
         unsigned ns = 0, nf = 0, nw = 0, maxHeight = 0;
         for (unsigned i = 0; i < MAX_PER_TYPE; ++i) {
@@ -85,9 +102,11 @@ bool debugCommand(char cmd, const char *args) {
             ns, maxHeight, nf, nw, progress.level+1, mystic::audio::enabled(), mystic::audio::mode(), mystic::audio::song(), (unsigned)mystic::audio::ticks(), (unsigned)mystic::audio::samples(), cam.pos.x, cam.pos.y, mystic::VIEW_H,
             mystic::palette(), arduboy.commandCount, arduboy.dropped,
             mystic::saves::count,mystic::saves::active,mystic::saves::status);
+#endif
         dbg::print(line);
         return true;
     }
+#ifndef CHMB_MENU_DIAGNOSTICS
 #if defined(CHSIM) || defined(CHMB_FULL_DIAGNOSTICS)
     if (cmd == 'D') {
         // Static native pixel reference for all twelve poses and four inhale
@@ -118,6 +137,7 @@ bool debugCommand(char cmd, const char *args) {
         gameState = STATE_GAME_PLAYING;
         return true;
     }
+#endif
     if (cmd == 'J') {
         // Reproducible edge/fan launch in the current level; normal physics
         // runs on subsequent frames. Diagnostic only, never writes a save.
@@ -135,7 +155,9 @@ bool debugCommand(char cmd, const char *args) {
     }
     if (cmd == 'R') {
         // Discard diagnostic level/position changes and reload saved options.
+        gfx_wait();
         mystic::loadProgress();
+        pauseSaveRequested=pauseRestartRequested=false;
         gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;cont=0;runSaveKind=0;
         return true;
     }
@@ -171,7 +193,7 @@ void loop() {
     mystic::audio::update(gameState,level);
     // Resume on the following frame so START never advances a paused world.
     const bool start = chgame.justPressed(START_BUTTON);
-    const bool resume = start && gameState == STATE_GAME_PAUSE;
+    const bool resume = start && gameState == STATE_GAME_PAUSE && !pauseSaveRequested && !pauseRestartRequested;
     if (start && gameState == STATE_GAME_PLAYING) gameState = STATE_GAME_PAUSE;
     if (gameState < STATE_GAME_NEXT_LEVEL && chgame.everyXFrames(10))
         sparkleFrames = (sparkleFrames + 1) % 5;
@@ -207,6 +229,13 @@ void loop() {
             if (ok) restoreRun(run);
         }
         saveMenuError=!ok;mystic::saves::action=mystic::saves::None;runSaveKind=0;
+    } else if (pauseRestartRequested && mystic::audio::saveReady()) {
+        pauseRestartRequested=false;
+        auto run=captureRun(false);
+        run.score=run.entryScore=levelEntryScore;
+        run.total=totalCoins-min(unsigned(totalCoins),unsigned(coinsCollected));
+        pauseSaveFailed=!mystic::saves::checkpoint(run);
+        if (!pauseSaveFailed) { restoreRun(run);runSaveKind=0; }
     } else if (pauseSaveRequested && mystic::audio::saveReady()) {
         pauseSaveRequested=false;
         const auto run=captureRun(true);

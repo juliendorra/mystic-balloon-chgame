@@ -1,4 +1,4 @@
-# Saved runs — 1.4.0
+# Saved runs — 1.4.1
 
 The previous port kept one 12-byte level-entry checkpoint in the CHGame
 SDK's two shared flash pages. NEW could replace it. Another game's first
@@ -10,8 +10,8 @@ progress, but do not establish a hardware retention fault.
 
 PLAY opens the saved-run list directly: NEW at the top, an empty spacer
 line, then the existing runs, named `LEVEL 16 0%`, for example. The last
-played run is preselected. UP/DOWN selects a run and B loads it; on NEW,
-B creates a run. NEW stays visible while longer lists of runs scroll.
+played run is preselected. UP/DOWN selects a run and A loads it; on NEW,
+A creates a run. B goes back. NEW stays visible while longer lists of runs scroll.
 NEW creates another run. It never replaces an existing one. There are eight
 runs on SD, or four in the flash fallback. A full list refuses NEW and
 reports SAVES FULL; it does not silently delete a run.
@@ -27,6 +27,23 @@ collected coins and their moved horizontal positions, key possession,
 enemy positions/health/direction, score, campaign coins and update phase.
 Static map geometry and cosmetic particles are regenerated. A mid-level
 load opens paused, ready for RESUME. Death retains the last playable save.
+
+START opens RESUME, RESTART LEVEL, and SAVE & QUIT. RESTART LEVEL resets
+the active run to the current level's entrance: three balloons, all coins,
+the key and original enemies. Score returns to its level-entry value;
+campaign coins exclude that attempt's collected coins. Other runs stay
+unchanged. The game commits this clean checkpoint before leaving pause;
+if writing fails, the current paused world remains available to retry.
+SAVE & QUIT continues to retain the exact mid-level world.
+A accepts the highlighted pause action; B returns to gameplay. CONF also
+uses A to save and B to cancel previews. At a level-start prompt, A plays
+and B goes back to the main menu. Back takes priority over simultaneous A.
+
+Schema 3 adds a level-entry score to each run. All eight SD runs or four
+flash runs from 1.4.0 (schema 2) migrate without changing their saved
+worlds, scores, preferences or selection. That format did not retain
+level-entry score, so its saved score becomes the initial restart baseline;
+after entering the next level, exact entry-score rollback is available.
 
 Existing schema-1 saves migrate into the first run, keeping their score,
 level, coins, high score, palette and sound settings. Their original format
@@ -53,9 +70,11 @@ copy an empty save over the user's existing progress.
 
 The 1,536-byte file is preallocated by the host. Sector zero is a checked
 format descriptor; the other two sectors alternate full records with a
-32-bit generation and CRC-32. Each record holds all eight 52-byte worlds
+32-bit generation and CRC-32. Each record holds all eight 56-byte worlds
 and shared preferences. All fields have fixed widths and compile-time size
-checks. Readback verifies a commit before SAVE & QUIT exits. A torn newest
+checks. The payload is 468 bytes (244 for four flash runs); schema-2
+records used 436/228 bytes and remain readable for migration. Readback
+verifies a commit before SAVE & QUIT or RESTART LEVEL exits. A torn newest
 record falls back to the previous complete record. If both are invalid,
 the game reports an error and leaves the file untouched.
 

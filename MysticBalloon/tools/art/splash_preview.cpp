@@ -40,10 +40,15 @@ int main(int argc,char **argv) {
         kid.pos=kid.actualpos>>FIXED_POINT;resetCamera();
         arduboy.clear();drawGrid();enemiesUpdate();drawKid();drawHUD();
         gameState=STATE_GAME_PAUSE;
-        for (unsigned selection=0;selection<2;++selection) {
+        for (unsigned selection=0;selection<3;++selection) {
             arduboy.beginPause();pauseSelection=selection;
             stateGamePause();arduboy.render(true);dump(argv[1],palette,"pause",selection);
         }
+        arduboy.clear();gameState=STATE_GAME_NEXT_LEVEL;chgame.frameCount=1;
+        canPressButton=pressKeyIsVisible=true;coinsCollected=balloonsLeft=0;
+        stateGameNextLevel();arduboy.render(false);dump(argv[1],palette,"next",0);
+        arduboy.clear();gameState=STATE_GAME_OVER;
+        stateGameOver();arduboy.render(false);dump(argv[1],palette,"over",0);
     }
     gfx_wait();return 0;
 }

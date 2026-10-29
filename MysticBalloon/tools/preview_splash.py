@@ -18,7 +18,7 @@ def main():
     subprocess.run([str(exe),str(out)],check=True)
     font=load_font(12)
     names=['PASTEL ISLAND','ORIGINAL B&W','DMG GREEN','AMBER']
-    scenes=[('art',0),('main',0),('main',1),('main',3),('help',0),('config',0),('config',4),('play',0),('play',1),('pause',0),('pause',1)]
+    scenes=[('art',0),('main',0),('main',1),('main',3),('help',0),('config',0),('config',4),('play',0),('play',1),('pause',0),('pause',1),('pause',2),('next',0),('over',0)]
     review=Image.new('RGB',(4*272,36+len(scenes)*280),'#151626')
     draw=ImageDraw.Draw(review)
     for column,(name,palette) in enumerate(zip(names,PALETTES)):

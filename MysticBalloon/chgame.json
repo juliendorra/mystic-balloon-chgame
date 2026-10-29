@@ -24,11 +24,11 @@
     },
     {
       "control": "B",
-      "action": "Jump; press again in the air and hold to float; confirm menus"
+      "action": "Jump; press again in the air and hold to float; back in menus"
     },
     {
       "control": "A",
-      "action": "Inhale enemies and coins; back in menus"
+      "action": "Inhale enemies and coins; accept in menus"
     },
     {
       "control": "START",
