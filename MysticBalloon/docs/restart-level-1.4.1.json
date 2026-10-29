@@ -1,0 +1,46 @@
+{
+  "version": "1.4.1",
+  "checked_on": "2026-10-29",
+  "firmware_bytes": 50100,
+  "firmware_crc32": "a0f74c53",
+  "firmware_sha256": "f93291aadc7f92ab7c6b5ea60d1de1000fdea3ee12eea0e56b6dc05e99674f55",
+  "static_ram_bytes": 18124,
+  "reserved_stack_bytes": 2048,
+  "flash_save_pages_preserved": 2,
+  "package_matches_firmware": true,
+  "pause_options": [
+    "RESUME",
+    "RESTART LEVEL",
+    "SAVE & QUIT"
+  ],
+  "host_checks": [
+    "actual-menu restart after mid-level load",
+    "entry score and campaign coins roll back without farming",
+    "fresh coins/key/enemies/three balloons on level entry",
+    "failed restart leaves the paused world intact",
+    "START cannot interrupt a pending save/restart",
+    "other runs unchanged",
+    "migration of eight SD/four flash schema-2 runs",
+    "all 512 interrupted sector-write positions",
+    "four provisioning/recovery tests",
+    "full port suite and four-palette pause composition",
+    "unchanged audio/tracker suite",
+    "A accept / B back across menus, CONF, pause and level-start prompts",
+    "simultaneous A+B never accepts a menu action",
+    "updated button hints reviewed in four display palettes"
+  ],
+  "hardware_installed": true,
+  "menu_buttons": {
+    "accept": "A",
+    "back_or_cancel": "B",
+    "simultaneous_buttons": "back wins"
+  },
+  "gameplay_buttons": {
+    "jump_and_float": "B",
+    "inhale": "A"
+  },
+  "classic_audio_events_matched": 452,
+  "classic_audio_timer_cases": 180,
+  "hardware_checks": "docs/device-controls-1.4.1.json",
+  "native_migration_readback_verified": true
+}

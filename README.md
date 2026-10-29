@@ -7,27 +7,40 @@ port** of TEAM a.r.g.'s **Mystic Balloon**.
 Explore all 39 original levels with the original physics, bright
 red/yellow/blue balloons and a continuous splash illustration.
 
-**[Download version 1.4.0](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.4.0)**:
-[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/MysticBalloon-1.4.0.chgame)
-or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/MysticBalloon-1.4.0-rev0.bin).
+**[Download version 1.4.1](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.4.1)**:
+[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.1/MysticBalloon-1.4.1.chgame)
+or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.1/MysticBalloon-1.4.1-rev0.bin).
 The release includes USB and SD-card installation instructions and
-[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/SHA256SUMS.txt).
+[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.1/SHA256SUMS.txt).
 No compiling needed.
 
-Version **1.4.0** adds independent saved runs and mid-level resume. **PLAY**
+Version **1.4.1** restores **RESTART LEVEL** to the START pause menu,
+alongside RESUME and SAVE & QUIT. Restart returns the current run to its
+level entrance with fresh coins, key, enemies and three balloons. It rolls
+back that attempt's score and campaign coins, without changing other runs.
+
+All menus now use **A to accept** and **B to go back or cancel**, including
+CONF, saved runs, pause and level-start prompts. B wins simultaneous A+B
+presses. Gameplay keeps **B for jumping/floating** and **A for inhaling**.
+Button hints match the controls. Existing 1.4.0 saves migrate automatically;
+the saved score becomes their initial restart baseline because the old
+format did not record the level-entry score. New entry scores persist
+through mid-level saves and loads.
+
+Saved runs, introduced in **1.4.0**, retain independent progress and mid-level resume. **PLAY**
 shows **NEW**, an empty line, then your runs labelled by **level and percentage**.
-The last played run is selected automatically; use Up/Down and **B to load**.
+The last played run is selected automatically; use Up/Down and **A to load**.
 NEW keeps existing progress. HELP now explains controls, loading and saving. With an SD card, eight runs live in
 `MYBLSAVE.DAT`, isolated from other games. Without SD, four runs use the
 shared flash fallback. Pause, then **SAVE & QUIT**, to resume at the same
 position with your coins, key, balloons and enemy state restored.
 [Save-system behavior and checks](MysticBalloon/docs/save-system.md).
 
-Version **1.3.0** plays the ATMlib title tune, five gameplay tunes and
+The ATMlib soundtrack plays the title tune, five gameplay tunes and
 tracker effects by default. In **CONF**, Left/Right changes **AUDIO ATM/BEEP**
 and **SOUND ON/OFF** immediately. Sound rows preview the selected audio
-and show its current state, using the confirmed color scheme. B saves;
-A cancels all previews. SELECT mutes either mode. Existing checkpoints
+and show its current state, using the confirmed color scheme. A saves;
+B cancels all previews. SELECT mutes either mode. Existing checkpoints
 and palettes are retained.
 [Soundtrack implementation and checks](MysticBalloon/docs/atmlib-soundtrack.md).
 
@@ -46,15 +59,15 @@ CONF also offers **Original B&W**, **Game Boy DMG** and **Amber**, with live
 previews. START pauses; **SAVE & QUIT** returns to the main menu and keeps
 your current run. [Controls and game rules](MysticBalloon/README.md).
 
-## Install 1.4.0 and prepare SD saves
+## Install 1.4.1 and prepare SD saves
 
-Download the [.chgame package](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/MysticBalloon-1.4.0.chgame)
-and install it using the CHGame cart tools. The [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/MysticBalloon-1.4.0-rev0.bin)
+Download the [.chgame package](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.1/MysticBalloon-1.4.1.chgame)
+and install it using the CHGame cart tools. The [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.1/MysticBalloon-1.4.1-rev0.bin)
 is available for direct USB flashing to CHGame Rev0. Both contain the same
 normal release firmware, with both flash save pages preserved.
 
 For SD saves, open the console's SD card reader and prepare the card once
-with the standalone [prepare_saves.py helper](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.0/prepare_saves.py)
+with the standalone [prepare_saves.py helper](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.1/prepare_saves.py)
 (Python 3; no extra dependencies):
 
 ```sh
@@ -71,7 +84,7 @@ Back up `MYBLSAVE.DAT` to keep all your runs.
 From a source checkout, the launcher also prepares saves automatically:
 
 ```sh
-python3.12 mysticballoon.py cart deploy MysticBalloon-1.4.0.chgame --card "/path/to/mounted/card"
+python3.12 mysticballoon.py cart deploy MysticBalloon-1.4.1.chgame --card "/path/to/mounted/card"
 ```
 
 ## Build and upload
@@ -121,38 +134,36 @@ local. The [art sources](MysticBalloon/tools/art/splash/README.md),
 
 ## Validation
 
-Version 1.4.0 passed the deterministic host suite with undefined-behavior
-checks, including independent NEW runs, loading through the actual menu,
-last-played selection, HELP content in all four palettes, exact mid-level
-round trips, legacy migration,
-foreign-game flash protection, full-slot refusal and all **512 interrupted
-SD-sector write positions**. The sprite/level data and all 39 maps remain
-unchanged. The production splash is losslessly compressed to make room
-for saves, with all four modes checked against the source pixels.
+The 1.4.1 deterministic host suite checks restarting after a mid-level load,
+score/coin rollback without farming, failed-save recovery, unchanged other
+runs, and migration of all eight SD or four flash runs from 1.4.0. It also
+checks all 512 interrupted sector-write positions, four standalone
+provisioning/recovery cases, A accept / B back throughout menus and
+simultaneous-button safety. UI layouts are reviewed in all four palettes.
+All 39 original maps and sprite fingerprints remain unchanged.
 
-On physical CHGame Rev0, SD storage, NEW, a real coin collision, pause,
-SAVE & QUIT, mid-level loading and preservation of an older run passed.
-A one-second resumed gameplay window rendered 61 frames with zero late
-frames and a 1,600-byte stack watermark. The final menu loaded the original
-level-16 checkpoint with its score and campaign coins intact. The normal
-firmware and SD cartridge were installed and checked, preserving all 41
-other card files. [Installation record](MysticBalloon/docs/install-saves-1.4.0.json).
+Focused physical CHGame checks cover CONF accept/cancel, NEW, level-start
+back, real coin collection, exact mid-level reload, RESTART LEVEL, and
+simultaneous A+B safety. Existing saved runs are backed up before tests;
+only a temporary NEW run is used for gameplay. It is removed afterwards,
+restoring the original runs and preferences. A restarted level-1 sample
+rendered 60 frames in 1.005 seconds with zero late frames and a 1,520-byte
+stack watermark. See the
+[device checks](MysticBalloon/docs/device-controls-1.4.1.json) and
+[installation record](MysticBalloon/docs/install-controls-1.4.1.json).
 
-Exact 1.4.0 firmware: **49,644 bytes**, CRC32 **`0x2A72DF24`**. Static RAM is
-**18,112 bytes**, with a separate **2,048-byte** stack and both flash save
-pages retained. The bootloader verified the programmed CRC; its version
-does not support independent byte readback. These are the same bytes in
-the release package and firmware download.
+The normal release firmware is **50,100 bytes**, CRC32 **`0xA0F74C53`**,
+with **18,124 bytes** static RAM, a separate **2,048-byte** stack and both
+flash-save pages retained. The `.chgame` and `.bin` downloads contain the
+same firmware. The bootloader checks its programmed CRC; bootloader v3
+does not support independent byte readback.
 
-The existing audio checks retain **15,303 matching ATM tracker states**,
-six non-clipping PCM renders, **452 matching classic sound events** and
-**180 timer cases**. The viewport survey covers **17,199 positions**,
-plus 1,716 platform references and 320 player composites. The 1.3.0 physical
-45-scenario gameplay/audio benchmark is historical; see its
-[device results](MysticBalloon/docs/device-audio-1.3.0.json) and
-[CONF checks](MysticBalloon/docs/device-audio-modes-1.3.0.json).
-SD-controller power-loss behavior and overnight electrical retention are
-not measured by the software failure-injection tests.
+The audio checks retain **15,303 matching ATM tracker states**, six PCM
+renders, **452 matching classic sound events** and **180 timer cases**.
+The viewport survey covers **17,199 positions**, 1,716 platform references
+and 320 player composites. The older 1.3.0 45-scenario physical audio
+benchmark is historical. SD-controller power-loss behavior and overnight
+electrical retention are not measured by software failure injection.
 
 ## License and credits
 

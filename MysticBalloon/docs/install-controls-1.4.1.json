@@ -1,0 +1,23 @@
+{
+  "version": "1.4.1",
+  "checked_on": "2026-10-29",
+  "firmware_bytes": 50100,
+  "firmware_crc32": "a0f74c53",
+  "firmware_sha256": "f93291aadc7f92ab7c6b5ea60d1de1000fdea3ee12eea0e56b6dc05e99674f55",
+  "static_ram_bytes": 18124,
+  "reserved_stack_bytes": 2048,
+  "flash_save_pages_preserved": 2,
+  "installed_at": "2026-10-29T21:23:55.934056+00:00",
+  "normal_application_running": true,
+  "programmed_crc_verified": true,
+  "independent_byte_readback_available": false,
+  "sd_cartridge_readback_verified": true,
+  "sd_cartridge_sha256": "ca33ceb6bab9564cba3148d8440de5f9fd20a44e52ad74d86051a00319c9c642",
+  "saved_runs": 1,
+  "original_runs_preserved": true,
+  "original_preferences_preserved": true,
+  "migrated_schema": 3,
+  "original_run_fields_compared_bytes": 52,
+  "other_card_files_unchanged": 41,
+  "test_run_removed": true
+}
