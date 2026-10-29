@@ -74,9 +74,9 @@ byte gridGetTile(int8_t x, int8_t y) {
 }
 
 
+uint32_t levelEntryScore=0;
 void levelLoad(const uint8_t *lvl) {
-  // Continue restarts this level. Bank only its entry score/coins, so
-  // quitting mid-level cannot award the same collectibles twice.
+  levelEntryScore=scorePlayer;
   progress.level = level;
   progress.score = scorePlayer;
   progress.coins = totalCoins;

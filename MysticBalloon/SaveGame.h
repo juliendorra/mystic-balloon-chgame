@@ -10,6 +10,7 @@ mystic::saves::Run captureRun(bool mid) {
   using namespace mystic::saves;
   Run r;
   r.level=min(unsigned(level),38u);r.score=scorePlayer;r.total=totalCoins;
+  r.entryScore=mid ? levelEntryScore : scorePlayer;
   r.objects=r.level==22 ? 60 : 63;
   if (level>=TOTAL_LEVELS) { r.kidFlags=512;r.objects=0;return r; }
   if (!mid) return r;
@@ -43,6 +44,7 @@ void restoreRun(const mystic::saves::Run &r) {
   }
   if (!(r.objects&MID_LEVEL)) { kid.balloons=3;gameState=STATE_GAME_NEXT_LEVEL;return; }
   setKid();enemiesInit();levelLoad(levels[level]);
+  levelEntryScore=r.entryScore;
   kid.actualpos=vec2(r.x,r.y);kid.pos=kid.actualpos>>FIXED_POINT;kid.speed=vec2(r.vx,r.vy);
   kid.isActive=r.kidFlags&1;kid.isImune=r.kidFlags&2;kid.direction=r.kidFlags&4;
   kid.isWalking=r.kidFlags&8;kid.isJumping=r.kidFlags&16;kid.isLanding=r.kidFlags&32;

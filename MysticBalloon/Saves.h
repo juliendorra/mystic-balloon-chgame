@@ -3,6 +3,7 @@
 
 namespace mystic { namespace saves {
 constexpr uint8_t MAX_RUNS=8, FLASH_RUNS=4, NO_RUN=255;
+constexpr uint8_t VERSION=3;
 // World state, not just a level number. Static map geometry and cosmetic
 // particles are regenerated; moved coins, injured enemies and motion persist.
 struct Run {
@@ -11,8 +12,9 @@ struct Run {
     uint16_t walkers=0,kidFlags=0;
     int8_t vx=0,vy=0,hp[6]={};
     uint8_t level=0,total=0,objects=63,immune=0,jump=0,balloons=3,hurt=0,phase=0;
+    uint32_t entryScore=0;
 };
-static_assert(sizeof(Run)==52,"portable compact run format");
+static_assert(sizeof(Run)==56,"portable compact run format");
 struct Store {
     uint32_t generation=0;
     Progress prefs;
@@ -21,7 +23,7 @@ struct Store {
     Run runs[MAX_RUNS];
 };
 constexpr unsigned FLASH_BYTES=20+FLASH_RUNS*sizeof(Run);
-static_assert(sizeof(Store)==436 && FLASH_BYTES==228,"save layouts");
+static_assert(sizeof(Store)==468 && FLASH_BYTES==244,"save layouts");
 enum Status : uint8_t { Flash, Sd, NeedsSetup, Damaged, ForeignFlash, WriteFailed };
 enum Action : uint8_t { None, New, Load };
 extern Status status;

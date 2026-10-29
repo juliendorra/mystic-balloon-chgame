@@ -47,7 +47,7 @@ bool valid(const Store &s,unsigned limit) {
         (s.count ? s.active>=s.count : s.active!=NO_RUN)) return false;
     for (unsigned i=0;i<s.count;++i) {
         const Run &r=s.runs[i];
-        if (r.level>=39 || r.total>232 || r.score>999999 || (r.kidFlags&~2047u) ||
+        if (r.level>=39 || r.total>232 || r.score>999999 || r.entryScore>r.score || (r.kidFlags&~2047u) ||
             r.vx < -54 || r.vx>54 || r.vy < -96 || r.vy>96 || r.immune>60 ||
             r.jump>11 || (r.balloons>>2)>16 || (r.walkers&0xF000) || r.phase>=40) return false;
         for (unsigned k=0;k<6;++k)
@@ -58,22 +58,39 @@ bool valid(const Store &s,unsigned limit) {
 }
 uint8_t capacity() { return usingCard ? MAX_RUNS : FLASH_RUNS; }
 static bool fromFlash(Store &s) {
-    const void *p=save::read(SAVE_MAGIC,2,FLASH_BYTES);
+    const void *p=save::read(SAVE_MAGIC,VERSION,FLASH_BYTES);
     if (p) {
         memcpy(&s,p,FLASH_BYTES);
         if (valid(s,FLASH_RUNS)) { legacy=false;return true; }
     }
+    p=save::read(SAVE_MAGIC,2,228);
+    if (p) {
+        memcpy(&s,p,20);
+        for (unsigned i=0;i<FLASH_RUNS;++i) {
+            memcpy(&s.runs[i],static_cast<const uint8_t *>(p)+20+i*52,52);
+            s.runs[i].entryScore=s.runs[i].score;
+        }
+        if (valid(s,FLASH_RUNS)) { legacy=true;return true; }
+    }
     Progress old;
     if (!save::load(SAVE_MAGIC,1,old) || !validPrefs(old)) return false;
     s=Store{};s.prefs=old;s.count=1;s.active=0;
-    Run &r=s.runs[0];r.level=old.level;r.score=old.score;r.total=old.coins;
+    Run &r=s.runs[0];r.level=old.level;r.score=r.entryScore=old.score;r.total=old.coins;
     r.objects=old.level==22 ? 60 : 63;r.balloons=3;
     legacy=true;return true;
 }
-static bool recordValid(const uint8_t *p) {
-    return *reinterpret_cast<const uint32_t *>(p)==SAVE_MAGIC && p[4]==2 &&
-        *reinterpret_cast<const uint32_t *>(p+8+sizeof(Store))==crc(p,8+sizeof(Store)) &&
-        valid(*reinterpret_cast<const Store *>(p+8),MAX_RUNS);
+static bool recordValid(uint8_t *p) {
+    if (*reinterpret_cast<const uint32_t *>(p)!=SAVE_MAGIC || (p[4]!=2 && p[4]!=VERSION)) return false;
+    const unsigned bytes=p[4]==2 ? 436 : sizeof(Store);
+    if (*reinterpret_cast<const uint32_t *>(p+8+bytes)!=crc(p,8+bytes)) return false;
+    if (p[4]==2) {
+        // Expand backwards in the sector scratch; no extra Store on the stack.
+        for (int i=MAX_RUNS-1;i>=0;--i) {
+            auto *r=reinterpret_cast<Run *>(p+28+i*sizeof(Run));
+            memmove(r,p+28+i*52,52);r->entryScore=r->score;
+        }
+    }
+    return valid(*reinterpret_cast<const Store *>(p+8),MAX_RUNS);
 }
 static void importSeed(Store &out) {
     if (!out.generation && !out.count) {
@@ -86,7 +103,7 @@ bool read(Store &out) {
     if (!usingCard) return fromFlash(out);
     auto *a=gfx_chunkScratch(),*b=a+512;
     if (currentSector && card::read(currentSector,a) && recordValid(a)) {
-        out=*reinterpret_cast<const Store *>(a+8);importSeed(out);return true;
+        legacy=a[4]!=VERSION;out=*reinterpret_cast<const Store *>(a+8);importSeed(out);return true;
     }
     if (!card::read(1,a) || !card::read(2,b)) { status=WriteFailed;return false; }
     const bool va=recordValid(a),vb=recordValid(b);
@@ -94,7 +111,8 @@ bool read(Store &out) {
     const auto *ra=reinterpret_cast<const Store *>(a+8);
     const auto *rb=reinterpret_cast<const Store *>(b+8);
     const auto *chosen=va && vb ? (int32_t(ra->generation-rb->generation)>0 ? ra : rb) : va ? ra : rb;
-    currentSector=chosen==ra ? 1 : 2;out=*chosen;importSeed(out);return true;
+    currentSector=chosen==ra ? 1 : 2;legacy=(chosen==ra ? a[4] : b[4])!=VERSION;
+    out=*chosen;importSeed(out);return true;
 }
 bool write(Store &s) {
     if (!valid(s,capacity()) || status==NeedsSetup || status==Damaged || status==ForeignFlash) return false;
@@ -102,7 +120,7 @@ bool write(Store &s) {
     bool ok=false;
     if (usingCard) {
         auto *p=gfx_chunkScratch();memset(p,255,512);
-        *reinterpret_cast<uint32_t *>(p)=SAVE_MAGIC;p[4]=2;p[5]=0;
+        *reinterpret_cast<uint32_t *>(p)=SAVE_MAGIC;p[4]=VERSION;p[5]=0;
         *reinterpret_cast<uint16_t *>(p+6)=uint16_t(next);
         memcpy(p+8,&s,sizeof s);
         *reinterpret_cast<uint32_t *>(p+8+sizeof s)=crc(p,8+sizeof s);
@@ -112,7 +130,7 @@ bool write(Store &s) {
         if (ok) currentSector=sector;
     } else if (flashOwned() && save::available()) {
         memcpy(save::buffer(),&s,FLASH_BYTES);
-        audio::suspend();ok=save::write(SAVE_MAGIC,2,FLASH_BYTES);audio::resume();
+        audio::suspend();ok=save::write(SAVE_MAGIC,VERSION,FLASH_BYTES);audio::resume();
     }
     if (!ok) { currentSector=0;status=WriteFailed;return false; }
     status=usingCard ? Sd : Flash;legacy=false;

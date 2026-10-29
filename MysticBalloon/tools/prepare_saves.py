@@ -11,8 +11,8 @@ SIZE=1536
 MAGIC=int.from_bytes(b'MYBL','little')
 
 def empty_store():
-    b=bytearray(436);b[15]=1;b[17]=255
-    for i in range(8):b[20+52*i+46]=63;b[20+52*i+49]=3
+    b=bytearray(468);b[15]=1;b[17]=255
+    for i in range(8):b[20+56*i+46]=63;b[20+56*i+49]=3
     return b
 
 def seed(recover=None):
@@ -24,7 +24,7 @@ def seed(recover=None):
         for off in [0,256]:
             page=raw[off:off+256]
             magic,version,flag,seq=struct.unpack_from('<IBBH',page)
-            size={1:12,2:228}.get(version)
+            size={1:12,2:228,3:244}.get(version)
             if magic!=MAGIC or size is None:continue
             if zlib.crc32(page[:8+size])!=struct.unpack_from('<I',page,8+size)[0]:continue
             records.append((seq,version,page[8:8+size]))
@@ -33,19 +33,25 @@ def seed(recover=None):
             for candidate in records[1:]:
                 if 0<(candidate[0]-record[0])%65536<32768:record=candidate
             _,version,data=record
-            if version==2:store[:228]=data
+            if version==3:store[:244]=data
+            elif version==2:
+                store[:20]=data[:20]
+                for i in range(4):
+                    store[20+56*i:72+56*i]=data[20+52*i:72+52*i]
+                    struct.pack_into('<I',store,72+56*i,struct.unpack_from('<I',data,20+52*i)[0])
             else:
                 score,high,level,coins,highcoins,options=struct.unpack('<IIBBBB',data)
                 if not (level<39 and coins<=232 and highcoins<=232 and options<=15 and score<=999999 and high<=999999):raise ValueError('Invalid legacy save')
                 store[4:16]=data;store[16]=1;store[17]=0
                 struct.pack_into('<I',store,20,score)
+                struct.pack_into('<I',store,72,score)
                 store[64]=level;store[65]=coins;store[66]=60 if level==22 else 63
             struct.pack_into('<I',store,0,1)
     descriptor=bytearray(b'\xff'*512)
     struct.pack_into('<8sII',descriptor,0,b'MYBLSD2\0',SIZE,8)
     struct.pack_into('<I',descriptor,508,zlib.crc32(descriptor[:508]))
     generation=struct.unpack_from('<I',store)[0]
-    payload=struct.pack('<IBBH',MAGIC,2,0,generation&65535)+store
+    payload=struct.pack('<IBBH',MAGIC,3,0,generation&65535)+store
     record=payload+struct.pack('<I',zlib.crc32(payload))
     record+=b'\xff'*(512-len(record))
     slots=[b'\xff'*512,b'\xff'*512];slots[generation&1]=record
@@ -56,7 +62,8 @@ def validate(raw):
     good=0
     for off in (512,1024):
         page=raw[off:off+512]
-        if page[:5]==b'MYBL\x02' and zlib.crc32(page[:444])==struct.unpack_from('<I',page,444)[0]:good+=1
+        size={2:436,3:468}.get(page[4])
+        if page[:4]==b'MYBL' and size and zlib.crc32(page[:8+size])==struct.unpack_from('<I',page,8+size)[0]:good+=1
     if not good:raise ValueError('Both save records are damaged; existing file was left untouched')
 
 def prepare(card,recover=None):
