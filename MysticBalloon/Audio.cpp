@@ -3,6 +3,7 @@
 #include "src/atm/ATMlib.h"
 #include "src/atm/ATMlibimpl.h"
 #include "src/MusicData.h"
+#include "PcmOutput.h"
 #if defined(__riscv) && !defined(CHSIM)
 #include <Arduino.h>
 #include <chgame/RamFunc.h>
@@ -17,6 +18,7 @@
 
 namespace {
 ATMsynth tracker;
+chgame_pcm::Output output;
 volatile bool on = false;
 volatile mystic::audio::Mode selectedMode = mystic::audio::Atm;
 volatile bool ready = false, frozen = false;
@@ -50,6 +52,7 @@ void play(unsigned n) {
     __disable_irq();
 #endif
     tracker.play(n==1 ? mysticTitle : n>=2 && n<7 ? gameTunes[n-2] : silentSong);
+    output.silence();
     memset(osc,0,sizeof osc);
     memset(phases,0,sizeof phases);
     clockFraction=0; tickCounter=0;
@@ -218,7 +221,7 @@ void millisecond() {
     }
 }
 RAMFUNC(mysticSample) uint8_t sample() {
-    if (!ready || !on || frozen) return 128;
+    if (!ready || !on || frozen) return output.silence();
 #if CHGAME_DEBUG
     ++sampleCounter;
 #endif
@@ -230,7 +233,8 @@ RAMFUNC(mysticSample) uint8_t sample() {
     int mix=p0>=192 ? -int(m.volume[0]) : int(m.volume[0]);
     mix+=p1&128 ? -int(m.volume[1]) : int(m.volume[1]);
     mix+=((int(p2)-128)*int(m.volume[2]))>>8;
-    return uint8_t(128+mix);
+    if (!(m.volume[0] | m.volume[1] | m.volume[2])) return output.silence();
+    return output.write(mix);
 }
 Voice voice(unsigned ch) {
     if (ch>=3) return {};
