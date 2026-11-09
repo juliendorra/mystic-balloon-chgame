@@ -1,17 +1,74 @@
 #include "Saves.h"
 #include "SaveCard.h"
 #include <stddef.h>
+#include <CHSave.h>
+#ifdef CHSIM
+#include <stdio.h>
+#include <stdlib.h>
+#endif
 
 namespace mystic { namespace saves {
 Status status=Flash;
 uint8_t count=0,active=NO_RUN;
 Action action=None;
 static bool usingCard=false,legacy=false;
-static uint8_t currentSector=0;
+static chsave::Status sharedStatus=chsave::Status::NoCard;
 #ifdef CHSIM
+// The unit harness uses a raw journal file. Full CHSIM uses the library's
+// FAT disk-image backend, just like the other games.
+class TestJournal : public chsave::Storage {
+public:
+    chsave::Status open(uint32_t,uint8_t *) override {
+        const char *path=getenv("CHMB_SAVE_CARD");
+        FILE *f=path?fopen(path,"rb"):nullptr;
+        if(!f)return chsave::Status::NoCard;
+        fseek(f,0,SEEK_END);long size=ftell(f);fclose(f);
+        return size==1024?chsave::Status::Ready:chsave::Status::Damaged;
+    }
+    bool read(unsigned slot,uint8_t *out) override {
+        const char *path=getenv("CHMB_SAVE_CARD");FILE *f=path?fopen(path,"rb"):nullptr;
+        if(!f || slot>1){if(f)fclose(f);return false;}
+        bool ok=!fseek(f,slot*512,SEEK_SET) && fread(out,1,512,f)==512;
+        fclose(f);return ok;
+    }
+    bool write(unsigned slot,const uint8_t *in) override {
+        const char *path=getenv("CHMB_SAVE_CARD");FILE *f=path?fopen(path,"r+b"):nullptr;
+        if(!f || slot>1){if(f)fclose(f);return false;}
+        int cut=card::testCutBytes();unsigned bytes=cut<0?512:unsigned(cut);
+        bool ok=!fseek(f,slot*512,SEEK_SET) && fwrite(in,1,bytes,f)==bytes;
+        ok=!fclose(f) && ok;return ok && bytes==512;
+    }
+};
+static TestJournal testJournal;
 static uint32_t owners[2]={0xFFFFFFFFu,0xFFFFFFFFu};
 void testFlashOwners(uint32_t a,uint32_t b) { owners[0]=a;owners[1]=b; }
 #endif
+static bool sharedLoad(Store &out) {
+    gfx_wait();
+#ifdef CHSIM
+    if(getenv("CHMB_SAVE_CARD")) {
+        chsave::Journal journal(testJournal,gfx_chunkScratch(),1024);
+        bool ok=journal.load(SAVE_MAGIC,VERSION,&out,sizeof out,nullptr);
+        sharedStatus=journal.status();return ok;
+    }
+#endif
+    chsave::Store journal;
+    bool ok=journal.load(SAVE_MAGIC,VERSION,&out,sizeof out,nullptr);
+    sharedStatus=journal.status();return ok;
+}
+static bool sharedStore(const Store &value) {
+    gfx_wait();
+#ifdef CHSIM
+    if(getenv("CHMB_SAVE_CARD")) {
+        chsave::Journal journal(testJournal,gfx_chunkScratch(),1024);
+        bool ok=journal.store(SAVE_MAGIC,VERSION,&value,sizeof value,0);
+        sharedStatus=journal.status();return ok;
+    }
+#endif
+    chsave::Store journal;
+    bool ok=journal.store(SAVE_MAGIC,VERSION,&value,sizeof value,0);
+    sharedStatus=journal.status();return ok;
+}
 static bool flashOwned() {
     for (unsigned i=0;i<2;++i) {
 #ifdef CHSIM
@@ -79,19 +136,6 @@ static bool fromFlash(Store &s) {
     r.objects=old.level==22 ? 60 : 63;r.balloons=3;
     legacy=true;return true;
 }
-static bool recordValid(uint8_t *p) {
-    if (*reinterpret_cast<const uint32_t *>(p)!=SAVE_MAGIC || (p[4]!=2 && p[4]!=VERSION)) return false;
-    const unsigned bytes=p[4]==2 ? 436 : sizeof(Store);
-    if (*reinterpret_cast<const uint32_t *>(p+8+bytes)!=crc(p,8+bytes)) return false;
-    if (p[4]==2) {
-        // Expand backwards in the sector scratch; no extra Store on the stack.
-        for (int i=MAX_RUNS-1;i>=0;--i) {
-            auto *r=reinterpret_cast<Run *>(p+28+i*sizeof(Run));
-            memmove(r,p+28+i*52,52);r->entryScore=r->score;
-        }
-    }
-    return valid(*reinterpret_cast<const Store *>(p+8),MAX_RUNS);
-}
 static void importSeed(Store &out) {
     if (!out.generation && !out.count) {
         Store old;
@@ -100,56 +144,43 @@ static void importSeed(Store &out) {
 }
 bool read(Store &out) {
     out=Store{};
-    if (!usingCard) return fromFlash(out);
-    auto *a=gfx_chunkScratch(),*b=a+512;
-    if (currentSector && card::read(currentSector,a) && recordValid(a)) {
-        legacy=a[4]!=VERSION;out=*reinterpret_cast<const Store *>(a+8);importSeed(out);return true;
+    if(!usingCard)return fromFlash(out);
+    if(sharedLoad(out)) {
+        if(valid(out,MAX_RUNS))return true;
+        status=Damaged;return false;
     }
-    if (!card::read(1,a) || !card::read(2,b)) { status=WriteFailed;return false; }
-    const bool va=recordValid(a),vb=recordValid(b);
-    if (!va && !vb) { status=Damaged;return false; }
-    const auto *ra=reinterpret_cast<const Store *>(a+8);
-    const auto *rb=reinterpret_cast<const Store *>(b+8);
-    const auto *chosen=va && vb ? (int32_t(ra->generation-rb->generation)>0 ? ra : rb) : va ? ra : rb;
-    currentSector=chosen==ra ? 1 : 2;legacy=(chosen==ra ? a[4] : b[4])!=VERSION;
-    out=*chosen;importSeed(out);return true;
+    if(sharedStatus==chsave::Status::Empty) {
+        out=Store{};importSeed(out);return true;
+    }
+    status=sharedStatus==chsave::Status::Damaged?Damaged:WriteFailed;
+    return false;
 }
 bool write(Store &s) {
-    if (!valid(s,capacity()) || status==NeedsSetup || status==Damaged || status==ForeignFlash) return false;
+    if (!usingCard || !valid(s,capacity()) || status==NeedsSetup || status==Damaged || status==ForeignFlash) return false;
     const uint32_t next=s.generation+1;s.generation=next;
-    bool ok=false;
-    if (usingCard) {
-        auto *p=gfx_chunkScratch();memset(p,255,512);
-        *reinterpret_cast<uint32_t *>(p)=SAVE_MAGIC;p[4]=VERSION;p[5]=0;
-        *reinterpret_cast<uint16_t *>(p+6)=uint16_t(next);
-        memcpy(p+8,&s,sizeof s);
-        *reinterpret_cast<uint32_t *>(p+8+sizeof s)=crc(p,8+sizeof s);
-        const unsigned sector=1+(next&1);
-        card::write(sector,p);
-        ok=card::read(sector,p+512) && !memcmp(p,p+512,512);
-        if (ok) currentSector=sector;
-    } else if (flashOwned() && save::available()) {
-        memcpy(save::buffer(),&s,FLASH_BYTES);
-        audio::suspend();ok=save::write(SAVE_MAGIC,VERSION,FLASH_BYTES);audio::resume();
-    }
-    if (!ok) { currentSector=0;status=WriteFailed;return false; }
-    status=usingCard ? Sd : Flash;legacy=false;
+    bool ok=sharedStore(s);
+    if (!ok) { status=WriteFailed;return false; }
+    status=Sd;legacy=false;
     count=s.count;active=s.active;return true;
 }
 void begin() {
-    usingCard=false;legacy=false;currentSector=0;count=0;active=NO_RUN;action=None;
-    const card::Result found=card::begin();
-    status=found==card::Absent ? (flashOwned() ? Flash : ForeignFlash) :
-        found==card::Missing ? NeedsSetup : found==card::Failed ? Damaged : Sd;
-    if (status==Sd) {
-        auto *p=gfx_chunkScratch();
-        if (!card::read(0,p) || memcmp(p,"MYBLSD2",8) ||
-            *reinterpret_cast<uint32_t *>(p+8)!=1536 || *reinterpret_cast<uint32_t *>(p+12)!=MAX_RUNS ||
-            *reinterpret_cast<uint32_t *>(p+508)!=crc(p,508)) status=Damaged;
-        else usingCard=true;
-    }
+    usingCard=false;legacy=false;count=0;active=NO_RUN;action=None;
+#ifdef CHSIM
+    card::testCutAfter(-1);
+#endif
     Store s;
-    if (read(s)) {
+    bool loaded=sharedLoad(s);
+    usingCard=loaded || sharedStatus==chsave::Status::Empty;
+    status=usingCard?Sd:sharedStatus==chsave::Status::NeedsSetup?NeedsSetup:
+        sharedStatus==chsave::Status::Damaged?Damaged:ForeignFlash;
+    if(usingCard && !loaded) {
+        // Older SD files are imported by host provisioning. Flash remains
+        // a read-only fallback for the first start of an empty journal.
+        s=Store{};importSeed(s);loaded=true;
+    }
+    if(!usingCard)loaded=fromFlash(s);
+    if(loaded && !valid(s,capacity()))status=Damaged;
+    if (loaded && status!=Damaged && valid(s,capacity())) {
         if (usingCard && legacy) write(s);
         progress=s.prefs;count=s.count;active=s.active;
     } else {

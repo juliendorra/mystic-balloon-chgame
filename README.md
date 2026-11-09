@@ -7,11 +7,11 @@ port** of TEAM a.r.g.'s **Mystic Balloon**.
 Explore all 39 original levels with the original physics, bright
 red/yellow/blue balloons and a continuous splash illustration.
 
-**[Download version 1.4.2](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.4.2)**:
-[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.2/MysticBalloon-1.4.2.chgame)
-or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.2/MysticBalloon-1.4.2-rev0.bin).
+**[Download version 1.4.3](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.4.3)**:
+[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.3/MysticBalloon-1.4.3.chgame)
+or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.3/MysticBalloon-1.4.3-rev0.bin).
 The release includes USB and SD-card installation instructions and
-[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.2/SHA256SUMS.txt).
+[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.3/SHA256SUMS.txt).
 No compiling needed.
 
 Version **1.4.1** restores **RESTART LEVEL** to the START pause menu,
@@ -61,13 +61,13 @@ your current run. [Controls and game rules](MysticBalloon/README.md).
 
 ## Install 1.4.1 and prepare SD saves
 
-Download the [.chgame package](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.2/MysticBalloon-1.4.2.chgame)
-and install it using the CHGame cart tools. The [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.2/MysticBalloon-1.4.2-rev0.bin)
+Download the [.chgame package](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.3/MysticBalloon-1.4.3.chgame)
+and install it using the CHGame cart tools. The [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.3/MysticBalloon-1.4.3-rev0.bin)
 is available for direct USB flashing to CHGame Rev0. Both contain the same
 normal release firmware, with both flash save pages preserved.
 
 For SD saves, open the console's SD card reader and prepare the card once
-with the standalone [prepare_saves.py helper](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.2/prepare_saves.py)
+with the standalone [prepare_saves.py helper](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.3/prepare_saves.py)
 (Python 3; no extra dependencies):
 
 ```sh
@@ -176,8 +176,22 @@ match [upstream commit 58743b6](https://github.com/Team-ARG-Museum/ID-34-Mystic-
 See [NOTICE](NOTICE) for the adaptation and asset provenance.
 
 
-## Audio update 1.4.2
+## Audio update 1.4.3
 
 The ATM soundtrack gains DC removal, more output gain and bounded peak compression. Original scores and SFX overlays remain; classic BEEP mode is unchanged. The output helper is included locally and the existing save implementation is retained.
 
 [Audio validation notes](MysticBalloon/docs/audio-update.md).
+
+## SD saves
+
+Version 1.4.3 uses [CHSave 0.1.0](https://github.com/juliendorra/chgame-sd-saves).
+Progress and settings are stored in `MYBL.SAV`; existing saves are preserved.
+Prepare a mounted card before installing the new cartridge:
+
+```sh
+python3 tools/sd_saves.py prepare --card /path/to/card
+```
+
+The source includes the pinned library and SD adapter. Build through `mysticballoon.py`
+so the SD backend is selected. Keep save files when replacing cartridges.
+The preparation tool imports the older `MYBLSAVE.DAT` into `MYBL.SAV` and keeps the original file.

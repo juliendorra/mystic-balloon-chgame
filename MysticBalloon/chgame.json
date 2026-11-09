@@ -2,7 +2,7 @@
   "id": "mystic-balloon",
   "title": "MYSTIC BALLOON",
   "author": "TEAM a.r.g.; CHGame port",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Mystic Balloon with Pastel Island colors, a continuous 128x128 splash illustration and a full scrolling world. Choose Color, Original B&W, Game Boy DMG, or Amber in CONF. Explore 39 original levels.",
   "genre": "Platformer",
   "license": "MIT AND BSD-3-Clause",
@@ -11,7 +11,9 @@
     "LICENSE",
     "NOTICE",
     "ATMLIB-LICENSE",
-    "SAVE-CARD-LICENSE"
+    "SAVE-CARD-LICENSE",
+    "licenses/CHSave-MIT.txt",
+    "licenses/CHSave-NOTICE.txt"
   ],
   "buttons": [
     {

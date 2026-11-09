@@ -5,7 +5,6 @@ import json
 import subprocess
 import sys
 from PIL import Image,ImageDraw,ImageFont
-from review_font import load_font
 
 GAME=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(GAME/'tools/art'))
@@ -14,8 +13,9 @@ from verify_sim import build_runner
 
 SLUGS=['mushroom','pastel','jungle','dreamland']
 INSPIRED=['Super Mario World','Yoshi\'s Island','Donkey Kong Country','Kirby Super Star']
-FONT=load_font(14)
-SMALL=load_font(11)
+FONT_PATH='/System/Library/Fonts/Menlo.ttc'
+FONT=ImageFont.truetype(FONT_PATH,14)
+SMALL=ImageFont.truetype(FONT_PATH,11)
 
 
 def main():

@@ -44,7 +44,8 @@ inline uint8_t TCCR4A,TCCR4B,TCCR4C,OCR4A,OCR4C,OCR4D;
 #define ATMLIB_CONSTRUCT_ISR(x) uint16_t cia=625,cia_count=1; uint8_t TIMSK4=0;
 ''')
 source=GAME/'tools/tests/soundtrack_test.cpp'
-flags=find_cxx()+['-std=c++17','-O1','-g','-fsanitize=undefined','-fno-sanitize-recover=all']
+flags=find_cxx()+['-std=c++17','-O1','-g','-fsanitize=undefined','-fno-sanitize-recover=all',
+                 f'-I{GAME.parent/"CHGame/platform/board/arduino/CHGame/libraries/CHGame/src"}']
 commands=[flags+['-DATM_REFERENCE',f'-I{stage}',str(source),'-o',str(OUT/'reference_test')],
           flags+['-DCHMB_AUDIO_TEST',f'-I{GAME}',str(source),str(GAME/'Audio.cpp'),'-o',str(OUT/'native_test')]]
 traces=[]

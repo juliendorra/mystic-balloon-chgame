@@ -5,3 +5,11 @@
 /sketchbook
 __pycache__/
 .DS_Store
+.cache/
+.arduino15/
+.toolchains/
+.venv/
+sketchbook/
+build/
+out/
+.deps/

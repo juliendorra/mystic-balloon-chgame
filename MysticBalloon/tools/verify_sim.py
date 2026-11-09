@@ -57,7 +57,9 @@ void corruptFlash(unsigned page,unsigned byte) { save::simFlash[page][byte]^=128
 }
 ''')
     sources.append(aligned_save)
-    return compile_exe(sources, output, includes=[*extra_includes, GAME, host, gfx, lib, lib / "chgame"])
+    public=ROOT/'chgame-sd-saves/src'
+    sources+=list(public.rglob('*.cpp'))
+    return compile_exe(sources, output, includes=[*extra_includes, GAME, host, gfx, lib, lib / "chgame",public])
 
 
 def main():

@@ -5,6 +5,7 @@ import argparse
 import os
 import struct
 import zlib
+import importlib.util
 
 NAME='MYBLSAVE.DAT'
 SIZE=1536
@@ -77,7 +78,49 @@ def prepare(card,recover=None):
     assert path.read_bytes()==data
     print('Prepared SD saves:',path);return True
 
+def common_record(raw):
+    """Import the newest legacy SD record without changing the source file."""
+    validate(raw)
+    chosen=None
+    for offset in (512,1024):
+        page=raw[offset:offset+512];size={2:436,3:468}.get(page[4])
+        if page[:4]!=b'MYBL' or not size or zlib.crc32(page[:8+size])!=struct.unpack_from('<I',page,8+size)[0]:continue
+        generation=struct.unpack_from('<I',page,8)[0]
+        if chosen is None or 0<(generation-chosen[0])%2**32<2**31:chosen=(generation,page)
+    generation,page=chosen
+    store=bytearray(page[8:476]) if page[4]==3 else empty_store()
+    if page[4]==2:
+        store[:20]=page[8:28]
+        for i in range(8):
+            start=28+i*52;target=20+i*56
+            store[target:target+52]=page[start:start+52]
+            struct.pack_into('<I',store,target+52,struct.unpack_from('<I',page,start)[0])
+    out=bytearray(512)
+    struct.pack_into('<IIHBBI',out,0,MAGIC,generation,468,3,0,0x31565343)
+    out[16:484]=store;struct.pack_into('<I',out,508,zlib.crc32(out[:508]))
+    return bytes(out)+b'\xff'*512
+
+def prepare_standard(card,recover=None):
+    root=Path(card)
+    public=Path(__file__).resolve().parents[2]/'chgame-sd-saves/tools/prepare.py'
+    spec=importlib.util.spec_from_file_location('chsave_prepare',public)
+    shared=importlib.util.module_from_spec(spec);spec.loader.exec_module(shared)
+    target=root/'MYBL.SAV';old=root/NAME
+    shared.prepare(root,['MYBL'])
+    existing=target.read_bytes()
+    if existing!=shared.EMPTY:return False
+    source=seed(recover) if recover is not None else old.read_bytes() if old.exists() else None
+    if source is None:return False
+    data=common_record(source)
+    # Only an erased common journal is seeded. The original legacy file
+    # remains a backup, including if power is lost during this host write.
+    with target.open('r+b') as stream:
+        stream.write(data);stream.flush();os.fsync(stream.fileno())
+    if target.read_bytes()!=data:raise OSError('Mystic Balloon import readback failed')
+    print('Imported legacy saves into MYBL.SAV; source left untouched')
+    return True
+
 def main():
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--card',required=True,type=Path);ap.add_argument('--recover',type=Path)
-    args=ap.parse_args();prepare(args.card,args.recover)
+    args=ap.parse_args();prepare_standard(args.card,args.recover)
 if __name__=='__main__':main()

@@ -3,7 +3,7 @@
 #include "src/atm/ATMlib.h"
 #include "src/atm/ATMlibimpl.h"
 #include "src/MusicData.h"
-#include "PcmOutput.h"
+#include <chgame/PcmOutput.h>
 #if defined(__riscv) && !defined(CHSIM)
 #include <Arduino.h>
 #include <chgame/RamFunc.h>

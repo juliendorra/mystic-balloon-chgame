@@ -7,6 +7,7 @@
 #undef main
 
 namespace chmbtest { void clearFlash();void corruptFlash(unsigned,unsigned); }
+static void resetDefaultCard();
 static uint32_t saveGeneration() { mystic::saves::Store s;return mystic::saves::read(s) ? s.generation : 0; }
 static bool savedProgress(mystic::Progress &p) { mystic::saves::Store s;if (!mystic::saves::read(s)) return false;p=s.prefs;return true; }
 
@@ -382,6 +383,7 @@ static void colorsTest() {
     legacy.options=0;
     chmbtest::clearFlash();
     assert(save::store(SAVE_MAGIC,1,legacy));
+    resetDefaultCard();
     loadProgress();
     assert(palette()==Color && !mystic::audio::enabled());
     setSound(true);
@@ -718,10 +720,12 @@ static void hazardsTest() {
 }
 
 #include "save_cases.h"
+static char defaultCardPath[]="/tmp/mybl-default-XXXXXX";
+static void resetDefaultCard() {seedCard(defaultCardPath);setenv("CHMB_SAVE_CARD",defaultCardPath,1);}
 
 static void menuButtonsTest() {
     using namespace mystic;
-    chmbtest::clearFlash();loadProgress();
+    chmbtest::clearFlash();resetDefaultCard();loadProgress();
     gameState=STATE_MENU_MAIN;menuSelection=STATE_MENU_PLAY;finishTone();
     tap(B_BUTTON);assert(gameState==STATE_MENU_MAIN && saves::count==0);
     tap(A_BUTTON|B_BUTTON);assert(gameState==STATE_MENU_MAIN && saves::count==0);
@@ -773,6 +777,7 @@ static void helpMenuTest() {
 }
 
 int main() {
+    int fd=mkstemp(defaultCardPath);assert(fd>=0);close(fd);resetDefaultCard();
     setup();
     assert(mystic::palette()==mystic::Color);
     assert(gfx_paletteOut(0)==gfx_rgb(68,51,85)); // Pastel Island outline.
@@ -795,6 +800,6 @@ int main() {
     saveSystemTest();
     menuButtonsTest();
     helpMenuTest();
-    gfx_wait();
+    gfx_wait();unlink(defaultCardPath);
     return 0;
 }

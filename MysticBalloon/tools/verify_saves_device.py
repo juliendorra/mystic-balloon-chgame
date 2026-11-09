@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check SD save behavior on a diagnostic build; appends two temporary runs.
 
-Back up MYBLSAVE.DAT before running and restore it afterwards using the SD
+Back up MYBL.SAV before running and restore it afterwards using the SD
 reader. Existing runs are never selected for gameplay or overwritten.
 """
 from pathlib import Path

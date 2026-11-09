@@ -7,5 +7,6 @@ bool read(unsigned sector,uint8_t *dst);
 bool write(unsigned sector,const uint8_t *src);
 #ifdef CHSIM
 void testCutAfter(int bytes);
+int testCutBytes();
 #endif
 } }

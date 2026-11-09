@@ -1,0 +1,20 @@
+name: Tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  host:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [g++, clang++]
+        compact: ['0', '1']
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tests/test_saves.py
+        env:
+          CXX: ${{ matrix.compiler }}
+          CHSAVE_TEST_COMPACT: ${{ matrix.compact }}

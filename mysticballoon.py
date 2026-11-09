@@ -10,7 +10,7 @@ import venv
 ROOT = Path(__file__).resolve().parent
 SDK = ROOT / "CHGame"
 SDK_URL = "https://github.com/bateske/CHGame.git"
-SDK_COMMIT = "e1f8d05940ddb7bbef89c13326da75c003f02904"
+SDK_COMMIT = "edf822c8803a4939f4d0808f779d9522ee41c2ba"
 BOARD_VERSION = "0.3.0"
 PYTHON = ROOT / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 env = dict(os.environ)
@@ -66,7 +66,7 @@ def main():
             card = args[i+1] if value == "--card" and i+1 < len(args) else value[7:] if value.startswith("--card=") else None
             if card:
                 run(python, ROOT / "MysticBalloon/tools/prepare_saves.py", "--card", card)
-    return subprocess.call([str(python), str(SDK / "tools/chgame.py"),
+    return subprocess.call([str(python), str(ROOT / "tools/sd_saves.py"), "run",
                             "--sketch", str(ROOT / "MysticBalloon"), *args], cwd=ROOT, env=env)
 
 

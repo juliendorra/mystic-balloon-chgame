@@ -8,6 +8,9 @@ static void readFixture(const char *path,uint8_t *data,unsigned size) {
     FILE *f=fopen(path,"rb");assert(f);assert(fread(data,1,size,f)==size);fclose(f);
 }
 static void seedCard(const char *path) {
+    uint8_t data[1024];memset(data,255,sizeof data);writeFixture(path,data,sizeof data);
+}
+static void seedLegacyCard(const char *path) {
     using namespace mystic::saves;
     alignas(4) uint8_t data[1536];memset(data,255,sizeof data);
     memcpy(data,"MYBLSD2",8);*reinterpret_cast<uint32_t *>(data+8)=1536;
@@ -26,26 +29,21 @@ static void saveSystemTest() {
     for (unsigned options=0;options<16;++options) {
         chmbtest::clearFlash();Progress old;old.level=7;old.score=9400;old.coins=32;
         old.highScore=12345;old.highCoins=40;old.options=options;
-        assert(save::store(SAVE_MAGIC,1,old));loadProgress();
+        assert(save::store(SAVE_MAGIC,1,old));resetDefaultCard();loadProgress();
         assert(ss::count==1 && ss::active==0 && progress.level==7 && progress.score==9400);
         assert(mystic::audio::enabled()==bool(options&1) && mystic::audio::mode()==((options&8) ? mystic::audio::Beeps : mystic::audio::Atm));
         assert(storeProgress());ss::Store migrated;assert(ss::read(migrated));
         assert(migrated.runs[0].score==9400 && migrated.prefs.highScore==12345 && migrated.prefs.options==options);
     }
     puts("PASS: all 16 legacy option combinations migrate without losing level, score, coins or records");
-    chmbtest::clearFlash();loadProgress();
-    for (unsigned i=0;i<ss::FLASH_RUNS;++i) assert(ss::create());
-    const auto full=saveGeneration();assert(!ss::create() && saveGeneration()==full);
-    chmbtest::corruptFlash(0,40);loadProgress();
-    assert(ss::count==3); // CRC fallback to the previous complete page.
-    chmbtest::corruptFlash(1,40);ss::testFlashOwners(SAVE_MAGIC,SAVE_MAGIC);loadProgress();
-    assert(ss::status==ss::Damaged && !ss::create());ss::testFlashOwners(0xFFFFFFFF,0xFFFFFFFF);
+    unsetenv("CHMB_SAVE_CARD");chmbtest::clearFlash();loadProgress();
+    ss::Store noCard;assert(ss::status==ss::ForeignFlash && !ss::create() && !ss::write(noCard));
     const uint32_t other=save::magic("OTHR");
     assert(save::store(other,1,other));assert(save::store(other,1,other));
     ss::testFlashOwners(other,other);loadProgress();
     assert(ss::status==ss::ForeignFlash && !ss::create());
     uint32_t marker=0;assert(save::load(other,1,marker) && marker==other);
-    puts("PASS: flash-full refuses replacement, damaged newest page falls back, foreign game records are never erased");
+    puts("PASS: absent SD disables writes; foreign flash records remain untouched");
     chmbtest::clearFlash();ss::testFlashOwners(0xFFFFFFFF,0xFFFFFFFF);
     char path[]="/tmp/mybl-save-XXXXXX";int fd=mkstemp(path);assert(fd>=0);close(fd);
     seedCard(path);setenv("CHMB_SAVE_CARD",path,1);loadProgress();assert(ss::status==ss::Sd && !ss::count);
@@ -116,7 +114,7 @@ static void saveSystemTest() {
     assert(gameState==STATE_GAME_NEXT_LEVEL && scorePlayer==1400 && totalCoins==13 && coinsCollected==0);
     assert(ss::read(restarted) && !memcmp(&restarted.runs[1],&untouched.runs[1],sizeof(ss::Run)));
     puts("PASS: RESTART LEVEL resets the active level and entry score after reload; failures retain the paused world and other runs never change");
-    uint8_t baseline[1536];readFixture(path,baseline,sizeof baseline);ss::Store baseStore;assert(ss::read(baseStore));
+    uint8_t baseline[1024];readFixture(path,baseline,sizeof baseline);ss::Store baseStore;assert(ss::read(baseStore));
     for (unsigned cut=0;cut<512;++cut) {
         writeFixture(path,baseline,sizeof baseline);loadProgress();card::testCutAfter(cut);
         ss::create();progress=Progress{};ss::active=ss::NO_RUN;loadProgress();
@@ -127,30 +125,24 @@ static void saveSystemTest() {
     writeFixture(path,baseline,sizeof baseline);loadProgress();
     while (ss::count<ss::MAX_RUNS) assert(ss::create());
     const auto generation=saveGeneration();assert(!ss::create() && saveGeneration()==generation);
-    uint8_t damaged[1536],unchanged[1536];readFixture(path,damaged,sizeof damaged);
-    damaged[512+8+sizeof(ss::Store)]^=128;damaged[1024+8+sizeof(ss::Store)]^=128;writeFixture(path,damaged,sizeof damaged);
+    uint8_t damaged[1024],unchanged[1024];readFixture(path,damaged,sizeof damaged);
+    damaged[508]^=128;damaged[1020]^=128;writeFixture(path,damaged,sizeof damaged);
     loadProgress();assert(ss::status==ss::Damaged && !ss::create());readFixture(path,unchanged,sizeof unchanged);
     assert(!memcmp(damaged,unchanged,sizeof damaged));
     puts("PASS: SD capacity never overwrites runs; two damaged records are reported and left untouched");
-    // Recreate v1.4.0's exact byte layout, including all eight SD runs.
+    // Host provisioning expands old eight-run records into the common
+    // journal. Runtime still imports the surviving four-run flash format.
     ss::Store v2;v2.generation=12;v2.count=8;v2.active=6;
     for (unsigned i=0;i<8;++i) { v2.runs[i].level=i+2;v2.runs[i].score=4000+i*100;v2.runs[i].total=20+i; }
     alignas(4) uint8_t oldStore[436]={};memcpy(oldStore,&v2,20);
     for (unsigned i=0;i<8;++i) memcpy(oldStore+20+i*52,&v2.runs[i],52);
-    seedCard(path);readFixture(path,damaged,sizeof damaged);memset(damaged+512,255,1024);
-    auto *p=damaged+512;*reinterpret_cast<uint32_t *>(p)=SAVE_MAGIC;p[4]=2;p[5]=0;p[6]=12;p[7]=0;
-    memcpy(p+8,oldStore,sizeof oldStore);*reinterpret_cast<uint32_t *>(p+444)=ss::crc(p,444);
-    writeFixture(path,damaged,sizeof damaged);loadProgress();
-    ss::Store upgraded;assert(ss::read(upgraded) && upgraded.count==8 && upgraded.active==6);
-    for (unsigned i=0;i<8;++i) {
-        assert(!memcmp(&upgraded.runs[i],&v2.runs[i],52));assert(upgraded.runs[i].entryScore==v2.runs[i].score);
-    }
+    ss::Store upgraded;
     unsetenv("CHMB_SAVE_CARD");chmbtest::clearFlash();ss::testFlashOwners(0xFFFFFFFF,0xFFFFFFFF);
     v2.count=4;v2.active=2;memcpy(oldStore,&v2,20);
-    memcpy(save::buffer(),oldStore,228);assert(save::write(SAVE_MAGIC,2,228));loadProgress();
+    memcpy(save::buffer(),oldStore,228);assert(save::write(SAVE_MAGIC,2,228));seedCard(path);setenv("CHMB_SAVE_CARD",path,1);loadProgress();
     assert(ss::read(upgraded) && upgraded.count==4 && upgraded.active==2);
     for (unsigned i=0;i<4;++i) assert(upgraded.runs[i].entryScore==v2.runs[i].score && upgraded.runs[i].level==v2.runs[i].level);
-    assert(storeProgress());assert(save::read(SAVE_MAGIC,ss::VERSION,ss::FLASH_BYTES));
-    puts("PASS: all eight SD and four flash runs migrate from 1.4.0 without losing progress or selection");
+    assert(storeProgress());assert(ss::status==ss::Sd);assert(save::read(SAVE_MAGIC,2,228));
+    puts("PASS: all four flash runs migrate from 1.4.0 without losing progress or selection; SD conversion is tested by provisioning tests");
     unsetenv("CHMB_SAVE_CARD");unlink(path);ss::testFlashOwners(0xFFFFFFFF,0xFFFFFFFF);chmbtest::clearFlash();loadProgress();
 }

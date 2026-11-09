@@ -17,6 +17,35 @@ def page(version,data,sequence=1):
 
 
 class Provisioning(unittest.TestCase):
+    def test_common_import_preserves_all_eight_runs_and_legacy_file(self):
+        for version,stride,size in ((2,52,436),(3,56,468)):
+            with tempfile.TemporaryDirectory() as folder:
+                root=Path(folder);old=root/saves.NAME
+                raw=bytearray(saves.seed());raw[512:]=b'\xff'*1024
+                store=bytearray(size);struct.pack_into('<I',store,0,0xffffffff)
+                store[15]=1;store[16]=8;store[17]=6
+                for i in range(8):
+                    offset=20+i*stride
+                    struct.pack_into('<I',store,offset,5000+i*100)
+                    store[offset+44]=i+2;store[offset+46]=63;store[offset+49]=3
+                    if version==3:struct.pack_into('<I',store,offset+52,4000+i*100)
+                payload=struct.pack('<IBBH',saves.MAGIC,version,0,0xffff)+store
+                raw[512:1024]=(payload+struct.pack('<I',zlib.crc32(payload))).ljust(512,b'\xff')
+                old.write_bytes(raw)
+                self.assertTrue(saves.prepare_standard(root))
+                common=(root/'MYBL.SAV').read_bytes()
+                self.assertEqual(len(common),1024)
+                self.assertEqual(common[:4],b'MYBL')
+                self.assertEqual(struct.unpack_from('<H',common,8)[0],468)
+                self.assertEqual(zlib.crc32(common[:508]),struct.unpack_from('<I',common,508)[0])
+                data=common[16:484];self.assertEqual((data[16],data[17]),(8,6))
+                for i in range(8):
+                    self.assertEqual(struct.unpack_from('<I',data,20+i*56)[0],5000+i*100)
+                    self.assertEqual(struct.unpack_from('<I',data,72+i*56)[0],(5000 if version==2 else 4000)+i*100)
+                self.assertEqual(old.read_bytes(),raw)
+                self.assertFalse(saves.prepare_standard(root))
+                self.assertEqual((root/'MYBL.SAV').read_bytes(),common)
+
     def test_schema3_seed_and_non_overwrite(self):
         with tempfile.TemporaryDirectory() as d:
             self.assertTrue(saves.prepare(d));p=Path(d)/saves.NAME;before=p.read_bytes()
