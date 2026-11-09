@@ -16,6 +16,7 @@
 #pragma GCC optimize("Oz")
 #endif
 #include "Fat.h"
+#include <string.h>
 #include "Block.h"
 #include "../Config.h"
 
@@ -114,7 +115,7 @@ int8_t mount(uint8_t *b) {
     }
 }
 
-int8_t saveFile(uint32_t magic, uint32_t &cluster, uint16_t &slotSectors, uint8_t *b) {
+int8_t saveFile(const char *basename, uint32_t &cluster, uint16_t &slotSectors, uint8_t *b) {
     if (!v.end) return E_NOFS;
     uint32_t dir = v.rootSecs ? 0 : v.root, sec = 0;
     for (unsigned guard = 4096; guard--;) {
@@ -137,13 +138,13 @@ int8_t saveFile(uint32_t magic, uint32_t &cluster, uint16_t &slotSectors, uint8_
         for (unsigned off = 0; off < 512; off += 32) {
             const uint8_t *d = b + off;
             if (!d[0]) return E_NOTFOUND;
-            if (u32at(d) != magic || le32(d + 4) != 0x20202020u ||
+            if (memcmp(d, basename, 8) ||
                 d[8] != 'S' || d[9] != 'A' || d[10] != 'V') continue;
             uint32_t bytes = u32at(d + 28);
-            if ((d[11] & 0x1f) || bytes < 1024 || bytes > CHSAVE_MAX_SLOT_SECTORS * 1024u || bytes % 1024) return E_CHAIN;
+            if ((d[11] & 0x1f) || bytes < 1536 || bytes > 512u + CHSAVE_MAX_SLOT_SECTORS * 1024u || (bytes - 512) % 1024) return E_CHAIN;
             uint32_t c = u16at(d + 26) | (v.rootSecs ? 0 : u16at(d + 20) << 16);
             cluster = c;
-            slotSectors = bytes / 1024;
+            slotSectors = (bytes - 512) / 1024;
             unsigned clusters = ((bytes / 512) + (1u << v.shift) - 1) >> v.shift;
             uint32_t cached = ~0u;
             while (clusters--) {

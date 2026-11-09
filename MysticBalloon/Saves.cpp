@@ -8,52 +8,51 @@
 #endif
 
 namespace mystic { namespace saves {
-Status status=Flash;
+Status status=NoCard;
 uint8_t count=0,active=NO_RUN;
 Action action=None;
-static bool usingCard=false,legacy=false;
+static bool usingCard=false;
+static constexpr auto SAVE_ID=chsave::id("com.juliendorra.mysticballoon");
 static chsave::Status sharedStatus=chsave::Status::NoCard;
 #ifdef CHSIM
 // The unit harness uses a raw journal file. Full CHSIM uses the library's
 // FAT disk-image backend, just like the other games.
 class TestJournal : public chsave::Storage {
 public:
-    chsave::Status open(uint32_t,uint8_t *) override {
+    chsave::Status open(const chsave::Id &,uint8_t *) override {
         const char *path=getenv("CHMB_SAVE_CARD");
         FILE *f=path?fopen(path,"rb"):nullptr;
         if(!f)return chsave::Status::NoCard;
         fseek(f,0,SEEK_END);long size=ftell(f);fclose(f);
-        return size==1024?chsave::Status::Ready:chsave::Status::Damaged;
+        return size==1536?chsave::Status::Ready:chsave::Status::Damaged;
     }
     bool read(unsigned slot,uint8_t *out) override {
         const char *path=getenv("CHMB_SAVE_CARD");FILE *f=path?fopen(path,"rb"):nullptr;
-        if(!f || slot>1){if(f)fclose(f);return false;}
+        if(!f || slot>2){if(f)fclose(f);return false;}
         bool ok=!fseek(f,slot*512,SEEK_SET) && fread(out,1,512,f)==512;
         fclose(f);return ok;
     }
     bool write(unsigned slot,const uint8_t *in) override {
         const char *path=getenv("CHMB_SAVE_CARD");FILE *f=path?fopen(path,"r+b"):nullptr;
-        if(!f || slot>1){if(f)fclose(f);return false;}
+        if(!f || slot<1 || slot>2){if(f)fclose(f);return false;}
         int cut=card::testCutBytes();unsigned bytes=cut<0?512:unsigned(cut);
         bool ok=!fseek(f,slot*512,SEEK_SET) && fwrite(in,1,bytes,f)==bytes;
         ok=!fclose(f) && ok;return ok && bytes==512;
     }
 };
 static TestJournal testJournal;
-static uint32_t owners[2]={0xFFFFFFFFu,0xFFFFFFFFu};
-void testFlashOwners(uint32_t a,uint32_t b) { owners[0]=a;owners[1]=b; }
 #endif
 static bool sharedLoad(Store &out) {
     gfx_wait();
 #ifdef CHSIM
     if(getenv("CHMB_SAVE_CARD")) {
         chsave::Journal journal(testJournal,gfx_chunkScratch(),1024);
-        bool ok=journal.load(SAVE_MAGIC,VERSION,&out,sizeof out,nullptr);
+        bool ok=journal.load(SAVE_ID,VERSION,&out,sizeof out,nullptr);
         sharedStatus=journal.status();return ok;
     }
 #endif
     chsave::Store journal;
-    bool ok=journal.load(SAVE_MAGIC,VERSION,&out,sizeof out,nullptr);
+    bool ok=journal.load(SAVE_ID,VERSION,&out,sizeof out,nullptr);
     sharedStatus=journal.status();return ok;
 }
 static bool sharedStore(const Store &value) {
@@ -61,34 +60,13 @@ static bool sharedStore(const Store &value) {
 #ifdef CHSIM
     if(getenv("CHMB_SAVE_CARD")) {
         chsave::Journal journal(testJournal,gfx_chunkScratch(),1024);
-        bool ok=journal.store(SAVE_MAGIC,VERSION,&value,sizeof value,0);
+        bool ok=journal.store(SAVE_ID,VERSION,&value,sizeof value,0);
         sharedStatus=journal.status();return ok;
     }
 #endif
     chsave::Store journal;
-    bool ok=journal.store(SAVE_MAGIC,VERSION,&value,sizeof value,0);
+    bool ok=journal.store(SAVE_ID,VERSION,&value,sizeof value,0);
     sharedStatus=journal.status();return ok;
-}
-static bool flashOwned() {
-    for (unsigned i=0;i<2;++i) {
-#ifdef CHSIM
-        const uint32_t owner=owners[i];
-#else
-        const uint32_t owner=*reinterpret_cast<const uint32_t *>(0xF500+i*256);
-#endif
-        if (owner!=0xFFFFFFFFu && owner!=SAVE_MAGIC) return false;
-    }
-    return true;
-}
-static bool flashHasSave() {
-    for (unsigned i=0;i<2;++i) {
-#ifdef CHSIM
-        if (owners[i]==SAVE_MAGIC) return true;
-#else
-        if (*reinterpret_cast<const uint32_t *>(0xF500+i*256)==SAVE_MAGIC) return true;
-#endif
-    }
-    return false;
 }
 uint32_t crc(const void *data,unsigned bytes) {
     auto p=static_cast<const uint8_t *>(data);uint32_t c=0xFFFFFFFFu;
@@ -113,80 +91,42 @@ bool valid(const Store &s,unsigned limit) {
     }
     return true;
 }
-uint8_t capacity() { return usingCard ? MAX_RUNS : FLASH_RUNS; }
-static bool fromFlash(Store &s) {
-    const void *p=save::read(SAVE_MAGIC,VERSION,FLASH_BYTES);
-    if (p) {
-        memcpy(&s,p,FLASH_BYTES);
-        if (valid(s,FLASH_RUNS)) { legacy=false;return true; }
-    }
-    p=save::read(SAVE_MAGIC,2,228);
-    if (p) {
-        memcpy(&s,p,20);
-        for (unsigned i=0;i<FLASH_RUNS;++i) {
-            memcpy(&s.runs[i],static_cast<const uint8_t *>(p)+20+i*52,52);
-            s.runs[i].entryScore=s.runs[i].score;
-        }
-        if (valid(s,FLASH_RUNS)) { legacy=true;return true; }
-    }
-    Progress old;
-    if (!save::load(SAVE_MAGIC,1,old) || !validPrefs(old)) return false;
-    s=Store{};s.prefs=old;s.count=1;s.active=0;
-    Run &r=s.runs[0];r.level=old.level;r.score=r.entryScore=old.score;r.total=old.coins;
-    r.objects=old.level==22 ? 60 : 63;r.balloons=3;
-    legacy=true;return true;
-}
-static void importSeed(Store &out) {
-    if (!out.generation && !out.count) {
-        Store old;
-        if (fromFlash(old)) { out=old;out.generation=0;legacy=true; }
-    }
-}
+uint8_t capacity() { return MAX_RUNS; }
 bool read(Store &out) {
     out=Store{};
-    if(!usingCard)return fromFlash(out);
+    if(!usingCard)return false;
     if(sharedLoad(out)) {
         if(valid(out,MAX_RUNS))return true;
         status=Damaged;return false;
     }
     if(sharedStatus==chsave::Status::Empty) {
-        out=Store{};importSeed(out);return true;
+        out=Store{};return true;
     }
     status=sharedStatus==chsave::Status::Damaged?Damaged:WriteFailed;
     return false;
 }
 bool write(Store &s) {
-    if (!usingCard || !valid(s,capacity()) || status==NeedsSetup || status==Damaged || status==ForeignFlash) return false;
+    if (!usingCard || !valid(s,capacity()) || status==NeedsSetup || status==Damaged || status==NoCard) return false;
     const uint32_t next=s.generation+1;s.generation=next;
     bool ok=sharedStore(s);
     if (!ok) { status=WriteFailed;return false; }
-    status=Sd;legacy=false;
+    status=Sd;
     count=s.count;active=s.active;return true;
 }
 void begin() {
-    usingCard=false;legacy=false;count=0;active=NO_RUN;action=None;
+    usingCard=false;count=0;active=NO_RUN;action=None;
 #ifdef CHSIM
     card::testCutAfter(-1);
 #endif
     Store s;
-    bool loaded=sharedLoad(s);
+    const bool loaded=sharedLoad(s);
     usingCard=loaded || sharedStatus==chsave::Status::Empty;
     status=usingCard?Sd:sharedStatus==chsave::Status::NeedsSetup?NeedsSetup:
-        sharedStatus==chsave::Status::Damaged?Damaged:ForeignFlash;
-    if(usingCard && !loaded) {
-        // Older SD files are imported by host provisioning. Flash remains
-        // a read-only fallback for the first start of an empty journal.
-        s=Store{};importSeed(s);loaded=true;
-    }
-    if(!usingCard)loaded=fromFlash(s);
-    if(loaded && !valid(s,capacity()))status=Damaged;
-    if (loaded && status!=Damaged && valid(s,capacity())) {
-        if (usingCard && legacy) write(s);
+        sharedStatus==chsave::Status::Damaged || sharedStatus==chsave::Status::IdCollision?Damaged:NoCard;
+    if(loaded && !valid(s,MAX_RUNS))status=Damaged;
+    if(loaded && status!=Damaged) {
         progress=s.prefs;count=s.count;active=s.active;
-    } else {
-        progress=Progress{};
-        if (!usingCard && status==Flash && flashHasSave()) status=Damaged;
-    }
+    } else progress=Progress{};
 }
 bool preferences() {
     Store s;
@@ -194,7 +134,7 @@ bool preferences() {
     if (!have && usingCard) return false;
     const bool changed=s.prefs.highScore!=progress.highScore || s.prefs.highCoins!=progress.highCoins ||
         s.prefs.options!=progress.options;
-    if (!changed && !legacy) return status!=WriteFailed;
+    if (!changed) return status!=WriteFailed;
     s.prefs.highScore=progress.highScore;s.prefs.highCoins=progress.highCoins;s.prefs.options=progress.options;
     return write(s);
 }
@@ -222,7 +162,7 @@ bool checkpoint(const Run &run) {
     Store s;if (!read(s) || active>=s.count) return false;
     const bool same=s.active==active && !memcmp(&s.runs[active],&run,sizeof run) &&
         s.prefs.highScore==progress.highScore && s.prefs.highCoins==progress.highCoins && s.prefs.options==progress.options;
-    if (same && !legacy) return true;
+    if (same) return true;
     s.active=active;s.runs[active]=run;
     s.prefs=progress;s.prefs.level=run.level;s.prefs.score=run.score;s.prefs.coins=run.total;
     if (!write(s)) return false;

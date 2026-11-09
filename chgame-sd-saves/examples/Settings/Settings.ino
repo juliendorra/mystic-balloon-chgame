@@ -3,7 +3,7 @@
 #include <CHSave.h>
 
 chsave::Store saves;
-constexpr auto SAVE_ID = chsave::id("DEMO");
+constexpr auto SAVE_ID = chsave::id("com.example.settings");
 struct Data {
     uint32_t bestScore;
     uint8_t sound;

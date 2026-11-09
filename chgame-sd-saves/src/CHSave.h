@@ -8,14 +8,14 @@ namespace chsave {
 // scratch buffer. Use after chgame.boot() and gfx_begin(), between frames.
 class Store {
 public:
-    bool load(uint32_t gameId, uint8_t schema, void *data, uint16_t size,
+    bool load(const Id &gameId, uint8_t schema, void *data, uint16_t size,
               uint8_t *flags = nullptr);
-    bool store(uint32_t gameId, uint8_t schema, const void *data, uint16_t size,
+    bool store(const Id &gameId, uint8_t schema, const void *data, uint16_t size,
                uint8_t flags = 0);
     Status status() const { return status_; }
 
     template<class T>
-    bool load(uint32_t gameId, uint8_t schema, T &data, uint8_t *flags = nullptr) {
+    bool load(const Id &gameId, uint8_t schema, T &data, uint8_t *flags = nullptr) {
         static_assert(std::is_trivially_copyable<T>::value, "save plain data only");
         static_assert(sizeof(T) <= MAX_DATA, "save payload exceeds format limit");
         T candidate{};
@@ -24,7 +24,7 @@ public:
         return true;
     }
     template<class T>
-    bool store(uint32_t gameId, uint8_t schema, const T &data, uint8_t flags = 0) {
+    bool store(const Id &gameId, uint8_t schema, const T &data, uint8_t flags = 0) {
         static_assert(std::is_trivially_copyable<T>::value, "save plain data only");
         static_assert(sizeof(T) <= MAX_DATA, "save payload exceeds format limit");
         return store(gameId, schema, &data, sizeof(T), flags);

@@ -4,16 +4,16 @@
 
 class Memory : public chsave::Storage {
 public:
-    uint8_t bytes[1024];
+    uint8_t bytes[1536];
     unsigned writes = 0;
-    chsave::Status open(uint32_t, uint8_t *) override { return chsave::Status::Ready; }
+    chsave::Status open(const chsave::Id &, uint8_t *) override { return chsave::Status::Ready; }
     bool read(unsigned slot, uint8_t *out) override {
-        assert(slot < 2);
+        assert(slot < 3);
         memcpy(out, bytes + slot * 512, 512);
         return true;
     }
     bool write(unsigned slot, const uint8_t *in) override {
-        assert(slot < 2);
+        assert(slot > 0 && slot < 3);
         memcpy(bytes + slot * 512, in, 512);
         ++writes;
         return true;
@@ -23,10 +23,18 @@ public:
 int main() {
     Memory backend;
     memset(backend.bytes, 255, sizeof backend.bytes);
+    memset(backend.bytes, 0, 512);
+    memcpy(backend.bytes, "CHSAVE2", 8);
+    backend.bytes[8] = 16; backend.bytes[10] = 1;
+    memcpy(backend.bytes + 16, "com.example.test", 16);
+    const uint8_t crc[] = {0x5c, 0x74, 0x57, 0xfc};
+    memcpy(backend.bytes + 508, crc, 4);
     alignas(4) uint8_t scratch[1024];
     uint8_t data[492] = {};
     chsave::Journal saves(backend, scratch, sizeof scratch);
-    constexpr auto game = chsave::id("TEST");
+    constexpr auto game = chsave::id("com.example.test");
+    static_assert(game.size() == 16, "ID length");
+    static_assert(game.basename()[0] == '3', "base-36 hash");
     assert(!saves.load(game, 1, data));
     assert(saves.status() == chsave::Status::Empty);
     assert(saves.store(game, 1, data, 42));

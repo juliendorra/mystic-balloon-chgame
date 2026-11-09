@@ -242,7 +242,7 @@ void paintSaveMenu() {
   }
   const char *hint=saveMenuError ? (count>=capacity() && !cont ? "SAVES FULL" : "SAVE FAILED") :
       status==Sd ? "SD CARD" : status==NeedsSetup ? "SET UP SD SAVES" :
-      status==ForeignFlash ? "INSERT SD CARD" : status==Damaged || status==WriteFailed ? "SAVE ERROR" : "INSERT SD CARD";
+      status==NoCard ? "INSERT SD CARD" : status==Damaged || status==WriteFailed ? "SAVE ERROR" : "INSERT SD CARD";
   saveText(24,108,hint,1);saveText(24,116,cont ? "A LOAD  B BACK" : "A NEW   B BACK",1);
 }
 

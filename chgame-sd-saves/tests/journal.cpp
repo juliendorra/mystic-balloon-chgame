@@ -54,7 +54,8 @@ bool write(uint32_t lba, const uint8_t *src) {
 struct Data { uint32_t score; uint8_t prefs[32]; };
 int main(int argc, char **argv) {
     assert(argc >= 3);
-    uint32_t gameId = strtoul(argv[2], nullptr, 16);
+    const auto gameId = chsave::id(argv[2]);
+    if (!strcmp(argv[1], "filename")) { printf("%s.SAV\n", gameId.basename()); return 0; }
     chsave::Store saves;
     Data data{999, {}};
     uint8_t flags = 99;

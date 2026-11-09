@@ -184,14 +184,15 @@ The ATM soundtrack gains DC removal, more output gain and bounded peak compressi
 
 ## SD saves
 
-Version 1.4.3 uses [CHSave 0.1.0](https://github.com/juliendorra/chgame-sd-saves).
-Progress and settings are stored in `MYBL.SAV`; existing saves are preserved.
-Prepare a mounted card before installing the new cartridge:
+Uses [CHSave 0.2](https://github.com/juliendorra/chgame-sd-saves).
+App ID: `com.juliendorra.mysticballoon`. Firmware has no legacy save fallback.
 
 ```sh
+# New card:
 python3 tools/sd_saves.py prepare --card /path/to/card
+# Existing four-character journal; old file is kept:
+python3 tools/sd_saves.py migrate --card /path/to/card
 ```
 
-The source includes the pinned library and SD adapter. Build through `mysticballoon.py`
-so the SD backend is selected. Keep save files when replacing cartridges.
-The preparation tool imports the older `MYBLSAVE.DAT` into `MYBL.SAV` and keeps the original file.
+Convert existing saves before installing this build. Keep the hashed `.SAV`
+files when replacing cartridges. The complete ID is checked before writing.

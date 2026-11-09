@@ -26,29 +26,27 @@ SOURCE=ROOT/'tools/sd_saves/src'
 PUBLIC=ROOT/'chgame-sd-saves'
 OVERLAY=ROOT/'.cache/sd-saves/libraries'
 
-def catalog():
-    return {CONFIG['id']+'.SAV':{'game':CONFIG['game'],'id':CONFIG['id']}}
-
-def validate(raw,magic):
+def shared_prepare():
     spec=importlib.util.spec_from_file_location('chsave_prepare',PUBLIC/'tools/prepare.py')
-    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-    module.validate(raw,magic.to_bytes(4,'little').decode('ascii'))
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
+
+def catalog():
+    shared=shared_prepare()
+    return {shared.filename(CONFIG['id']):{'game':CONFIG['game'],'id':CONFIG['id']}}
+
+def validate(raw,ident):
+    shared_prepare().validate(raw,ident)
 
 def prepare(card):
-    card=Path(card)
-    if not card.is_dir():raise ValueError(f'Card folder does not exist: {card}')
-    for name,item in catalog().items():
-        path=card/name
-        if path.exists():
-            try:validate(path.read_bytes(),int.from_bytes(name[:4].encode(),'little'))
-            except ValueError as error:raise ValueError(f'{path}: {error}') from error
-        else:
-            with path.open('xb') as f:f.write(b'\xff'*1024);f.flush();os.fsync(f.fileno())
-            if path.read_bytes()!=b'\xff'*1024:raise OSError(f'Provisioning readback failed: {path}')
-    if CONFIG['game']=='MysticBalloon':
-        spec=importlib.util.spec_from_file_location('mystic_prepare',ROOT/CONFIG['sketch']/'tools/prepare_saves.py')
-        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);module.prepare_standard(card)
-    print('Prepared/preserved '+CONFIG['id']+'.SAV')
+    card=Path(card);shared=shared_prepare()
+    if not (card/shared.filename(CONFIG['id'])).exists() and ((card/(CONFIG['legacyId']+'.SAV')).exists() or CONFIG['game']=='MysticBalloon' and (card/'MYBLSAVE.DAT').exists()):
+        raise ValueError('Old saves need explicit conversion: python3 tools/sd_saves.py migrate --card '+str(card))
+    shared.prepare(card,[CONFIG['id']])
+
+def migrate(card):
+    sys.path.insert(0,str(PUBLIC/'tools'))
+    from migrate_v1 import migrate as convert
+    action,path=convert(card,CONFIG['legacyId'],CONFIG['id']);print(action,path.name)
 
 def apply_sdk_patch():
     pass # Standalone games do not patch the SDK examples.
@@ -99,8 +97,8 @@ namespace chsave {namespace detail {
 namespace {
 class WorkspaceCard final : public Storage {
 public:
-    Status open(uint32_t id,uint8_t *scratch) override {
-        switch(save_card::open(id,scratch)) {
+    Status open(const Id &id,uint8_t *scratch) override {
+        switch(save_card::open(id.basename(),scratch)) {
         case save::Ready:return Status::Ready;
         case save::NoCard:return Status::NoCard;
         case save::NeedsSetup:return Status::NeedsSetup;
@@ -142,32 +140,15 @@ Storage &card(){static WorkspaceCard instance;return instance;}
     props=dest/'library.properties';props.write_text(props.read_text().replace('depends=CHGfx','depends=CHGfx,CHSd'))
     # Header docs must describe the selected backend.
     header=dest/'src/CHGame.h';header.write_text(header.read_text().replace('a record in flash that survives power cycles','an isolated SD journal that survives power cycles'))
-    legacy=OVERLAY/'legacy/CHGame'
-    if legacy.exists():shutil.rmtree(legacy)
-    shutil.copytree(dest,legacy)
-    shutil.copy2(SOURCE/'LegacyOnly.cpp',legacy/'src/chgame/Save.cpp')
-    for name in ('CHGfx','CHSd'):
-        link=OVERLAY/'legacy'/name
-        if link.is_symlink() and link.resolve()!=(OVERLAY/name).resolve():link.unlink()
-        if not link.exists():link.symlink_to(OVERLAY/name,target_is_directory=True)
-    # Bundled SDK games retain their established small backend. Their disk
-    # format is compatible; only our games adopt CHSave in this batch.
-    bundled=OVERLAY/'sdk/CHGame'
-    if bundled.exists():shutil.rmtree(bundled)
-    shutil.copytree(dest,bundled)
-    shutil.rmtree(bundled/'src/chsave')
-    (bundled/'src/CHSave.h').unlink()
-    shutil.copy2(SOURCE/'CompactSdk.cpp',bundled/'src/chgame/Save.cpp')
-    for name in ('CHGfx','CHSd'):
-        link=OVERLAY/'sdk'/name
-        if not link.exists():link.symlink_to(OVERLAY/name,target_is_directory=True)
+    (dest/'src/chgame/Legacy.cpp').unlink(missing_ok=True)
     stamp.write_text(fingerprint)
     return OVERLAY
 
 def simulation_image(path):
     sys.path.insert(0,str(SDK/'CHSd/tools'))
     from fatimg import build_image
-    build_image(path,{name:b'\xff'*1024 for name in catalog()},fs='fat16',spc=1,clusters=5000,mbr=True)
+    shared=shared_prepare()
+    build_image(path,{name:shared.blank(item['id']) for name,item in catalog().items()},fs='fat16',spc=1,clusters=5000,mbr=True)
 
 def run():
     for key,relative in {
@@ -178,11 +159,6 @@ def run():
     (ROOT/'.cache/tmp').mkdir(parents=True,exist_ok=True)
     libraries=overlay()
     os.environ['PYTHONPATH']=os.pathsep.join([str(SDK_ROOT/'tools'),str(SDK_ROOT/'tools/chsim'),str(SDK/'CHSd/tools'),os.environ.get('PYTHONPATH','')])
-    # Mystic Balloon's common journal imports old flash through a read-only API.
-    if '--sketch' in sys.argv:
-        sketch=sys.argv[sys.argv.index('--sketch')+1]
-        if Path(sketch).name=='MysticBalloon':libraries=libraries/'legacy'
-        elif False:pass
     sys.path[:0]=[str(SDK_ROOT/'tools'),str(SDK_ROOT/'tools/chsim')]
     os.environ['CHSIM_CHGAME']=str(libraries/'CHGame/src')
     if not os.environ.get('CHGAME_SAVE_CARD') and not os.environ.get('CHGAME_SAVE_TEMPLATE'):
@@ -232,10 +208,12 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     sub=parser.add_subparsers(dest='command',required=True)
     p=sub.add_parser('prepare');p.add_argument('--card',required=True,type=Path)
+    p=sub.add_parser('migrate');p.add_argument('--card',required=True,type=Path)
     sub.add_parser('overlay');sub.add_parser('list')
     p=sub.add_parser('sim-image');p.add_argument('path',type=Path)
     args=parser.parse_args()
     if args.command=='prepare':prepare(args.card)
+    elif args.command=='migrate':migrate(args.card)
     elif args.command=='overlay':print(overlay())
     elif args.command=='list':print(json.dumps(catalog(),indent=2))
     elif args.command=='sim-image':simulation_image(args.path)

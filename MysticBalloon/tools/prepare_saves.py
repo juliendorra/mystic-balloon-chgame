@@ -100,27 +100,34 @@ def common_record(raw):
     out[16:484]=store;struct.pack_into('<I',out,508,zlib.crc32(out[:508]))
     return bytes(out)+b'\xff'*512
 
-def prepare_standard(card,recover=None):
-    root=Path(card)
-    public=Path(__file__).resolve().parents[2]/'chgame-sd-saves/tools/prepare.py'
-    spec=importlib.util.spec_from_file_location('chsave_prepare',public)
-    shared=importlib.util.module_from_spec(spec);spec.loader.exec_module(shared)
-    target=root/'MYBL.SAV';old=root/NAME
-    shared.prepare(root,['MYBL'])
-    existing=target.read_bytes()
-    if existing!=shared.EMPTY:return False
-    source=seed(recover) if recover is not None else old.read_bytes() if old.exists() else None
-    if source is None:return False
-    data=common_record(source)
-    # Only an erased common journal is seeded. The original legacy file
-    # remains a backup, including if power is lost during this host write.
-    with target.open('r+b') as stream:
-        stream.write(data);stream.flush();os.fsync(stream.fileno())
-    if target.read_bytes()!=data:raise OSError('Mystic Balloon import readback failed')
-    print('Imported legacy saves into MYBL.SAV; source left untouched')
-    return True
+APP_ID='com.juliendorra.mysticballoon'
+
+def shared_tools():
+    public=Path(__file__).resolve().parents[2]/'chgame-sd-saves/tools'
+    import sys
+    sys.path.insert(0,str(public))
+    import prepare as shared
+    import migrate_v1
+    return shared,migrate_v1
+
+def prepare_standard(card,recover=None,migrate=False):
+    root=Path(card);shared,converter=shared_tools()
+    target=root/shared.filename(APP_ID)
+    if target.exists():
+        shared.validate(target.read_bytes(),APP_ID);return False
+    common=root/'MYBL.SAV';old=root/NAME
+    if migrate:
+        source=common.read_bytes() if common.exists() else common_record(seed(recover) if recover is not None else old.read_bytes())
+        data=converter.convert(source,'MYBL',APP_ID)
+        with target.open('xb') as stream:stream.write(data);stream.flush();os.fsync(stream.fileno())
+        if target.read_bytes()!=data:raise OSError('Mystic Balloon conversion readback failed')
+        print('Converted old progress; source left untouched:',target.name);return True
+    if recover is not None or common.exists() or old.exists():
+        raise ValueError('Old saves need explicit --migrate-legacy before installing this version')
+    shared.prepare(root,[APP_ID]);return True
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--card',required=True,type=Path);ap.add_argument('--recover',type=Path)
-    args=ap.parse_args();prepare_standard(args.card,args.recover)
+    ap.add_argument('--migrate-legacy',action='store_true')
+    args=ap.parse_args();prepare_standard(args.card,args.recover,args.migrate_legacy)
 if __name__=='__main__':main()

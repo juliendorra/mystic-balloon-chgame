@@ -378,13 +378,9 @@ static void colorsTest() {
         assert(palette()==Palette(i) && mystic::audio::enabled()==sound);
         gameState=STATE_MENU_SOUNDFX;
     }
-    // Schema-1 records from the monochrome release have only the sound bit.
-    Progress legacy;
-    legacy.options=0;
-    chmbtest::clearFlash();
-    assert(save::store(SAVE_MAGIC,1,legacy));
-    resetDefaultCard();
-    loadProgress();
+    resetDefaultCard();loadProgress();
+    saves::Store stored;stored.prefs.options=0;
+    assert(saves::write(stored));loadProgress();
     assert(palette()==Color && !mystic::audio::enabled());
     setSound(true);
     setPalette(Color);

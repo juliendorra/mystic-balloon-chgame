@@ -1,35 +1,64 @@
-# CSV1 / CSV2 save format
+# CHSAVE2 / CSV3 save format
 
-A root file named `<ID>.SAV` on FAT16 or FAT32. Its size is a multiple
-of 1,024 bytes, from 1 KiB to 128 KiB.
-ID is four uppercase ASCII letters/digits. Fragmented files are supported.
-The complete cluster chain must match the file's length (including the
-unused part of its last allocated cluster). Files are created on a computer;
-firmware only overwrites their data sectors.
+Files live in the FAT16/FAT32 root. The filename is eight uppercase base-36
+characters (`0–9`, `A–Z`) plus `.SAV`. Hash the exact lowercase ASCII reverse-domain
+ID with FNV-1a-64 (offset 14695981039346656037, prime 1099511628211, wrap modulo
+2^64), take the result modulo 36^8, and encode it in base 36, zero-padded to eight
+characters, most-significant digit first. Example: `com.juliendorra.pinball`
+becomes `5T668NAZ.SAV`. Case variations are invalid IDs, not aliases.
 
-Each of the two equal slots has these fields. A slot is 1–128 SD sectors.
-Integers are little-endian. Let `N` be its length in bytes.
+This gives 2,821,109,907,456 filename values (about 41.36 bits). It is a lookup
+key, not proof of identity. Firmware checks the complete stored ID before reading
+or writing records. A mismatch returns `IdCollision`, never claims a blank file,
+and never falls back to another filename. Provisioning refuses colliding IDs too.
+
+The file has one immutable 512-byte identity descriptor followed by two equal
+journal slots of 1–128 sectors each. File length is `512 + 1024 * slotSectors`:
+1,536–131,584 bytes. Fragmented files are supported. Firmware never allocates,
+resizes, changes the descriptor, or writes FAT/directory metadata.
+
+## Identity descriptor (sector 0)
 
 | Offset | Bytes | Value |
 | --- | --- | --- |
-| 0 | 4 | Game ID as ASCII bytes |
-| 4 | 4 | Generation, incremented modulo 2³² |
+| 0 | 8 | `CHSAVE2` followed by NUL |
+| 8 | 2 | Full ID length, 1–253 bytes |
+| 10 | 2 | Sectors per slot, 1–128; must match file length |
+| 12 | 4 | Reserved, zero |
+| 16 | ID length | Exact ASCII ID, no NUL required |
+| remainder | to byte 507 | Zero padding |
+| 508 | 4 | CRC-32/ISO-HDLC of bytes 0–507 |
+
+IDs contain at least two dot-separated labels. Each label is 1–63 lowercase
+letters/digits with optional internal hyphens. Total length is at most 253.
+A missing, invalid or corrupt descriptor prevents every write.
+
+## Each journal slot
+
+Integers are little-endian. Let `N` be the slot length in bytes.
+
+| Offset | Bytes | Value |
+| --- | --- | --- |
+| 0 | 4 | `CSV3` (`0x33565343`) |
+| 4 | 4 | Generation, incremented modulo 2^32 |
 | 8 | 2 | Payload size, at most `N - 20` |
 | 10 | 1 | Application schema |
 | 11 | 1 | Application flags |
-| 12 | 4 | `CSV1` (`0x31565343`) for a 512-byte slot; `CSV2` (`0x32565343`) for larger slots |
+| 12 | 4 | Reserved, zero |
 | 16 | size | Application payload |
-| 16 + size | to offset `N - 5` | Zero-filled unused space |
-| N - 4 | 4 | CRC-32/ISO-HDLC of bytes `0..N-5` (same as Python `zlib.crc32`) |
+| remainder | to byte `N - 5` | Zero padding |
+| `N - 4` | 4 | CRC-32/ISO-HDLC of bytes 0 through `N - 5` |
 
-Two slots filled with `0xFF` mean a new journal. Otherwise at least one
-slot must pass ID, tag, size and CRC validation. The newer valid generation
-wins, using unsigned serial arithmetic; on a tie, slot 0 wins. Generation
-differences of exactly 2³¹ are treated as a tie.
+Two slots filled with `0xFF` mean a new journal, after checking its descriptor.
+Otherwise at least one slot must pass tag, reserved, size and CRC checks. The
+newer valid generation wins using unsigned serial arithmetic; ties choose slot 0,
+including a generation difference of exactly 2^31.
 
-Loading checks schema and size **after** choosing the latest record. It
-does not fall back to stale data with an older schema. A deliberate store
-can replace the schema. The other committed slot remains until a later save.
+Load checks schema and size after selecting the newest valid record; it never
+falls back to stale application schemas. A store may deliberately change the
+schema. Writes target the other slot and are read back sector by sector. The
+previous committed slot remains intact until a later store.
 
-Compatible with the 244-byte `tools/sd_saves` workspace journal. Mystic
-Balloon's older `MYBLSAVE.DAT` format requires application-specific import.
+CSV1/CSV2 files are not read by firmware. `tools/migrate_v1.py` explicitly
+converts them on a computer, retaining their schema, flags, generations and
+payload bytes. It never replaces the source or an existing destination.

@@ -2,7 +2,7 @@
 #include "Port.h"
 
 namespace mystic { namespace saves {
-constexpr uint8_t MAX_RUNS=8, FLASH_RUNS=4, NO_RUN=255;
+constexpr uint8_t MAX_RUNS=8, NO_RUN=255;
 constexpr uint8_t VERSION=3;
 // World state, not just a level number. Static map geometry and cosmetic
 // particles are regenerated; moved coins, injured enemies and motion persist.
@@ -22,9 +22,8 @@ struct Store {
     uint16_t reserved=0;
     Run runs[MAX_RUNS];
 };
-constexpr unsigned FLASH_BYTES=20+FLASH_RUNS*sizeof(Run);
-static_assert(sizeof(Store)==468 && FLASH_BYTES==244,"save layouts");
-enum Status : uint8_t { Flash, Sd, NeedsSetup, Damaged, ForeignFlash, WriteFailed };
+static_assert(sizeof(Store)==468,"save layout");
+enum Status : uint8_t { NoCard, Sd, NeedsSetup, Damaged, WriteFailed };
 enum Action : uint8_t { None, New, Load };
 extern Status status;
 extern uint8_t count,active;
@@ -42,7 +41,4 @@ uint8_t percent(const Run &run);
 void label(const Run &run,char *text);
 uint32_t crc(const void *data,unsigned bytes);
 void begin();
-#ifdef CHSIM
-void testFlashOwners(uint32_t a,uint32_t b);
-#endif
 } }

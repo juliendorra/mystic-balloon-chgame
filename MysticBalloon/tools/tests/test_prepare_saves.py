@@ -32,19 +32,20 @@ class Provisioning(unittest.TestCase):
                 payload=struct.pack('<IBBH',saves.MAGIC,version,0,0xffff)+store
                 raw[512:1024]=(payload+struct.pack('<I',zlib.crc32(payload))).ljust(512,b'\xff')
                 old.write_bytes(raw)
-                self.assertTrue(saves.prepare_standard(root))
-                common=(root/'MYBL.SAV').read_bytes()
-                self.assertEqual(len(common),1024)
-                self.assertEqual(common[:4],b'MYBL')
-                self.assertEqual(struct.unpack_from('<H',common,8)[0],468)
-                self.assertEqual(zlib.crc32(common[:508]),struct.unpack_from('<I',common,508)[0])
-                data=common[16:484];self.assertEqual((data[16],data[17]),(8,6))
+                self.assertTrue(saves.prepare_standard(root,migrate=True))
+                shared,_=saves.shared_tools();target=root/shared.filename(saves.APP_ID)
+                common=target.read_bytes()
+                self.assertEqual(len(common),1536)
+                self.assertEqual(common[:8],b'CHSAVE2\0')
+                self.assertEqual(struct.unpack_from('<H',common,512+8)[0],468)
+                self.assertEqual(zlib.crc32(common[512:1020]),struct.unpack_from('<I',common,1020)[0])
+                data=common[528:996];self.assertEqual((data[16],data[17]),(8,6))
                 for i in range(8):
                     self.assertEqual(struct.unpack_from('<I',data,20+i*56)[0],5000+i*100)
                     self.assertEqual(struct.unpack_from('<I',data,72+i*56)[0],(5000 if version==2 else 4000)+i*100)
                 self.assertEqual(old.read_bytes(),raw)
-                self.assertFalse(saves.prepare_standard(root))
-                self.assertEqual((root/'MYBL.SAV').read_bytes(),common)
+                self.assertFalse(saves.prepare_standard(root,migrate=True))
+                self.assertEqual(target.read_bytes(),common)
 
     def test_schema3_seed_and_non_overwrite(self):
         with tempfile.TemporaryDirectory() as d:
@@ -81,7 +82,7 @@ class Provisioning(unittest.TestCase):
                     self.assertEqual(struct.unpack_from('<I',s,20+i*56)[0],5000+i*100)
                     self.assertEqual(struct.unpack_from('<I',s,72+i*56)[0],(5000 if version==2 else 4000)+i*100)
 
-    def test_existing_v2_journal_is_left_for_firmware_migration(self):
+    def test_existing_v2_journal_is_preserved_by_legacy_host_helper(self):
         raw=bytearray(saves.seed());raw[512:]=b'\xff'*1024
         store=bytearray(436);store[15]=1;store[17]=255
         for i in range(8):store[20+52*i+46]=63;store[20+52*i+49]=3
