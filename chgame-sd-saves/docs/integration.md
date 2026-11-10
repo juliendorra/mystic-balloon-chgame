@@ -18,7 +18,7 @@ arduino-cli compile -b CHGame:ch32v:rev0:opt=oslto,rtlib=nano,periph=game,usb=up
 
 CHSave has its own namespaced SD driver and FAT lookup. It can coexist with
 CHSd for game assets. It does not replace SDK files or SDK `save::` calls;
-use `chsave::Store` explicitly. No flash migration is performed.
+use `chsave::Store` explicitly.
 
 ## Data and IDs
 
@@ -105,20 +105,3 @@ prepared file, since no committed record exists yet.
 Firmware never allocates clusters or changes FAT/directory metadata. These
 checks cannot guarantee an SD controller's behavior during physical power
 loss. The tests simulate interrupted sector writes, not electrical failures.
-
-## Upgrading from 0.1
-
-Version 0.2 removes the four-character API and old-format firmware reader.
-Convert each existing journal explicitly on a computer before installing the
-new game. Keep its payload schema and bytes unchanged:
-
-```sh
-python3 tools/migrate_v1.py --card /path/to/card --legacy MPIN com.juliendorra.pinball
-```
-
-The converter creates the hashed file, keeps both recoverable records, and
-leaves the old file untouched. An existing new-format file always wins and
-is never replaced. Keep the old file as a backup until the game is checked;
-then it can be removed. The converter is a transitional host tool, not part
-of the firmware or normal preparation path. Flash and application-specific
-formats must be exported separately before upgrading.

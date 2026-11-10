@@ -58,7 +58,3 @@ Load checks schema and size after selecting the newest valid record; it never
 falls back to stale application schemas. A store may deliberately change the
 schema. Writes target the other slot and are read back sector by sector. The
 previous committed slot remains intact until a later store.
-
-CSV1/CSV2 files are not read by firmware. `tools/migrate_v1.py` explicitly
-converts them on a computer, retaining their schema, flags, generations and
-payload bytes. It never replaces the source or an existing destination.

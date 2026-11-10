@@ -15,7 +15,6 @@ ROOT = Path(__file__).resolve().parents[1]
 COMPACT = os.environ.get('CHSAVE_TEST_COMPACT') == '1'
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'tests/vendor')]
 import prepare
-import migrate_v1
 from fatimg import build_image, FatVolume
 
 MAGIC = 'com.example.tetris'
@@ -245,28 +244,6 @@ class SaveTests(unittest.TestCase):
             with self.assertRaises(prepare.IdCollision):
                 prepare.prepare(folder, [first])
             self.assertEqual(target.read_bytes(), prepare.blank(second))
-
-    def test_explicit_host_conversion_preserves_old_and_never_overwrites_new(self):
-        old = bytearray(record(70))
-        old[:4] = b'TETR'
-        struct.pack_into('<I', old, 12, 0x31565343)
-        struct.pack_into('<I', old, 508, zlib.crc32(old[:508]))
-        with tempfile.TemporaryDirectory() as folder:
-            card = Path(folder)
-            source = card / 'TETR.SAV'
-            source.write_bytes(old + b'\xff' * 512)
-            original = source.read_bytes()
-            self.assertEqual(migrate_v1.migrate(card, 'TETR', MAGIC)[0], 'converted')
-            new = (card / NAME).read_bytes()
-            prepare.validate(new, MAGIC)
-            self.assertEqual(new[528:564], old[16:52])
-            self.assertEqual(source.read_bytes(), original)
-            self.assertEqual(migrate_v1.migrate(card, 'TETR', MAGIC)[0], 'kept')
-            self.assertEqual((card / NAME).read_bytes(), new)
-            with self.assertRaises(prepare.IdCollision):
-                prepare.validate(new, OTHER)
-            path = self.fixture(first=new[512:])
-            self.assertEqual(self.run_save(path)[:3], (1, 70, 7))
 
     def test_actual_simulator_backend(self):
         path = self.fixture()

@@ -193,8 +193,7 @@ def run():
     device.build=build_with_sd
     hosttests.LIB=libraries/'CHGame/src'
     hosttests.INCLUDES['lib']=hosttests.LIB
-    # SD saves do not reserve flash pages. Mystic's legacy reader also checks
-    # that former pages aren't occupied by the current image.
+    # SD saves do not reserve flash pages.
     load=gamecfg.load
     def config(sketch):
         value=load(sketch);value.SAVE_PAGES=0;return value

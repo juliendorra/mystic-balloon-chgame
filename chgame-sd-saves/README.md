@@ -41,8 +41,6 @@ Save between frames; `saves.status()` explains failures.
 
 Filenames use eight base-36 characters (`0–9`, `A–Z`). The full ID is checked
 before writing, so a hash collision cannot overwrite another app's data.
-Old four-character journals need an [explicit conversion](docs/integration.md#upgrading-from-01);
-firmware has no legacy fallback.
 
 ## Games using CHSave
 

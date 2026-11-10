@@ -107,6 +107,7 @@ def shared_tools():
     import sys
     sys.path.insert(0,str(public))
     import prepare as shared
+    sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"tools"))
     import migrate_v1
     return shared,migrate_v1
 
