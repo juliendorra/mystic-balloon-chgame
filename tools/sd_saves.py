@@ -57,6 +57,24 @@ def overlay():
         if fcntl:fcntl.flock(lock,fcntl.LOCK_EX)
         return _overlay()
 
+def allocation_fat(text):
+    # Keep the mounted geometry once; the allocator shares this reader.
+    text='''#if __has_include(<chsave/detail/Allocate.h>)
+#include <chsave/detail/Allocate.h>
+#define CHGAME_AUTO_SAVES 1
+#endif
+'''+text
+    text=text.replace('};\nVol v;', '''#ifdef CHGAME_AUTO_SAVES
+    uint32_t copies, info, backupInfo;
+#endif
+};
+Vol v;''',1)
+    text=text.replace('    v.end = n + 2;', '''    v.end = n + 2;
+#ifdef CHGAME_AUTO_SAVES
+    chsave::detail::allocationHints(v,b,base,rsvd,nf,!rootSecs);
+#endif''',1)
+    return text
+
 def _overlay():
     apply_sdk_patch()
     # Hash every input; rebuild after either the SDK or our implementation changes.
@@ -101,11 +119,12 @@ public:
         switch(save_card::open(id.basename(),scratch)) {
         case save::Ready:return Status::Ready;
         case save::NoCard:return Status::NoCard;
-        case save::NeedsSetup:return Status::NeedsSetup;
+        case save::NeedsSetup:return Status::NotFound;
         case save::Damaged:return Status::Damaged;
         default:return Status::IoError;
         }
     }
+    Status create(const Id &id,uint16_t sectors,uint8_t *scratch) override {return save_card::create(id,sectors,scratch);}
     bool read(unsigned slot,uint8_t *p) override {return save_card::read(slot,p);}
     bool write(unsigned slot,const uint8_t *p) override {return save_card::write(slot,p);}
 };
@@ -119,7 +138,7 @@ Storage &card(){static WorkspaceCard instance;return instance;}
         for path in origin.glob(pattern):
             if path.name=='SdSpi.cpp':continue
             text=path.read_text()
-            if path.name=='Fat.cpp':text+='\n'+(SOURCE/'FatSave.inc').read_text()
+            if path.name=='Fat.cpp':text=allocation_fat(text)+'\n'+(SOURCE/'FatSave.inc').read_text()
             text=text.replace('namespace '+old,'namespace '+new).replace(old+'::',new+'::')
             # FAT uses the private SPI driver, isolated from streamed game assets.
             if old=='fat':text=text.replace('sd::','save_sd::')
@@ -136,7 +155,7 @@ Storage &card(){static WorkspaceCard instance;return instance;}
     for name in ('SdSpi.cpp','SdSpi.h'):
         text=(ROOT/'vendor/sd-spi'/name).read_text().replace('mybl_sd','sd')
         (card/'src'/name).write_text(text)
-    fat_source=card/'src/Fat.cpp';fat_source.write_text(fat_source.read_text()+'\n'+(SOURCE/'FatSave.inc').read_text())
+    fat_source=card/'src/Fat.cpp';fat_source.write_text(allocation_fat(fat_source.read_text()).replace('#pragma GCC optimize("Os", "no-ipa-sra")','#pragma GCC optimize("Oz", "ipa-sra")')+'\n'+(SOURCE/'FatSave.inc').read_text())
     props=dest/'library.properties';props.write_text(props.read_text().replace('depends=CHGfx','depends=CHGfx,CHSd'))
     # Header docs must describe the selected backend.
     header=dest/'src/CHGame.h';header.write_text(header.read_text().replace('a record in flash that survives power cycles','an isolated SD journal that survives power cycles'))
@@ -165,11 +184,6 @@ def run():
         template=OVERLAY.parent/('sim-'+hashlib.sha256(json.dumps(catalog(),sort_keys=True).encode()).hexdigest()[:12]+'.img')
         if not template.exists():simulation_image(template)
         os.environ['CHGAME_SAVE_TEMPLATE']=str(template)
-    # Deploy provisions journals as a separate, non-replacing operation.
-    if 'deploy' in sys.argv:
-        for i,arg in enumerate(sys.argv):
-            card=sys.argv[i+1] if arg=='--card' and i+1<len(sys.argv) else arg[7:] if arg.startswith('--card=') else None
-            if card:prepare(card)
     import device,gamecfg,hosttests
     device.LIBRARIES=libraries
     build=device.build

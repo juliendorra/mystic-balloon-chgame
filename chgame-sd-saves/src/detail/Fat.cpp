@@ -19,6 +19,7 @@
 #include <string.h>
 #include "Block.h"
 #include "../Config.h"
+#include "Allocate.h"
 
 namespace chsave { namespace fat {
 
@@ -31,6 +32,7 @@ struct Vol {
     uint32_t end;            // one past the highest cluster number; 0 = not mounted
     uint32_t rootSecs;       // FAT16 root region sectors; 0 means FAT32
     uint32_t shift;          // log2(sectors per cluster)
+    uint32_t copies, info, backupInfo;
 };
 Vol v;
 
@@ -88,6 +90,7 @@ bool bpb(const uint8_t *b, uint32_t base) {
     v.rootSecs = rootSecs;
     v.shift = sh;
     v.end = n + 2;
+    detail::allocationHints(v, b, base, rsvd, nf, !rootSecs);
     return true;
 }
 
@@ -171,5 +174,13 @@ int8_t sector(uint32_t cluster, unsigned fileSector, uint32_t &lba, uint8_t *b) 
     if (cluster < 2 || cluster >= v.end) return E_CHAIN;
     lba = clusLba(cluster) + (fileSector & ((1u << v.shift) - 1));
     return OK;
+}
+Status createFile(const Id &id, uint16_t slotSectors, uint8_t *b) {
+    struct Blocks {
+        static bool read(uint32_t lba, uint8_t *p) { return block::read(lba, p); }
+        static bool write(uint32_t lba, const uint8_t *p) { return block::write(lba, p); }
+    };
+    detail::Allocator<Blocks, decltype(v)> allocator(v, b);
+    return allocator.create(id, slotSectors);
 }
 } } // namespace chsave::fat

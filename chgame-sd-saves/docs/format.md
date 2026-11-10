@@ -14,8 +14,9 @@ and never falls back to another filename. Provisioning refuses colliding IDs too
 
 The file has one immutable 512-byte identity descriptor followed by two equal
 journal slots of 1–128 sectors each. File length is `512 + 1024 * slotSectors`:
-1,536–131,584 bytes. Fragmented files are supported. Firmware never allocates,
-resizes, changes the descriptor, or writes FAT/directory metadata.
+1,536–131,584 bytes. Fragmented files are supported. Firmware creates missing
+files on first save. Normal journal updates never resize the file, change
+its descriptor, or write FAT/directory metadata.
 
 ## Identity descriptor (sector 0)
 
@@ -53,6 +54,10 @@ Two slots filled with `0xFF` mean a new journal, after checking its descriptor.
 Otherwise at least one slot must pass tag, reserved, size and CRC checks. The
 newer valid generation wins using unsigned serial arithmetic; ties choose slot 0,
 including a generation difference of exactly 2^31.
+
+A valid zero-length record denotes an empty journal. Automatic creation writes
+one such record before publishing the file, allowing the first payload write
+to be interrupted and retried. Normal application payloads are nonempty.
 
 Load checks schema and size after selecting the newest valid record; it never
 falls back to stale application schemas. A store may deliberately change the

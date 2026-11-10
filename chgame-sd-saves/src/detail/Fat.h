@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 #pragma once
 #include <stdint.h>
+#include "../Journal.h"
 
 namespace chsave { namespace fat {
 enum Error : int8_t {
@@ -10,4 +11,5 @@ enum Error : int8_t {
 int8_t mount(uint8_t *scratch);
 int8_t saveFile(const char *basename, uint32_t &cluster, uint16_t &slotSectors, uint8_t *scratch);
 int8_t sector(uint32_t cluster, unsigned fileSector, uint32_t &lba, uint8_t *scratch);
+Status createFile(const Id &id, uint16_t slotSectors, uint8_t *scratch);
 } }

@@ -14,16 +14,18 @@ constexpr uint16_t MAX_DATA = MAX_SLOT_SECTORS * 512u - 20;
 constexpr size_t SCRATCH_BYTES = 1024;
 
 enum class Status : uint8_t {
-    Ready, Empty, NoCard, NeedsSetup, Incompatible, Damaged,
-    IoError, UnsupportedFilesystem, InvalidArgument, TooLarge, IdCollision
+    Ready, Empty, NoCard, NotFound, Incompatible, Damaged,
+    IoError, UnsupportedFilesystem, InvalidArgument, TooLarge, IdCollision, NoSpace
 };
 
 // open() locates an existing journal file. It may use the 512-byte
 // scratch buffer. Sector 0 is an immutable identity descriptor; write() must
-// refuse it. Neither open() nor write() may allocate or resize files.
+// refuse it. create() allocates and initializes a missing journal; normal
+// record writes never change FAT or directory metadata.
 class Storage {
 public:
     virtual Status open(const Id &gameId, uint8_t *scratch) = 0;
+    virtual Status create(const Id &, uint16_t, uint8_t *) { return Status::NoSpace; }
     virtual uint16_t slotSectors() const { return 1; }
     virtual bool read(unsigned fileSector, uint8_t *sector) = 0;
     virtual bool write(unsigned fileSector, const uint8_t *sector) = 0;
@@ -64,7 +66,7 @@ private:
     size_t scratchBytes_;
     Status status_ = Status::Empty;
     bool arguments(const Id &gameId, const void *data, uint16_t size);
-    bool open(const Id &gameId);
+    bool open(const Id &gameId, uint16_t createBytes = 0);
     bool latest(int &slot, uint32_t &generation);
     uint16_t sectors_ = 1;
     uint16_t sectors() const { return MAX_SLOT_SECTORS == 1 ? 1 : sectors_; }

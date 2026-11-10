@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare namespaced CHSave files on a mounted FAT16/FAT32 card."""
+"""Optional host utility for developer fixtures; games create saves themselves."""
 import argparse
 import os
 from pathlib import Path

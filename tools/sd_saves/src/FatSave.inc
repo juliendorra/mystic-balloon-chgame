@@ -1,4 +1,9 @@
-// Exact root lookups for provisioned journals. No allocation or FAT writes.
+// Share the public library's first-save allocator with the asset filesystem.
+#if __has_include(<chsave/detail/Allocate.h>)
+#include <chsave/detail/Allocate.h>
+#define CHGAME_AUTO_SAVES 1
+#endif
+// Exact root lookups for journals; normal record writes need no FAT changes.
 namespace fat {
 static int8_t saveExact(const char *name,unsigned count,uint32_t *sectors,uint8_t *b) {
     uint32_t dir=v.rootSecs?0:v.root,sec=0,cached=~0u;
@@ -51,4 +56,14 @@ int8_t saveNamespacedFile(const char *base,uint32_t sectors[3],uint8_t *b) {
     name[8]='S';name[9]='A';name[10]='V';
     return saveExact(name,3,sectors,b);
 }
+#ifdef CHGAME_AUTO_SAVES
+chsave::Status createNamespacedFile(const chsave::Id &id,uint16_t sectors,uint8_t *b) {
+    struct Blocks {
+        static bool read(uint32_t lba,uint8_t *p){return sd::read(lba,p);}
+        static bool write(uint32_t lba,const uint8_t *p){return sd::write(lba,p);}
+    };
+    chsave::detail::Allocator<Blocks,decltype(v)> allocator(v,b);
+    return allocator.create(id,sectors);
+}
+#endif
 }

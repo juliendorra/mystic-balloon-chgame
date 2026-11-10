@@ -15,13 +15,14 @@ ROOT = Path(__file__).resolve().parents[1]
 COMPACT = os.environ.get('CHSAVE_TEST_COMPACT') == '1'
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'tests/vendor')]
 import prepare
-from fatimg import build_image, FatVolume
+from fatimg import build_image, FatVolume, set_fat_entry
 
 MAGIC = 'com.example.tetris'
 NAME = prepare.filename(MAGIC)
 OTHER = 'com.example.climbing'
 OTHER_NAME = prepare.filename(OTHER)
-READY, EMPTY, NO_CARD, NEEDS_SETUP, INCOMPATIBLE, DAMAGED, IO_ERROR, UNSUPPORTED, INVALID = range(9)
+READY, EMPTY, NO_CARD, NOT_FOUND, INCOMPATIBLE, DAMAGED, IO_ERROR, UNSUPPORTED, INVALID = range(9)
+NO_SPACE = 11
 
 
 def record(score, generation=1, magic=MAGIC, schema=1):
@@ -124,7 +125,8 @@ class SaveTests(unittest.TestCase):
             self.assertEqual(self.run_save(path)[-1], DAMAGED)
             self.assertEqual(self.run_save(path, 'store', MAGIC, 3)[0], 0)
             self.assertEqual(path.read_bytes(), before)
-        self.assertEqual(self.run_save(path, 'store', 'com.example.missing', 3)[-1], NEEDS_SETUP)
+        self.assertEqual(self.run_save(path, 'load', 'com.example.missing')[-1], EMPTY)
+        self.assertEqual(self.run_save(path, 'store', 'com.example.missing', 3)[-1], READY)
         self.assertEqual(self.run_save(self.folder / 'absent.img')[-1], NO_CARD)
 
     def test_generation_wrap_schema_and_corruption_recovery(self):
@@ -249,6 +251,105 @@ class SaveTests(unittest.TestCase):
         path = self.fixture()
         self.assertEqual(self.run_save(path, 'store', MAGIC, 123, exe=self.host)[0], 1)
         self.assertEqual(self.run_save(path, exe=self.host)[:3], (1, 123, 7))
+
+    def test_first_save_creates_file_without_preparation(self):
+        for fs, mbr, spc in [('fat16', False, 1), ('fat16', True, 4),
+                             ('fat32', False, 1), ('fat32', True, 4)]:
+            with self.subTest(fs=fs, mbr=mbr, spc=spc):
+                path=self.folder/'new-card.img'
+                layout=build_image(path, {'OTHER.TXT':b'keep me'*100}, fs=fs,mbr=mbr,spc=spc,
+                                   clusters=5000 if fs=='fat16' else 65530)
+                before=path.read_bytes()
+                self.assertEqual(self.run_save(path)[-1],EMPTY)
+                self.assertEqual(path.read_bytes(),before)  # Loading never allocates.
+                self.assertEqual(self.run_save(path,'store',MAGIC,123)[-1],READY)
+                self.assertEqual(self.run_save(path)[:3],(1,123,7))
+                with FatVolume(path) as volume:
+                    prepare.validate(volume.read_file(NAME),MAGIC)
+                    self.assertEqual(len(volume.read_file(NAME)),1536)
+                    self.assertEqual(volume.read_file('OTHER.TXT'),b'keep me'*100)
+                with path.open('rb') as f:
+                    f.seek(layout.fat_lba*512);first=f.read(layout.fat_sectors*512)
+                    f.seek((layout.fat_lba+layout.fat_sectors)*512)
+                    self.assertEqual(f.read(layout.fat_sectors*512),first)
+                self.assertEqual(self.run_save(path,'store',OTHER,234)[-1],READY)
+                self.assertEqual(self.run_save(path,'load',OTHER)[:3],(1,234,7))
+                self.assertEqual(self.run_save(path)[:3],(1,123,7))
+                after=path.read_bytes()
+                self.assertEqual(self.run_save(path,'store',MAGIC,123)[-1],READY)
+                self.assertEqual(path.read_bytes(),after)
+
+    def test_creation_uses_fragmented_free_clusters_and_reports_full_card(self):
+        path=self.folder/'fragmented-free.img'
+        layout=build_image(path,{'OTHER.TXT':b'keep me'*100},fs='fat16',spc=1,clusters=5000)
+        # Mark alternating unused clusters occupied: no contiguous 3-cluster run.
+        for c in range(4,layout.clusters+2,2):set_fat_entry(path,layout,c,0xffff)
+        self.assertEqual(self.run_save(path,'store',MAGIC,123)[-1],READY)
+        with FatVolume(path) as volume:
+            self.assertGreater(len(volume.runs(NAME)),1)
+            self.assertEqual(volume.read_file('OTHER.TXT'),b'keep me'*100)
+        self.assertEqual(self.run_save(path)[:3],(1,123,7))
+        for c in range(2,layout.clusters+2):set_fat_entry(path,layout,c,0xffff)
+        before=path.read_bytes()
+        self.assertEqual(self.run_save(path,'store','com.example.full',123)[-1],NO_SPACE)
+        self.assertEqual(path.read_bytes(),before)
+
+    @unittest.skipIf(COMPACT,'compact firmware supports one-sector slots')
+    def test_first_large_save_sizes_file_from_payload(self):
+        for size in (493,4096,65516):
+            path=self.folder/'first-large.img'
+            build_image(path,{'OTHER.TXT':b'keep me'},fs='fat16',spc=1,clusters=5000)
+            self.assertEqual(self.run_save(path,'large-store',MAGIC,size,73)[-1],READY)
+            self.assertEqual(self.run_save(path,'large-load',MAGIC,size,73)[-1],READY)
+            with FatVolume(path) as volume:
+                raw=volume.read_file(NAME)
+                self.assertEqual(len(raw),prepare.file_size(size))
+                prepare.validate(raw,MAGIC)
+
+    def test_fat32_root_extension_and_fat16_full_root(self):
+        for fs in ('fat16','fat32'):
+            path=self.folder/'root-full.img'
+            files={f'F{i:07d}.TXT':bytes([i])*20 for i in range(14)}
+            layout=build_image(path,files,fs=fs,spc=1,clusters=5000 if fs=='fat16' else 65530,root_entries=16)
+            root=layout.root_lba if fs=='fat16' else layout.cluster_lba(layout.root_cluster)
+            with path.open('r+b') as f:
+                f.seek(root*512);block=bytearray(f.read(512))
+                at=next(i for i in range(0,512,32) if block[i]==0)
+                while at<512:
+                    block[at:at+32]=bytes(32);block[at:at+11]=b'LAST    TXT';block[at+11]=0x20;at+=32
+                f.seek(root*512);f.write(block)
+            result=self.run_save(path,'store',MAGIC,123)[-1]
+            self.assertEqual(result,READY if fs=='fat32' else NO_SPACE)
+            with FatVolume(path) as volume:
+                for name,data in files.items():self.assertEqual(volume.read_file(name),data)
+            if fs=='fat32':self.assertEqual(self.run_save(path)[:3],(1,123,7))
+
+    def test_interrupted_first_save_is_retryable_and_preserves_other_files(self):
+        path=self.folder/'creation-cuts.img';trace=self.folder/'writes.txt'
+        build_image(path,{'OTHER.TXT':b'keep me'*100,OTHER_NAME:prepare.blank(OTHER)},
+                    fs='fat16',spc=1,clusters=5000)
+        baseline=path.read_bytes()
+        self.assertEqual(self.run_save(path,'store',MAGIC,123,CHSAVE_WRITE_LOG=trace)[-1],READY)
+        writes=[int(n) for n in trace.read_text().splitlines()]
+        original={lba:baseline[lba*512:(lba+1)*512] for lba in writes}
+        for index in range(len(writes)):
+            for prefix in (0,1,31,511):
+                with self.subTest(write=index,prefix=prefix):
+                    with path.open('r+b') as f:
+                        for lba,raw in original.items():f.seek(lba*512);f.write(raw)
+                    self.assertEqual(self.run_save(path,'store',MAGIC,123,CHSAVE_CUT=index*512+prefix)[0],0)
+                    result=self.run_save(path)
+                    self.assertIn(result[-1],(EMPTY,READY))
+                    with FatVolume(path) as volume:
+                        self.assertEqual(volume.read_file('OTHER.TXT'),b'keep me'*100)
+                        self.assertEqual(volume.read_file(OTHER_NAME),prepare.blank(OTHER))
+                    # Restart and retry, including a cut during the first record.
+                    self.assertEqual(self.run_save(path,'store',MAGIC,123)[-1],READY)
+                    self.assertEqual(self.run_save(path)[:3],(1,123,7))
+                    # A retry can use different previously free clusters.
+                    # Restore the small fixture to exclude leaked unlinked allocations.
+                    with path.open('r+b') as f:
+                        f.seek(0);f.write(baseline)
 
     @unittest.skipIf(COMPACT, 'compact firmware supports one-sector slots')
     def test_larger_variable_payloads_and_reserved_capacity(self):

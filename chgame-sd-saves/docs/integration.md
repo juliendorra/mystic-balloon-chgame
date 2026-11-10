@@ -27,10 +27,11 @@ ASCII labels (letters, digits and internal hyphens), separated by dots; labels
 are 1–63 characters and the complete ID is at most 253 characters. A game's settings and
 progress can share one struct. Use fixed-width fields, initialize padding,
 and avoid pointers, strings with heap storage, and C++ containers. The struct
-must fit the prepared file's capacity. Typed calls store its exact memory layout.
+must fit the file's capacity. Typed calls store its exact memory layout.
 
-`prepare.py --bytes 4096` reserves room for a 4 KB payload. The minimum file
-is 1.5 KB (492-byte payload); the largest is 128 KiB + 512 bytes (65,516-byte payload).
+The first `store()` creates the file and chooses its capacity from the payload,
+rounded to SD sectors. Loading a missing file returns `Empty` without writing.
+The minimum file is 1.5 KB (492-byte payload); the largest is 128 KiB + 512 bytes (65,516-byte payload).
 The file holds an immutable 512-byte identity descriptor and two equal slots
 rounded to SD sectors. Each record can use
 any payload length up to capacity. Existing files are never silently resized.
@@ -55,9 +56,9 @@ failure. Flags are changed only after a successful load.
 | Status | Meaning |
 | --- | --- |
 | `Ready` | Loaded or saved successfully. |
-| `Empty` | Prepared file has no save yet; keep defaults. |
+| `Empty` | No save yet; keep defaults. The first store creates the file. |
 | `NoCard` | Card initialization failed. |
-| `NeedsSetup` | Run `tools/prepare.py` for this game ID. |
+| `NotFound` | Storage-backend result for a missing file; `Journal` reports `Empty` to callers. |
 | `Incompatible` | Latest record uses a different schema or size. |
 | `Damaged` | Invalid file/chain, or neither record is usable. Back up before repair. |
 | `IoError` | A read, write or verification failed. |
@@ -65,6 +66,7 @@ failure. Flags are changed only after a successful load.
 | `InvalidArgument` | Invalid ID, empty/oversized payload, or invalid scratch buffer. |
 | `TooLarge` | Payload exceeds this file's reserved capacity. |
 | `IdCollision` | The hashed filename belongs to another full ID; no writes occur. |
+| `NoSpace` | No free clusters or directory entry for the new save. |
 
 Do not report a successful save unless `store()` returns true. Restart
 with the card inserted after removal or card errors. Back up the `.SAV`
@@ -78,12 +80,14 @@ do not call from interrupts, drawing callbacks, SD streams or concurrent
 tasks. Returned data belongs to your struct, not the scratch buffer.
 
 The portable core is `Journal.h` + `Journal.cpp`. Implement `chsave::Storage`
-with `open`, `slotSectors`, `read` and `write`, then pass that backend and a caller-owned,
+with `open`, `create`, `slotSectors`, `read` and `write`, then pass that backend and a caller-owned,
 4-byte-aligned 1,024-byte buffer to `chsave::Journal`. The payload must not
 overlap that buffer. Backends must confine writes to the file's data sectors.
 Sector 0 holds the immutable identity descriptor. Sector indices 1 onward run
 through both slots; `slotSectors()` is the length of one
 slot, from 1 to 128. The default is one sector for simple custom backends.
+A fixed-memory backend can keep the default `create()` implementation if
+its storage always exists.
 The supplied hardware adapter targets CHGame Rev0 (CH32X035, SPI1, PB11 CS).
 
 For firmware close to Rev0's flash limit, build the whole library and sketch
@@ -99,9 +103,12 @@ The simulator backend modifies that image; use a copy for experiments.
 
 Writes target the older slot and read it back. Identical saves skip writing.
 One valid slot survives a torn write to the other; two invalid slots are
-left untouched. A failed first-ever write may require restoring a blank
-prepared file, since no committed record exists yet.
+left untouched. Newly created files include a valid empty record so an
+interrupted first payload write can be retried.
 
-Firmware never allocates clusters or changes FAT/directory metadata. These
-checks cannot guarantee an SD controller's behavior during physical power
+File creation updates FAT copies, invalidates FAT32 free-space hints and
+initializes the journal before publishing its directory entry. Later record
+writes leave FAT/directory metadata alone. An interrupted allocation can leave
+unlinked clusters; a filesystem check can reclaim them. These checks cannot
+guarantee an SD controller's behavior during physical power
 loss. The tests simulate interrupted sector writes, not electrical failures.

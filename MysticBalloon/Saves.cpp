@@ -106,10 +106,10 @@ bool read(Store &out) {
     return false;
 }
 bool write(Store &s) {
-    if (!usingCard || !valid(s,capacity()) || status==NeedsSetup || status==Damaged || status==NoCard) return false;
+    if (!usingCard || !valid(s,capacity()) || status==Damaged || status==NoCard) return false;
     const uint32_t next=s.generation+1;s.generation=next;
     bool ok=sharedStore(s);
-    if (!ok) { status=WriteFailed;return false; }
+    if (!ok) { status=sharedStatus==chsave::Status::NoSpace?NoSpace:WriteFailed;return false; }
     status=Sd;
     count=s.count;active=s.active;return true;
 }
@@ -121,7 +121,7 @@ void begin() {
     Store s;
     const bool loaded=sharedLoad(s);
     usingCard=loaded || sharedStatus==chsave::Status::Empty;
-    status=usingCard?Sd:sharedStatus==chsave::Status::NeedsSetup?NeedsSetup:
+    status=usingCard?Sd:
         sharedStatus==chsave::Status::Damaged || sharedStatus==chsave::Status::IdCollision?Damaged:NoCard;
     if(loaded && !valid(s,MAX_RUNS))status=Damaged;
     if(loaded && status!=Damaged) {

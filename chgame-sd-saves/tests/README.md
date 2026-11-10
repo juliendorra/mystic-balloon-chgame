@@ -18,4 +18,8 @@ suppression, namespaced provisioning, a real base-36 hash collision, C++/Python
 filename vectors and the simulator backend. The core also runs
 against a custom in-memory storage backend with a caller-owned buffer.
 
+First-save tests start with no save file. They check automatic file creation,
+fragmented free space, full cards, FAT32 root extension, mirrored FATs and
+restarts after interrupted allocation, publication and the first payload write.
+
 `vendor/fatimg.py` is CHSd's MIT-licensed FAT image builder (see `NOTICE`).

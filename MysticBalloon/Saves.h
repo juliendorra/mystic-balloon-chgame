@@ -23,7 +23,7 @@ struct Store {
     Run runs[MAX_RUNS];
 };
 static_assert(sizeof(Store)==468,"save layout");
-enum Status : uint8_t { NoCard, Sd, NeedsSetup, Damaged, WriteFailed };
+enum Status : uint8_t { NoCard, Sd, Damaged, WriteFailed, NoSpace };
 enum Action : uint8_t { None, New, Load };
 extern Status status;
 extern uint8_t count,active;

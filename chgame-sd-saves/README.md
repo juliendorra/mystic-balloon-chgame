@@ -24,18 +24,10 @@ Data data{0, 1, {0, 0, 0}};
 // saves.store(SAVE_ID, 1, data); // check the return value
 ```
 
-Prepare a mounted FAT16/FAT32 card once (Python 3, no packages):
-
-```sh
-python3 tools/prepare.py --card /path/to/card com.example.game
-# For a larger save, reserve 4 KB of payload capacity:
-python3 tools/prepare.py --card /path/to/card --bytes 4096 com.example.biggergame
-```
-
-Existing saves are preserved. Insert the card before starting the game.
-The default reserves a 1.5 KB file for up to 492 bytes of data. Larger files
-support variable payloads up to 65,516 bytes; available RAM is usually the limit.
-Capacity is read from the file, with no size setting in the game.
+Insert a FAT16/FAT32 SD card. The first save creates the file automatically;
+players have nothing to prepare. Missing saves load the game's defaults.
+Existing saves are preserved. Initial file size follows the payload, starting
+at 1.5 KB. Payloads can be up to 65,516 bytes; RAM is usually the limit.
 Keep `.SAV` files out of cartridge assets so updates cannot replace them.
 Save between frames; `saves.status()` explains failures.
 

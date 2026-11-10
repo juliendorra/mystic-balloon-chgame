@@ -20,8 +20,11 @@ public:
         scratch_ = scratch;
         error = fat::saveFile(gameId.basename(), cluster_, sectors_, scratch);
         if (!error) return Status::Ready;
-        if (error == fat::E_NOTFOUND) return Status::NeedsSetup;
+        if (error == fat::E_NOTFOUND) return Status::NotFound;
         return error == fat::E_READ ? Status::IoError : Status::Damaged;
+    }
+    Status create(const Id &id, uint16_t sectors, uint8_t *scratch) override {
+        return fat::createFile(id, sectors, scratch);
     }
     uint16_t slotSectors() const override { return sectors_; }
     bool read(unsigned fileSector, uint8_t *sector) override {

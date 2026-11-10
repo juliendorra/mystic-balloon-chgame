@@ -31,12 +31,16 @@ bool read(uint32_t lba, uint8_t *dst) {
     return ok;
 }
 bool write(uint32_t lba, const uint8_t *src) {
+    if (const char *log = getenv("CHSAVE_WRITE_LOG")) {
+        FILE *trace = fopen(log, "a");
+        if (trace) { fprintf(trace, "%u\n", unsigned(lba)); fclose(trace); }
+    }
     const char *path = getenv("CHSAVE_CARD_IMAGE");
     FILE *file = path ? fopen(path, "r+b") : nullptr;
     if (!file) return false;
     const char *cut = getenv("CHSAVE_CUT");
     static unsigned written = 0;
-    unsigned remaining = cut ? strtoul(cut, nullptr, 10) : 131072;
+    unsigned remaining = cut ? strtoul(cut, nullptr, 10) : ~0u;
     unsigned size = remaining > written ? remaining - written : 0;
     if (size > 512) size = 512;
     written += size;

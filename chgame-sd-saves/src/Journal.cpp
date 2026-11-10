@@ -4,6 +4,7 @@
 #pragma GCC optimize("Oz")
 #endif
 #include "Journal.h"
+#include "detail/Allocate.h"
 #include <string.h>
 
 namespace chsave {
@@ -24,14 +25,7 @@ uint32_t get32(const uint8_t *p) { return uint32_t(get16(p)) | uint32_t(get16(p 
 void put16(uint8_t *p, uint16_t n) { p[0] = n; p[1] = n >> 8; }
 void put32(uint8_t *p, uint32_t n) { put16(p, n); put16(p + 2, n >> 16); }
 #endif
-uint32_t crcUpdate(uint32_t crc, const uint8_t *p, unsigned size) {
-    while (size--) {
-        crc ^= *p++;
-        for (unsigned i = 0; i < 8; ++i)
-            crc = (crc >> 1) ^ (0xedb88320u & (0u - (crc & 1)));
-    }
-    return crc;
-}
+using detail::crcUpdate;
 bool blank(const uint8_t *p) {
     for (unsigned i = 0; i < 512; ++i) if (p[i] != 0xff) return false;
     return true;
@@ -52,8 +46,13 @@ bool Journal::arguments(const Id &gameId, const void *data, uint16_t size) {
     if (!gameId.size()) return false;
     return true;
 }
-bool Journal::open(const Id &gameId) {
+bool Journal::open(const Id &gameId, uint16_t createBytes) {
     status_ = storage_.open(gameId, scratch_ + 512);
+    if (status_ == Status::NotFound && createBytes) {
+        status_ = storage_.create(gameId, (uint32_t(createBytes) + 531) / 512, scratch_ + 512);
+        if (status_ == Status::Ready) status_ = storage_.open(gameId, scratch_ + 512);
+    }
+    if (status_ == Status::NotFound) status_ = Status::Empty;
     if (status_ != Status::Ready) return false;
     sectors_ = storage_.slotSectors();
     if (!sectors_ || sectors_ > MAX_SLOT_SECTORS) {
@@ -81,7 +80,7 @@ bool Journal::latest(int &slot, uint32_t &generation) {
     uint8_t *b = scratch_ + 512;
     for (unsigned i = 0; i < 2; ++i) {
         uint32_t crc = ~0u, gen = 0;
-        bool header = false;
+        unsigned length = ~0u;
         for (unsigned block = 0; block < sectors(); ++block) {
             if (!storage_.read(1 + i * sectors() + block, b)) {
                 status_ = Status::IoError;
@@ -89,16 +88,16 @@ bool Journal::latest(int &slot, uint32_t &generation) {
             }
             empty = empty && blank(b);
             if (!block) {
-                header = get32(b) == RECORD_TAG && !get32(b + 12) &&
-                         get16(b + 8) <= sectors() * 512u - 20;
+                if (get32(b) == RECORD_TAG && !get32(b + 12)) length = get16(b + 8);
                 gen = get32(b + 4);
             }
             bool last = block + 1 == sectors();
             crc = crcUpdate(crc, b, last ? 508 : 512);
-            if (last && header && get32(b + 508) == ~crc &&
+            if (last && length <= sectors() * 512u - 20 && get32(b + 508) == ~crc &&
                 (slot < 0 || newer(gen, generation))) {
                 slot = i;
                 generation = gen;
+                status_ = length ? Status::Ready : Status::Empty;
             }
         }
     }
@@ -111,7 +110,7 @@ bool Journal::load(const Id &gameId, uint8_t schema, void *data, uint16_t size, 
     int slot;
     uint32_t generation;
     if (!latest(slot, generation)) return false;
-    if (slot < 0) { status_ = Status::Empty; return false; }
+    if (slot < 0 || status_ == Status::Empty) { status_ = Status::Empty; return false; }
     uint8_t *b = scratch_ + 512, *out = static_cast<uint8_t *>(data);
     uint32_t crc = ~0u;
     unsigned copied = 0;
@@ -141,7 +140,7 @@ bool Journal::load(const Id &gameId, uint8_t schema, void *data, uint16_t size, 
 }
 
 bool Journal::store(const Id &gameId, uint8_t schema, const void *data, uint16_t size, uint8_t flags) {
-    if (!arguments(gameId, data, size) || !open(gameId)) return false;
+    if (!arguments(gameId, data, size) || !open(gameId, size)) return false;
     if (size > sectors() * 512u - 20) { status_ = Status::TooLarge; return false; }
     int slot;
     uint32_t generation;
