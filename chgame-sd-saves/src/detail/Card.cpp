@@ -10,6 +10,7 @@ namespace chsave { namespace detail {
 namespace {
 class Card : public Storage {
     uint32_t cluster_ = 0;
+    uint32_t parent_ = 0;
     uint16_t sectors_ = 1;
     uint8_t *scratch_ = nullptr;
 public:
@@ -18,13 +19,10 @@ public:
         int error = fat::mount(scratch);
         if (error) return error == fat::E_READ ? Status::IoError : Status::UnsupportedFilesystem;
         scratch_ = scratch;
-        error = fat::saveFile(gameId.basename(), cluster_, sectors_, scratch);
-        if (!error) return Status::Ready;
-        if (error == fat::E_NOTFOUND) return Status::NotFound;
-        return error == fat::E_READ ? Status::IoError : Status::Damaged;
+        return fat::saveFile(gameId.basename(), parent_, cluster_, sectors_, scratch);
     }
     Status create(const Id &id, uint16_t sectors, uint8_t *scratch) override {
-        return fat::createFile(id, sectors, scratch);
+        return fat::createFile(id, sectors, parent_, scratch);
     }
     uint16_t slotSectors() const override { return sectors_; }
     bool read(unsigned fileSector, uint8_t *sector) override {

@@ -35,6 +35,11 @@ struct Vol {
     uint32_t copies, info, backupInfo;
 };
 Vol v;
+struct Blocks {
+    static bool read(uint32_t lba, uint8_t *p) { return block::read(lba, p); }
+    static bool write(uint32_t lba, const uint8_t *p) { return block::write(lba, p); }
+};
+using SaveStorage = detail::Allocator<Blocks, Vol>;
 
 uint32_t le16(const uint8_t *p) { return p[0] | (uint32_t)p[1] << 8; }
 uint32_t le32(const uint8_t *p) { return le16(p) | le16(p + 2) << 16; }
@@ -118,50 +123,24 @@ int8_t mount(uint8_t *b) {
     }
 }
 
-int8_t saveFile(const char *basename, uint32_t &cluster, uint16_t &slotSectors, uint8_t *b) {
-    if (!v.end) return E_NOFS;
-    uint32_t dir = v.rootSecs ? 0 : v.root, sec = 0;
-    for (unsigned guard = 4096; guard--;) {
-        uint32_t lba;
-        if (!dir) {
-            if (sec == v.rootSecs) return E_NOTFOUND;
-            lba = v.root + sec;
-        } else {
-            if (sec >> v.shift) {
-                uint32_t cached = ~0u;
-                int32_t n = next(dir, b, cached);
-                if (n < 2) return n < 0 ? n : int32_t(n ? E_CHAIN : E_NOTFOUND);
-                dir = n;
-                sec = 0;
-            }
-            lba = clusLba(dir) + sec;
-        }
-        ++sec;
-        if (!block::read(lba, b)) return E_READ;
-        for (unsigned off = 0; off < 512; off += 32) {
-            const uint8_t *d = b + off;
-            if (!d[0]) return E_NOTFOUND;
-            if (memcmp(d, basename, 8) ||
-                d[8] != 'S' || d[9] != 'A' || d[10] != 'V') continue;
-            uint32_t bytes = u32at(d + 28);
-            if ((d[11] & 0x1f) || bytes < 1536 || bytes > 512u + CHSAVE_MAX_SLOT_SECTORS * 1024u || (bytes - 512) % 1024) return E_CHAIN;
-            uint32_t c = u16at(d + 26) | (v.rootSecs ? 0 : u16at(d + 20) << 16);
-            cluster = c;
-            slotSectors = (bytes - 512) / 1024;
-            unsigned clusters = ((bytes / 512) + (1u << v.shift) - 1) >> v.shift;
-            uint32_t cached = ~0u;
-            while (clusters--) {
-                if (c < 2 || c >= v.end) return E_CHAIN;
-                int32_t n = next(c, b, cached);
-                if (n < 0) return n;
-                if (!clusters) return n == 0 ? OK : E_CHAIN;
-                if (n < 2) return E_CHAIN;
-                c = n;
-            }
-            return E_CHAIN;
-        }
+Status saveFile(const char *basename, uint32_t &parent, uint32_t &cluster,
+                uint16_t &slotSectors, uint8_t *b) {
+    uint32_t bytes;
+    Status status = SaveStorage(v, b).open(basename, parent, cluster, bytes);
+    if (status != Status::Ready) return status;
+    if (bytes < 1536 || bytes > 512u + CHSAVE_MAX_SLOT_SECTORS * 1024u || (bytes - 512) % 1024)
+        return Status::Damaged;
+    slotSectors = (bytes - 512) / 1024;
+    unsigned clusters = (bytes / 512 + (1u << v.shift) - 1) >> v.shift;
+    uint32_t c = cluster, cached = ~0u;
+    while (clusters--) {
+        int32_t n = next(c, b, cached);
+        if (n < 0) return Status::IoError;
+        if (!clusters) return n == 0 ? Status::Ready : Status::Damaged;
+        if (n < 2) return Status::Damaged;
+        c = n;
     }
-    return E_CHAIN;
+    return Status::Damaged;
 }
 
 int8_t sector(uint32_t cluster, unsigned fileSector, uint32_t &lba, uint8_t *b) {
@@ -175,12 +154,7 @@ int8_t sector(uint32_t cluster, unsigned fileSector, uint32_t &lba, uint8_t *b) 
     lba = clusLba(cluster) + (fileSector & ((1u << v.shift) - 1));
     return OK;
 }
-Status createFile(const Id &id, uint16_t slotSectors, uint8_t *b) {
-    struct Blocks {
-        static bool read(uint32_t lba, uint8_t *p) { return block::read(lba, p); }
-        static bool write(uint32_t lba, const uint8_t *p) { return block::write(lba, p); }
-    };
-    detail::Allocator<Blocks, decltype(v)> allocator(v, b);
-    return allocator.create(id, slotSectors);
+Status createFile(const Id &id, uint16_t slotSectors, uint32_t parent, uint8_t *b) {
+    return SaveStorage(v, b).create(id, slotSectors, parent);
 }
 } } // namespace chsave::fat

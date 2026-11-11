@@ -2,7 +2,6 @@
   "game": "MysticBalloon",
   "sketch": "MysticBalloon",
   "id": "com.juliendorra.mysticballoon",
-  "library": "CHSave 0.4.0",
-  "legacyId": "MYBL",
-  "libraryCommit": "1cc5f1083d7cb799f3bd547ff26c18ef880c99a5"
+  "library": "CHSave 0.5.0",
+  "libraryCommit": "9532ab8ddf40d05e81d0ba9f0ea81fd58a46bdb2"
 }

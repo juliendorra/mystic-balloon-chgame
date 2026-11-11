@@ -7,6 +7,13 @@
 #endif
 
 namespace chsave { namespace detail {
+constexpr char SAVE_DIRECTORY[] = "SAVES      ";
+
+inline void journalName(char (&name)[11], const char *basename) {
+    memcpy(name, basename, 8);
+    memcpy(name + 8, "SAV", 3);
+}
+
 inline uint32_t crcUpdate(uint32_t crc, const uint8_t *p, unsigned size) {
     while (size--) {
         crc ^= *p++;
@@ -52,6 +59,7 @@ template<class Blocks, class Volume = AllocationVolume> class Allocator {
     }
     static void put32(uint8_t *p, uint32_t n) { put16(p, n); put16(p + 2, n >> 16); }
     uint32_t lba(uint32_t c) const { return v.data + ((c - 2) << v.shift); }
+    bool endOfChain(uint32_t entry) const { return entry >= (v.rootSecs ? 0xfff8u : 0x0ffffff8u); }
     bool read(uint32_t sector) {
         if (cached == sector) return true;
         cached = ~0u;
@@ -138,69 +146,146 @@ template<class Blocks, class Volume = AllocationVolume> class Allocator {
         }
         return first;
     }
-    Status directory(uint32_t &sector, unsigned &offset) {
-        uint32_t dir = v.root, sec = 0;
+    // Look up an exact short name, or reserve an entry if name is null.
+#if defined(__GNUC__) && !defined(__clang__)
+    __attribute__((noinline, noclone))
+#endif
+    Status locate(uint32_t parent, const char *name, uint32_t &sector, unsigned &offset) {
+        const bool fixedRoot = !parent && v.rootSecs;
+        const unsigned clusterSectors = 1u << v.shift;
+        uint32_t dir = parent ? parent : v.root, sec = 0, link = 0;
         for (unsigned guard = 4096; guard--;) {
-            if (v.rootSecs) {
-                if (sec == v.rootSecs) return Status::NoSpace;
-                sector = v.root + sec++;
+            if (fixedRoot) {
+                if (sec == v.rootSecs) return name ? Status::NotFound : Status::NoSpace;
+                sector = dir + sec++;
             } else {
-                if (sec == 1u << v.shift) {
-                    int32_t n = get(dir); if (n < 0) return Status::IoError;
-                    if (uint32_t(n) >= 0x0ffffff8u) {
-                        n = allocate(1);
-                        if (n <= 0) return n ? Status::IoError : Status::NoSpace;
-                        for (unsigned i = 0; i < 1u << v.shift; ++i) {
-                            memset(b, 0, 512);
-                            if (!write(lba(n) + i)) return Status::IoError;
-                        }
-                        if (!set(dir, n)) return Status::IoError;
+                if (sec == clusterSectors) {
+                    if (endOfChain(link)) {
+                        if (name) return Status::NotFound;
+                        int32_t added = allocate(1);
+                        if (added <= 0) return added ? Status::IoError : Status::NoSpace;
+                        if (!initializeDirectory(added, false)) return Status::IoError;
+                        if (!set(dir, added)) return Status::IoError;
+                        link = added;
                     }
-                    if (n < 2 || uint32_t(n) >= v.end) return Status::Damaged;
-                    dir = n; sec = 0;
+                    dir = link; sec = 0;
+                }
+                if (!sec) {
+                    int32_t next = get(dir);
+                    if (next < 0) return Status::IoError;
+                    link = next;
+                    if (!endOfChain(link) && (link < 2 || link >= v.end)) return Status::Damaged;
                 }
                 sector = lba(dir) + sec++;
             }
             if (!read(sector)) return Status::IoError;
             for (offset = 0; offset < 512; offset += 32) {
-                if (b[offset] && b[offset] != 0xe5) continue;
-                if (!b[offset] && offset == 480) {
-                    uint32_t following = 0;
-                    if (v.rootSecs) {
-                        if (sec < v.rootSecs) following = v.root + sec;
-                    } else if (sec < 1u << v.shift) following = lba(dir) + sec;
-                    else {
-                        int32_t n = get(dir);
-                        if (n < 0) return Status::IoError;
-                        if (n >= 2 && uint32_t(n) < v.end) following = lba(n);
-                        else if (uint32_t(n) < 0x0ffffff8u) return Status::Damaged;
+                uint8_t first = b[offset];
+                if (name) {
+                    if (!first) return Status::NotFound;
+                    if (!memcmp(b + offset, name, 11)) return Status::Ready;
+                    continue;
+                }
+                if (first == 0xe5) return Status::Ready;
+                if (first) continue;
+                // The next entry must terminate the directory before this
+                // end marker is consumed by publishing the new entry.
+                if (offset < 480) {
+                    if (b[offset + 32]) {
+                        b[offset + 32] = 0;
+                        if (!write(sector)) return Status::IoError;
                     }
+                } else {
+                    uint32_t following = 0;
+                    if (fixedRoot) {
+                        if (sec < v.rootSecs) following = dir + sec;
+                    } else if (sec < clusterSectors) following = lba(dir) + sec;
+                    else if (!endOfChain(link)) following = lba(link);
                     if (following) {
                         if (!read(following)) return Status::IoError;
-                        b[0] = 0;
-                        if (!write(following)) return Status::IoError;
+                        if (b[0]) {
+                            b[0] = 0;
+                            if (!write(following)) return Status::IoError;
+                        }
                     }
-                    if (!read(sector)) return Status::IoError;
                 }
                 return Status::Ready;
             }
         }
         return Status::Damaged;
     }
+    void fillEntry(uint8_t *entry, const char *name, uint8_t attr, uint32_t cluster, uint32_t bytes) {
+        memset(entry, 0, 32);
+        memcpy(entry, name, 11);
+        entry[11] = attr;
+        put16(entry + 16, 0x21); put16(entry + 18, 0x21); put16(entry + 24, 0x21); // 1980-01-01
+        put16(entry + 20, v.rootSecs ? 0 : cluster >> 16);
+        put16(entry + 26, cluster); put32(entry + 28, bytes);
+    }
+    bool initializeDirectory(uint32_t cluster, bool firstCluster) {
+        for (unsigned i = 0; i < 1u << v.shift; ++i) {
+            memset(b, 0, 512);
+            if (firstCluster && !i) {
+                fillEntry(b, ".          ", 0x10, cluster, 0);
+                fillEntry(b + 32, "..         ", 0x10, 0, 0);
+            }
+            if (!write(lba(cluster) + i)) return false;
+        }
+        return true;
+    }
+    Status publish(uint32_t sector, unsigned offset, const char *name, uint8_t attr, uint32_t cluster, uint32_t bytes) {
+        if (!read(sector)) return Status::IoError;
+        fillEntry(b + offset, name, attr, cluster, bytes);
+        // Publish only after the contents and FAT copies have been verified.
+        b[offset] = 0xe5;
+        if (!write(sector)) return Status::IoError;
+        b[offset] = name[0];
+        return write(sector) ? Status::Ready : Status::IoError;
+    }
+    Status makeSaveDirectory(uint32_t &parent) {
+        uint32_t sector; unsigned offset;
+        Status status = locate(0, nullptr, sector, offset);
+        if (status != Status::Ready) return status;
+        int32_t head = allocate(1);
+        if (head <= 0) return head ? Status::IoError : Status::NoSpace;
+        if (!initializeDirectory(head, true)) return Status::IoError;
+        parent = head;
+        return publish(sector, offset, SAVE_DIRECTORY, 0x10, head, 0);
+    }
 public:
     Allocator(const Volume &volume, uint8_t *scratch) : v(volume), b(scratch) {}
-    Status create(const Id &id, uint16_t sectors) {
+    // An exact lookup also detects a file blocking the save directory or a
+    // directory blocking a journal. Such entries must never be replaced.
+    Status find(const char *name, uint32_t parent, uint32_t &cluster, uint32_t &bytes) {
+        uint32_t sector; unsigned offset;
+        Status status = locate(parent, name, sector, offset);
+        if (status != Status::Ready) return status;
+        const uint8_t *entry = b + offset;
+        const uint8_t attr = entry[11] & 0x1f;
+        if (attr != (parent ? 0 : 0x10)) return Status::Damaged;
+        cluster = get16(entry + 26) | (v.rootSecs ? 0 : get16(entry + 20) << 16);
+        if (cluster < 2 || cluster >= v.end) return Status::Damaged;
+        bytes = get32(entry + 28);
+        return Status::Ready;
+    }
+    Status open(const char *basename, uint32_t &parent, uint32_t &cluster, uint32_t &bytes) {
+        parent = 0;
+        Status status = find(SAVE_DIRECTORY, 0, parent, bytes);
+        if (status != Status::Ready) return status;
+        char name[11]; journalName(name, basename);
+        return find(name, parent, cluster, bytes);
+    }
+    Status create(const Id &id, uint16_t sectors, uint32_t parent) {
         if (MAX_SLOT_SECTORS == 1) sectors = 1;
         Status status = geometry();
         if (status != Status::Ready) return status;
-        uint32_t dirSector; unsigned dirOffset;
-        status = directory(dirSector, dirOffset);
-        if (status != Status::Ready) return status;
-        // Save the following terminator before consuming an end marker.
-        if (!b[dirOffset] && dirOffset < 480) {
-            b[dirOffset + 32] = 0;
-            if (!write(dirSector)) return Status::IoError;
+        if (!parent) {
+            status = makeSaveDirectory(parent);
+            if (status != Status::Ready) return status;
         }
+        uint32_t dirSector; unsigned dirOffset;
+        status = locate(parent, nullptr, dirSector, dirOffset);
+        if (status != Status::Ready) return status;
         unsigned fileSectors = 1u + 2u * sectors;
         int32_t head = allocate((fileSectors + (1u << v.shift) - 1) >> v.shift);
         if (head <= 0) return head ? Status::IoError : Status::NoSpace;
@@ -226,18 +311,8 @@ public:
             } else memset(b, 0xff, 512);
             if (!write(lba(cluster) + (i & ((1u << v.shift) - 1)))) return Status::IoError;
         }
-        if (!read(dirSector)) return Status::IoError;
-        uint8_t *entry = b + dirOffset;
-        memset(entry, 0, 32); memcpy(entry, id.basename(), 8); memcpy(entry + 8, "SAV", 3);
-        entry[0] = 0xe5; entry[11] = 0x20;
-        put16(entry + 16, 0x21); put16(entry + 18, 0x21); put16(entry + 24, 0x21); // 1980-01-01, no RTC
-        put16(entry + 20, v.rootSecs ? 0 : uint32_t(head) >> 16);
-        put16(entry + 26, head); put32(entry + 28, fileSectors * 512u);
-        // Publish only after data and all FAT copies have been verified.
-        // The final sector write changes one byte of a complete deleted entry.
-        if (!write(dirSector)) return Status::IoError;
-        b[dirOffset] = id.basename()[0];
-        return write(dirSector) ? Status::Ready : Status::IoError;
+        char name[11]; journalName(name, id.basename());
+        return publish(dirSector, dirOffset, name, 0x20, head, fileSectors * 512u);
     }
 };
 } }

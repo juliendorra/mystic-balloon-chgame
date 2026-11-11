@@ -17,41 +17,19 @@ action. A accepts and B cancels on other menus; back wins simultaneous inputs.
 
 ## SD storage
 
-ID: `com.juliendorra.mysticballoon`. File: `N0KYRDE5.SAV` in the card root.
+ID: `com.juliendorra.mysticballoon`. File: `/SAVES/N0KYRDE5.SAV` on the card.
 The CHSave file is 1,536 bytes: an immutable full-ID descriptor and two
 512-byte records. The 468-byte payload schema remains 3. Records alternate,
 are CRC checked and verified after writing. A failed write leaves the other
 record usable; unchanged checkpoints skip writing.
 
-```sh
-python3 MysticBalloon/tools/prepare_saves.py --card /path/to/card
-```
+The first save creates the directory and file. A missing card shows INSERT SD
+CARD. Invalid identity, corrupt records and failed writes report SAVE ERROR.
+Firmware has no flash fallback or legacy migration reader.
 
-A missing or unprepared card disables saving and shows INSERT SD CARD or
-SET UP SD SAVES. Invalid identity, corrupt records and failed writes report
-SAVE ERROR. Firmware has no flash fallback or legacy migration reader.
+## Upgrade existing saves
 
-## Upgrade existing progress explicitly
-
-Back up saves before installing the new game. For an existing common
-`MYBL.SAV`, use the workspace converter:
-
-```sh
-python3 tools/sd_saves.py migrate --card /path/to/card
-```
-
-For older `MYBLSAVE.DAT` journals, or an exported flash backup:
-
-```sh
-python3 MysticBalloon/tools/prepare_saves.py --card /path/to/card --migrate-legacy
-# An exported flash backup can additionally be supplied with --recover PATH.
-```
-
-The computer-side helper preserves eight-run SD records and older four-run
-flash records, including preferences. It never replaces an existing new
-journal and leaves all source files untouched. Normal preparation requires
-this explicit step when an old journal is present. These transitional helpers
-are separate from the firmware and can be removed after existing cards move.
+Copy `N0KYRDE5.SAV` from the card root into `SAVES/` before playing.
 
 ## Validation
 

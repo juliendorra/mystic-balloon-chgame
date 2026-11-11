@@ -32,11 +32,14 @@ Choose **PLAY** to see **NEW** at the top, an empty line, then the saved runs, n
 
 **CONF** still previews COLOR, ORIGINAL, DMG GREEN and AMBER with Up/Down. Sound rows restore the confirmed palette. Left/Right changes **AUDIO ATM/BEEP** and **SOUND ON/OFF**, with audible previews. A saves; B cancels all previews. SELECT mutes either mode.
 
-Saved runs use `com.juliendorra.mysticballoon` (`N0KYRDE5.SAV`). Convert old journals explicitly before upgrading; see [save setup](docs/save-system.md).
+Saved runs use CHSave with ID `com.juliendorra.mysticballoon` and file
+`/SAVES/N0KYRDE5.SAV`. Pause/SAVE & QUIT retains your position, coins, key, balloons
+and enemy state. Old journals need explicit computer-side conversion before
+upgrading. See [save setup and behavior](docs/save-system.md).
 
 Version **1.3.0** includes the ATMlib edition's title tune, five gameplay tunes and fourteen tracker effects. The gameplay tunes rotate by level; music continues during pause. **AUDIO BEEP** restores the faithful, single-voice 1.2.9 sound without background music. SELECT mutes either mode. Existing saves keep their progress, palette and sound setting, and default to ATM music. See the [soundtrack implementation and checks](docs/atmlib-soundtrack.md).
 
-Press START to pause. **RESTART LEVEL** (added in **1.4.1**) returns the active run to its current level's entrance with three balloons, fresh enemies, coins and key. It rolls back that attempt's score and campaign coins, preserves the other runs, and commits the restart before changing the paused world. **SAVE & QUIT** still keeps the exact mid-level state. Press A to execute the highlighted action; B or START resumes gameplay. At a level-start prompt, A starts playing and B returns to the main menu. If A and B are pressed together, back takes priority. Death keeps the last playable save. The test harness accepts a persistent new-format journal through `CHMB_SAVE_CARD`.
+Press START to pause. **RESTART LEVEL** (added in **1.4.1**) returns the active run to its current level's entrance with three balloons, fresh enemies, coins and key. It rolls back that attempt's score and campaign coins, preserves the other runs, and commits the restart before changing the paused world. **SAVE & QUIT** still keeps the exact mid-level state. Press A to execute the highlighted action; B or START resumes gameplay. At a level-start prompt, A starts playing and B returns to the main menu. If A and B are pressed together, back takes priority. Death keeps the last playable save. The test harness can use a persistent journal with `CHMB_SAVE_CARD=/path/to/N0KYRDE5.SAV`.
 
 Gameplay fills all 128×128 pixels at the original pixel scale, including the original HUD and pause badge. Red, yellow and blue balloons match the lives display; the character has a light peach face against a soft cyan sky and mint terrain. The splash is one continuous 128×128 illustration extending the original child, balloon and enemy composition, with the original title lettering. The camera scrolls within the 384×384 levels. Added control/status panels remain removed.
 
@@ -56,8 +59,8 @@ From this workspace, build and upload with `python3 mysticballoon.py upload`. Th
 - Platform corner masks reveal the actual scrolling background in Color, DMG and Amber while preserving joined edges. See the [corner comparison](docs/platform-corners.png) and [joined platforms](docs/platform-joins.png).
 - Pause retains the frozen native world and replays only its opaque action panel; this avoids rebuilding the world while the LCD transfer is in flight.
 - `MysticBalloon.ino` uses native CHGame input, frame pacing, debug protocol, and pause controls. The game runs at 60 logic frames per second.
-- `Saves.cpp` uses CHSave with a full app ID and no legacy save reader.
-- **AUDIO BEEP** retains the [1.2.9 audio correction](docs/audio-fidelity.md): ArduboyTones pitches, half-wave durations and interruption rules. Flash saves wait for effects, then briefly suspend PCM while writing so a looping soundtrack cannot block saves.
+- `Saves.cpp` uses CHSave with `com.juliendorra.mysticballoon` (`/SAVES/N0KYRDE5.SAV`). Firmware has no legacy save reader.
+- **AUDIO BEEP** retains the [1.2.9 audio correction](docs/audio-fidelity.md): ArduboyTones pitches, half-wave durations and interruption rules. SD saves wait for effects and suspend PCM during the transaction.
 - The original game code lives in the adjacent headers. `bitmaps.h` retains the upstream artwork and level bytes; `tools/upstream-assets.json` records their fingerprints.
 - See [NOTES.md](NOTES.md) for build, tests, packaging, and validation limits.
 - The [splash drawing sources and workflow](tools/art/splash/README.md) include the extracted original, completed drawing and native menu review in all four display modes.
@@ -71,9 +74,6 @@ Mystic Balloon (Arduboy 1.7.2), copyright (c) 2016 TEAM a.r.g., is licensed unde
 
 Music and tracker effects come from [T-arg's ATMlib edition](https://github.com/T-arg/ID-34-Mystic-Balloon), also MIT licensed. ATMlib / Squawk by Davey Taylor (STG), Joeri Gantois (JO3RI) and TEAM a.r.g. is [BSD 3-Clause](ATMLIB-LICENSE). Its RISC-V backend reuses the work from our 8-bit soundtrack demo, with the original ATM pulse/square/saw waveforms.
 
+Version 1.4.2 improves ATM music output with DC removal, more gain and bounded peak compression. The original tracker scores and effect overlays are retained; classic BEEP mode is unchanged. See [the audio comparison notes](../docs/audio-improvements.md).
 
-## Audio update 1.4.2
-
-The ATM soundtrack gains DC removal, more output gain and bounded peak compression. Original scores and SFX overlays remain; classic BEEP mode is unchanged. The output helper is included locally and the existing save implementation is retained.
-
-[Audio validation notes](docs/audio-update.md).
+Convert old journals explicitly before upgrading; see [SD saves](../docs/sd-saves.md).

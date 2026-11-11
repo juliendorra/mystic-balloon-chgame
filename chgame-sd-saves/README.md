@@ -1,8 +1,8 @@
-# CHSave
+# CHSave: SD Saves and settings
 
-On the CHGame, it makes sense to switch the default of the game saved state, scores and settings storage to the SD card: the SD card will probably be always present on the CHGame console, as most game are starting to need it for artwork, levels, etc. 
+On the CHGame, it makes sense to switch the default storage to the SD card for the game saved state, the scores and the settings: the SD card will probably be always present on the CHGame console, as most game are starting to need it for artwork, levels, etc.
 
-Here is a small lib I use, so all my CHGame games are using a consistent way to save game state and settings.
+Here is a small lib I use, so all my CHGame games are using a consistent way to save game state and settings, and there's no risk of collision.
 
 SD saves and settings for [CHGame](https://github.com/bateske/CHGame).
 Each app uses a reverse-domain ID and its own hashed `.SAV` filename.
@@ -24,15 +24,15 @@ Data data{0, 1, {0, 0, 0}};
 // saves.store(SAVE_ID, 1, data); // check the return value
 ```
 
-Insert a FAT16/FAT32 SD card. The first save creates the file automatically;
-players have nothing to prepare. Missing saves load the game's defaults.
-Existing saves are preserved. Initial file size follows the payload, starting
-at 1.5 KB. Payloads can be up to 65,516 bytes; RAM is usually the limit.
-Keep `.SAV` files out of cartridge assets so updates cannot replace them.
+Insert a FAT16/FAT32 SD card. The first save creates `/SAVES/` and the game's
+file automatically. Missing saves load the game's defaults. Initial file size
+follows the payload, starting at 1.5 KB.
 Save between frames; `saves.status()` explains failures.
 
 Filenames use eight base-36 characters (`0–9`, `A–Z`). The full ID is checked
 before writing, so a hash collision cannot overwrite another app's data.
+When upgrading from CHSave 0.4 or earlier, copy existing hashed `.SAV` files
+from the card root into `/SAVES/` before playing the new build.
 
 ## Games using CHSave
 

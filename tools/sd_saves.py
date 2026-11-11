@@ -32,21 +32,10 @@ def shared_prepare():
 
 def catalog():
     shared=shared_prepare()
-    return {shared.filename(CONFIG['id']):{'game':CONFIG['game'],'id':CONFIG['id']}}
+    return {shared.save_path(CONFIG['id']):{'game':CONFIG['game'],'id':CONFIG['id']}}
 
 def validate(raw,ident):
     shared_prepare().validate(raw,ident)
-
-def prepare(card):
-    card=Path(card);shared=shared_prepare()
-    if not (card/shared.filename(CONFIG['id'])).exists() and ((card/(CONFIG['legacyId']+'.SAV')).exists() or CONFIG['game']=='MysticBalloon' and (card/'MYBLSAVE.DAT').exists()):
-        raise ValueError('Old saves need explicit conversion: python3 tools/sd_saves.py migrate --card '+str(card))
-    shared.prepare(card,[CONFIG['id']])
-
-def migrate(card):
-    sys.path.insert(0,str(PUBLIC/'tools'))
-    from migrate_v1 import migrate as convert
-    action,path=convert(card,CONFIG['legacyId'],CONFIG['id']);print(action,path.name)
 
 def apply_sdk_patch():
     pass # Standalone games do not patch the SDK examples.
@@ -220,14 +209,10 @@ def main():
         sys.argv.pop(1);run();return
     parser=argparse.ArgumentParser(description=__doc__)
     sub=parser.add_subparsers(dest='command',required=True)
-    p=sub.add_parser('prepare');p.add_argument('--card',required=True,type=Path)
-    p=sub.add_parser('migrate');p.add_argument('--card',required=True,type=Path)
     sub.add_parser('overlay');sub.add_parser('list')
     p=sub.add_parser('sim-image');p.add_argument('path',type=Path)
     args=parser.parse_args()
-    if args.command=='prepare':prepare(args.card)
-    elif args.command=='migrate':migrate(args.card)
-    elif args.command=='overlay':print(overlay())
+    if args.command=='overlay':print(overlay())
     elif args.command=='list':print(json.dumps(catalog(),indent=2))
     elif args.command=='sim-image':simulation_image(args.path)
 if __name__=='__main__':main()

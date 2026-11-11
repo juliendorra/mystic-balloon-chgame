@@ -7,11 +7,11 @@ port** of TEAM a.r.g.'s **Mystic Balloon**.
 Explore all 39 original levels with the original physics, bright
 red/yellow/blue balloons and a continuous splash illustration.
 
-**[Download version 1.4.5](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.4.5)**:
-[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.5/MysticBalloon-1.4.5.chgame)
-or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.5/MysticBalloon-1.4.5-rev0.bin).
+**[Download version 1.4.6](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.4.6)**:
+[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.6/MysticBalloon-1.4.6.chgame)
+or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.6/MysticBalloon-1.4.6-rev0.bin).
 The release includes USB and SD-card installation instructions and
-[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.5/SHA256SUMS.txt).
+[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.6/SHA256SUMS.txt).
 No compiling needed.
 
 Version **1.4.1** restores **RESTART LEVEL** to the START pause menu,
@@ -22,17 +22,12 @@ back that attempt's score and campaign coins, without changing other runs.
 All menus now use **A to accept** and **B to go back or cancel**, including
 CONF, saved runs, pause and level-start prompts. B wins simultaneous A+B
 presses. Gameplay keeps **B for jumping/floating** and **A for inhaling**.
-Button hints match the controls. Existing 1.4.0 saves migrate automatically;
-the saved score becomes their initial restart baseline because the old
-format did not record the level-entry score. New entry scores persist
-through mid-level saves and loads.
+Button hints match the controls. Level-entry scores persist through mid-level saves and loads.
 
 Saved runs, introduced in **1.4.0**, retain independent progress and mid-level resume. **PLAY**
 shows **NEW**, an empty line, then your runs labelled by **level and percentage**.
 The last played run is selected automatically; use Up/Down and **A to load**.
-NEW keeps existing progress. HELP now explains controls, loading and saving. With an SD card, eight runs live in
-`MYBLSAVE.DAT`, isolated from other games. Without SD, four runs use the
-shared flash fallback. Pause, then **SAVE & QUIT**, to resume at the same
+NEW keeps existing progress. HELP now explains controls, loading and saving. Eight runs fit in `/SAVES/N0KYRDE5.SAV` on the SD card. Pause, then **SAVE & QUIT**, to resume at the same
 position with your coins, key, balloons and enemy state restored.
 [Save-system behavior and checks](MysticBalloon/docs/save-system.md).
 
@@ -59,24 +54,14 @@ CONF also offers **Original B&W**, **Game Boy DMG** and **Amber**, with live
 previews. START pauses; **SAVE & QUIT** returns to the main menu and keeps
 your current run. [Controls and game rules](MysticBalloon/README.md).
 
-## Install and prepare SD saves
+## Install
 
-Download the [.chgame package](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.5/MysticBalloon-1.4.5.chgame)
-and install it using the CHGame cart tools. The [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.5/MysticBalloon-1.4.5-rev0.bin)
+Download the [.chgame package](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.6/MysticBalloon-1.4.6.chgame)
+and install it using the CHGame cart tools. The [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.6/MysticBalloon-1.4.6-rev0.bin)
 is available for direct USB flashing to CHGame Rev0. Both contain the same
 normal release firmware.
 
-For existing saves, download [migrate_saves.py](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.5/migrate_saves.py)
-and convert them before installing:
-
-```sh
-python3 migrate_saves.py --card "/path/to/mounted/card"
-```
-
-New cards need no setup. The game creates its save file on first save.
-
-Already namespaced saves are kept unchanged. Back up `N0KYRDE5.SAV` to keep
-your runs and settings. Safely eject the card before starting the game.
+Copy an existing `N0KYRDE5.SAV` from the card root into `SAVES/` before playing. New cards need no setup.
 
 ## Build and upload
 
@@ -175,14 +160,4 @@ The ATM soundtrack gains DC removal, more output gain and bounded peak compressi
 
 ## SD saves
 
-Uses [CHSave 0.4](https://github.com/juliendorra/chgame-sd-saves).
-App ID: `com.juliendorra.mysticballoon`. Firmware has no legacy save fallback.
-
-```sh
-# One-time conversion of an existing four-character journal; old file is kept:
-python3 tools/sd_saves.py migrate --card /path/to/card
-```
-
-New saves are created automatically. Convert older four-character saves
-before upgrading. Keep the hashed `.SAV`
-files when replacing cartridges. The complete ID is checked before writing.
+Uses [CHSave 0.5](https://github.com/juliendorra/chgame-sd-saves). New saves are created automatically in `/SAVES/N0KYRDE5.SAV`.

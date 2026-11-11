@@ -29,7 +29,7 @@ progress can share one struct. Use fixed-width fields, initialize padding,
 and avoid pointers, strings with heap storage, and C++ containers. The struct
 must fit the file's capacity. Typed calls store its exact memory layout.
 
-The first `store()` creates the file and chooses its capacity from the payload,
+The first `store()` creates `/SAVES/` as needed, creates the file there, and chooses its capacity from the payload,
 rounded to SD sectors. Loading a missing file returns `Empty` without writing.
 The minimum file is 1.5 KB (492-byte payload); the largest is 128 KiB + 512 bytes (65,516-byte payload).
 The file holds an immutable 512-byte identity descriptor and two equal slots
@@ -70,7 +70,7 @@ failure. Flags are changed only after a successful load.
 
 Do not report a successful save unless `store()` returns true. Restart
 with the card inserted after removal or card errors. Back up the `.SAV`
-files by copying them from the card.
+files by copying them from `/SAVES/` on the card.
 
 ## Memory and other platforms
 

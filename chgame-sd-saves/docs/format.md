@@ -1,6 +1,6 @@
 # CHSAVE2 / CSV3 save format
 
-Files live in the FAT16/FAT32 root. The filename is eight uppercase base-36
+Files live in `/SAVES/` on the FAT16/FAT32 card. The filename is eight uppercase base-36
 characters (`0–9`, `A–Z`) plus `.SAV`. Hash the exact lowercase ASCII reverse-domain
 ID with FNV-1a-64 (offset 14695981039346656037, prime 1099511628211, wrap modulo
 2^64), take the result modulo 36^8, and encode it in base 36, zero-padded to eight

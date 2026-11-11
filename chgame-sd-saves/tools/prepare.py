@@ -8,6 +8,7 @@ import struct
 import zlib
 
 MAX_DATA = 65516
+SAVE_DIRECTORY = 'SAVES'
 NAME_SPACE = 36 ** 8
 ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 DESCRIPTOR = b'CHSAVE2\0'
@@ -36,6 +37,10 @@ def filename(game_id):
         value, digit = divmod(value, 36)
         name = ALPHABET[digit] + name
     return name + '.SAV'
+
+
+def save_path(game_id):
+    return f'{SAVE_DIRECTORY}/{filename(game_id)}'
 
 
 def file_size(capacity):
@@ -88,6 +93,9 @@ def prepare(card, game_ids, capacity=492):
     card = Path(card)
     if not card.is_dir():
         raise ValueError(f'card folder does not exist: {card}')
+    directory = card / SAVE_DIRECTORY
+    if directory.is_symlink() or (directory.exists() and not directory.is_dir()):
+        raise ValueError(f'expected a save directory: {directory}')
     size = file_size(capacity)
     ids = list(dict.fromkeys(game_ids))
     names = {}
@@ -96,7 +104,7 @@ def prepare(card, game_ids, capacity=492):
         if name in names and names[name] != game_id:
             raise IdCollision(f'filename collision between {names[name]} and {game_id}')
         names[name] = game_id
-        path = card / name
+        path = directory / name
         if path.is_symlink():
             raise ValueError(f'refusing symlink: {path}')
         if path.exists():
@@ -105,8 +113,10 @@ def prepare(card, game_ids, capacity=492):
             if len(raw) < size:
                 raise ValueError('existing file is too small; back it up before resizing')
     results = []
+    if names:
+        directory.mkdir(exist_ok=True)
     for name, game_id in names.items():
-        path = card / name
+        path = directory / name
         if path.exists():
             results.append(('kept', path))
             continue

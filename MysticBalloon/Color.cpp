@@ -28,14 +28,23 @@ void paintSplash(bool original) {
 #else
     const uint8_t *src=original ? art::splashMono : art::splashColor;
     uint8_t *dst=gfx_fb;
-    while (dst<gfx_fb+GFX_FB_BYTES) {
+    const uint8_t *end=gfx_fb+(original ? GFX_FB_BYTES/4 : GFX_FB_BYTES);
+    while (dst<end) {
         unsigned flags=*src++;
-        for (unsigned bit=0;bit<8 && dst<gfx_fb+GFX_FB_BYTES;++bit,flags>>=1) {
+        for (unsigned bit=0;bit<8 && dst<end;++bit,flags>>=1) {
             if (flags&1) {
                 const unsigned word=src[0]|(unsigned(src[1])<<8);src+=2;
-                const uint8_t *from=dst-(word&4095)-1;
-                for (unsigned n=(word>>12)+3;n;--n) *dst++=*from++;
+                const uint8_t *from=dst-(word&1023)-1;
+                for (unsigned n=(word>>10)+3;n;--n) *dst++=*from++;
             } else *dst++=*src++;
+        }
+    }
+    if (original) {
+        // Expand one-bit pixels backwards so the packed input can share gfx_fb.
+        for (unsigned i=GFX_FB_BYTES/4;i--;) {
+            unsigned bits=gfx_fb[i];
+            for (unsigned j=0;j<4;++j,bits>>=2)
+                gfx_fb[4*i+j]=(bits&1)|((bits&2)<<3);
         }
     }
 #endif
