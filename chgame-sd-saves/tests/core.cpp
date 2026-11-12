@@ -5,11 +5,13 @@
 class Memory : public chsave::Storage {
 public:
     uint8_t bytes[1536];
+    unsigned reads = 0;
     unsigned writes = 0;
     chsave::Status open(const chsave::Id &, uint8_t *) override { return chsave::Status::Ready; }
     bool read(unsigned slot, uint8_t *out) override {
         assert(slot < 3);
         memcpy(out, bytes + slot * 512, 512);
+        ++reads;
         return true;
     }
     bool write(unsigned slot, const uint8_t *in) override {
@@ -39,11 +41,15 @@ int main() {
     assert(saves.status() == chsave::Status::Empty);
     assert(saves.store(game, 1, data, 42));
     assert(backend.writes == 1);
+    backend.reads = 0;
     assert(saves.store(game, 1, data, 42) && backend.writes == 1);
+    if (chsave::MAX_SLOT_SECTORS == 1) assert(backend.reads == 3);
     assert(saves.store(game, 1, data, 43) && backend.writes == 2);
     uint8_t flags = 0;
     memset(data, 127, sizeof data);
+    backend.reads = 0;
     assert(saves.load(game, 1, data, &flags) && flags == 43);
+    if (chsave::MAX_SLOT_SECTORS == 1) assert(backend.reads == 3);
     for (auto byte : data) assert(byte == 0);
     assert(!saves.load(game, 2, data));
     assert(saves.status() == chsave::Status::Incompatible);

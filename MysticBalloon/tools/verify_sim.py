@@ -13,7 +13,10 @@ import sys
 
 GAME = Path(__file__).resolve().parents[1]
 ROOT = GAME.parent
-sys.path.insert(0, str(ROOT / "CHGame/tools/chsim"))
+SDK = Path(os.environ.get("CHGAME_ROOT", ROOT / "CHGame"))
+if not (SDK / "tools/chsim").is_dir():
+    SDK = ROOT / ".deps/CHGame"
+sys.path.insert(0, str(SDK / "tools/chsim"))
 from chsim import compile_exe
 
 
@@ -31,8 +34,8 @@ def asset_bytes(text):
 
 
 def build_runner(source, output, extra_includes=()):
-    host = ROOT / "CHGame/tools/chsim/host"
-    libraries = ROOT / "CHGame/platform/board/arduino/CHGame/libraries"
+    host = SDK / "tools/chsim/host"
+    libraries = SDK / "platform/board/arduino/CHGame/libraries"
     gfx = libraries / "CHGfx/src"
     lib = libraries / "CHGame/src"
     out = output.parent
@@ -59,7 +62,10 @@ void corruptFlash(unsigned page,unsigned byte) { save::simFlash[page][byte]^=128
     sources.append(aligned_save)
     public=ROOT/'chgame-sd-saves/src'
     sources+=list(public.rglob('*.cpp'))
-    return compile_exe(sources, output, includes=[*extra_includes, GAME, host, gfx, lib, lib / "chgame",public])
+    sd = ROOT / "chgame-sd-saves/extras/CHSd"
+    sources += [sd / "src/Fat.cpp", sd / "src/FatWrite.cpp", sd / "host/sd_host.cpp"]
+    return compile_exe(sources, output, includes=[*extra_includes, GAME, host, gfx, lib,
+                                                 lib / "chgame", public, sd / "src"])
 
 
 def main():

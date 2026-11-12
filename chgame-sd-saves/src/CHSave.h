@@ -17,7 +17,8 @@ public:
     template<class T>
     bool load(const Id &gameId, uint8_t schema, T &data, uint8_t *flags = nullptr) {
         static_assert(std::is_trivially_copyable<T>::value, "save plain data only");
-        static_assert(sizeof(T) <= MAX_DATA, "save payload exceeds format limit");
+        static_assert(sizeof(T) <= MAX_DATA, "save payload exceeds CHSAVE_MAX_SECTORS_PER_RECORD capacity");
+        if (MAX_SLOT_SECTORS == 1) return load(gameId, schema, &data, sizeof(T), flags);
         T candidate{};
         if (!load(gameId, schema, &candidate, sizeof(T), flags)) return false;
         memcpy(&data, &candidate, sizeof(T));
@@ -26,7 +27,7 @@ public:
     template<class T>
     bool store(const Id &gameId, uint8_t schema, const T &data, uint8_t flags = 0) {
         static_assert(std::is_trivially_copyable<T>::value, "save plain data only");
-        static_assert(sizeof(T) <= MAX_DATA, "save payload exceeds format limit");
+        static_assert(sizeof(T) <= MAX_DATA, "save payload exceeds CHSAVE_MAX_SECTORS_PER_RECORD capacity");
         return store(gameId, schema, &data, sizeof(T), flags);
     }
 private:

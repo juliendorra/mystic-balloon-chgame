@@ -1,6 +1,3 @@
-// SPDX-License-Identifier: MIT
-// Modified from CHSd (Copyright 2026 bateske), via Mystic Balloon:
-// private namespace, single-block reads/writes only, no DMA streaming.
 // SdSpi.cpp - see SdSpi.h. From HypeRunner's src/sd/SdSpi.cpp (MIT, clean
 // room: written from the SD Physical Layer Simplified Specification, chapter
 // 7, and the CH32X035 reference manual), reduced to polled single-block
@@ -18,11 +15,12 @@
 // cost a mask on every pass). The two extra flags below took 0-28 B off the
 // games' images on 2026-10-01; on Fat.cpp they cost up to 88 B, so it keeps
 // plain -Os (measure all three games before changing either).
-#if !defined(CHSIM) && !defined(CHSAVE_HOST)
+#pragma GCC optimize("Os", "no-ipa-sra", "no-jump-tables", "no-guess-branch-probability")
+#if !defined(CHSIM) && !defined(CHTEST)
 #include <Arduino.h>
-#include "Block.h"
+#include "SdWrite.h"
 
-namespace chsave { namespace block {
+namespace sd {
 
 // SPI1: master, software NSS held high, mode 0, 8-bit, MSB first.
 static const uint32_t SPI_MASTER = (1u << 2) | (1u << 8) | (1u << 9);   // MSTR | SSI | SSM
@@ -168,20 +166,97 @@ bool read(uint32_t lba, uint8_t *dst) {
     return ok;
 }
 
-// Single-block writes, with the same SPI hand-off as reads. The file is
-// preallocated by the installer; no FAT/directory sector is ever written.
+// Single-block CMD24; dropped by the linker when unused.
 bool write(uint32_t lba, const uint8_t *src) {
+    if (!hc && lba > (UINT32_MAX >> 9)) return false;
     claim();
-    bool ok=wait(false)==0xFF && cmd(24,hc ? lba : lba<<9)==0;
+    bool ok = wait(false) == 0xFF && cmd(24, hc ? lba : lba << 9) == 0;
     if (ok) {
-        xfer(0xFF);xfer(0xFE);
-        for (unsigned i=0;i<512;++i) xfer(src[i]);
-        xfer(0xFF);xfer(0xFF);
-        ok=(xfer(0xFF)&31)==5;
-        ok=(wait(false)==0xFF) && ok;
+        xfer(0xFF);
+        xfer(0xFE);
+        for (unsigned i = 0; i < 512; ++i) xfer(src[i]);
+        xfer(0xFF);
+        xfer(0xFF);
+        ok = (xfer(0xFF) & 31) == 5;
+        ok = (wait(false) == 0xFF) && ok;
     }
-    release();return ok;
+    release();
+    return ok;
 }
 
-} } // namespace chsave::block
+// ---- stream(): CMD18 with DMA ---------------------------------------------
+// Receiving takes clocks, and clocks come only from sending, so two DMA
+// channels run together: channel 3 (SPI1 TX) sends 0xFF 512 times from one
+// byte, channel 2 (SPI1 RX, the higher priority, so it is never overrun)
+// stores what comes back. Neither raises an interrupt (CHGfx's handler is on
+// channel 3; with TCIE clear it never runs for these); the RX channel's
+// transfer-complete flag means every byte has been clocked and stored. The
+// technique, and the 24 MHz the board's wiring takes, come from CHSDtoUSB's
+// driver, which has moved gigabytes this way.
+static const uint32_t DMA_EN = 1u << 0, DMA_M2P = 1u << 4, DMA_MINC = 1u << 7;
+static const uint32_t DMA_CH23 = 0xFFu << 4, DMA_TC2 = 1u << 5, DMA_TE2 = 1u << 7;
+static const uint8_t FILL = 0xFF;
+
+static void dmaStart(uint8_t *dst) {
+    DMA1_Channel2->CFGR = 0;
+    DMA1_Channel3->CFGR = 0;
+    DMA1->INTFCR = DMA_CH23;
+    DMA1_Channel2->PADDR = (uint32_t)&SPI1->DATAR;
+    DMA1_Channel2->MADDR = (uint32_t)dst;
+    DMA1_Channel2->CNTR = 512;
+    DMA1_Channel2->CFGR = (3u << 12) | DMA_MINC;            // very high priority
+    DMA1_Channel3->PADDR = (uint32_t)&SPI1->DATAR;
+    DMA1_Channel3->MADDR = (uint32_t)&FILL;
+    DMA1_Channel3->CNTR = 512;
+    DMA1_Channel3->CFGR = (2u << 12) | DMA_M2P;             // high
+    DMA1_Channel2->CFGR |= DMA_EN;                          // RX listening before TX clocks
+    DMA1_Channel3->CFGR |= DMA_EN;
+    SPI1->CTLR2 = 3;                                        // RXDMAEN | TXDMAEN
+}
+
+static bool dmaWait() {
+    uint32_t t0 = micros();
+    bool ok;
+    while (!(ok = DMA1->INTFR & DMA_TC2) && !(DMA1->INTFR & DMA_TE2) && micros() - t0 < 2000) {}
+    SPI1->CTLR2 = 0;
+    DMA1_Channel2->CFGR = 0;
+    DMA1_Channel3->CFGR = 0;
+    DMA1->INTFCR = DMA_CH23;
+    return ok;
+}
+
+bool stream(uint32_t lba, uint32_t n, uint8_t *buf0, uint8_t *buf1, BlockFn fn, void *ctx) {
+    if (!n) return true;
+    claim();
+    spiSet(SPI_MASTER | SPE);                               // BR 0: 24 MHz
+    bool ok = wait(false) == 0xFF && cmd(18, hc ? lba : lba << 9) == 0;
+    const uint8_t *pending = nullptr;
+    for (uint32_t k = 0; ok && k < n; k++) {
+        uint8_t *cur = (k & 1) ? buf1 : buf0;
+        if (wait(true) != 0xFE) { ok = false; break; }
+        dmaStart(cur);
+        if (pending) fn(pending, ctx);                      // while the block arrives
+        if (!dmaWait()) { ok = false; break; }
+        (void)SPI1->DATAR;
+        xfer(0xFF);                                         // the CRC16, unused
+        xfer(0xFF);
+        pending = cur;
+    }
+    // CMD12 ends the stream (after a failure too: it is the one command a
+    // card in a multi-block read listens to). A stuff byte comes before its
+    // R1; any R1 will do (some cards flag "out of range" as they read
+    // ahead). Its busy time runs alongside the last block's fn.
+    xfer(0x4C);
+    for (uint32_t i = 4; i; i--) xfer(0);
+    xfer(0x61);
+    xfer(0xFF);
+    uint8_t r;
+    uint32_t k = 9;
+    do r = xfer(0xFF); while ((r & 0x80) && --k);
+    release();
+    if (ok && pending) fn(pending, ctx);
+    return ok && !(r & 0x80);
+}
+
+}  // namespace sd
 #endif

@@ -4,21 +4,24 @@
 
 Copy this repo to your Arduino sketchbook's `libraries/CHSave` folder, or
 install its ZIP through **Sketch → Include Library → Add .ZIP Library**.
-Install the CHGame board package and CHGfx from the CHGame SDK.
+Install the CHGame board package, CHGfx and the included `extras/CHSd`
+library. It provides `FatWrite.h` and uses the same Arduino library name
+as the stock CHSd.
 
 With Arduino CLI, point at this repo and your SDK libraries:
 
 ```sh
 arduino-cli compile -b CHGame:ch32v:rev0:opt=oslto,rtlib=nano,periph=game,usb=uploadonly \
   --library /path/to/chgame-sd-saves \
+  --library /path/to/chgame-sd-saves/extras/CHSd \
   --library /path/to/CHGame/platform/board/arduino/CHGame/libraries/CHGame \
   --library /path/to/CHGame/platform/board/arduino/CHGame/libraries/CHGfx \
   examples/Settings
 ```
 
-CHSave has its own namespaced SD driver and FAT lookup. It can coexist with
-CHSd for game assets. It does not replace SDK files or SDK `save::` calls;
-use `chsave::Store` explicitly.
+CHSave and game assets share CHSd's SPI driver and FAT implementation. Use
+`chsave::Store` explicitly; SDK `save::` calls keep their own behavior.
+The CHSave on-disk format is unchanged.
 
 ## Data and IDs
 
@@ -31,7 +34,8 @@ must fit the file's capacity. Typed calls store its exact memory layout.
 
 The first `store()` creates `/SAVES/` as needed, creates the file there, and chooses its capacity from the payload,
 rounded to SD sectors. Loading a missing file returns `Empty` without writing.
-The minimum file is 1.5 KB (492-byte payload); the largest is 128 KiB + 512 bytes (65,516-byte payload).
+The default save size is 492 bytes of game data in a 1.5 KiB file. Larger
+saves can hold up to 65,516 bytes in a file of 128 KiB + 512 bytes.
 The file holds an immutable 512-byte identity descriptor and two equal slots
 rounded to SD sectors. Each record can use
 any payload length up to capacity. Existing files are never silently resized.
@@ -48,10 +52,11 @@ yourself for a layout that also works on other architectures.
 ## Failures
 
 Both operations return `bool`; `status()` gives the last result.
-Typed loads preserve the destination on failure. They use a temporary copy
-of the struct on the stack, so leave enough RAM for both copies. Raw byte
-loads can partially change the destination on an I/O error; discard it on
-failure. Flags are changed only after a successful load.
+Typed loads preserve the destination on failure. With a limit of one sector
+per record, they load from verified records already in scratch. With a higher
+limit, typed loads use a temporary copy on the stack and raw byte loads can
+partially change the destination on an I/O error. Flags are changed only
+after a successful load.
 
 | Status | Meaning |
 | --- | --- |
@@ -90,14 +95,21 @@ A fixed-memory backend can keep the default `create()` implementation if
 its storage always exists.
 The supplied hardware adapter targets CHGame Rev0 (CH32X035, SPI1, PB11 CS).
 
-For firmware close to Rev0's flash limit, build the whole library and sketch
-with `-DCHSAVE_MAX_SLOT_SECTORS=1`. This optional compact profile supports
-1.5 KB files and payloads up to 492 bytes. The default supports larger files
-and discovers their capacity at runtime. Both profiles use the same format
-for minimum-size files.
+The default uses one 512-byte sector per record on FAT16 and FAT32.
+The 16-byte header and 4-byte checksum leave 492 bytes for the payload. Use
+one `Store` with distinct `constexpr` IDs for data you save independently.
+Each file has its own recovery records.
 
-For CHSIM builds, set `CHSAVE_CARD_IMAGE` to a writable FAT disk image.
-The simulator backend modifies that image; use a copy for experiments.
+Set `CHSAVE_MAX_SECTORS_PER_RECORD` for the whole library and sketch. Use 2
+for up to 1,004 bytes of game data per file, or choose up to 128 for larger
+saves. Each extra sector per record adds 512 bytes of capacity and two
+sectors to the file. If an earlier build created files with larger records,
+set the limit high enough to open them. `CHSAVE_MAX_SLOT_SECTORS` is an alias
+for existing build scripts.
+
+For CHSIM builds with the fork's host driver, set `CHSAVE_CARD_IMAGE` to a
+writable FAT disk image. CHSd uses that image for both assets and saves and
+modifies it in place; use a copy for experiments.
 
 ## Recovery limits
 

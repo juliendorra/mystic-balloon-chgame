@@ -1,14 +1,16 @@
 # Tests
 
 Needs Python 3 and a C++11 compiler with UBSan (GCC or Clang).
-No Python packages or CHGame SDK checkout required.
+The tests use the included `extras/CHSd` library. Set `CHSAVE_CHSD` to
+check another checkout of the fork. No Python packages or SDK checkout required.
 
 ```sh
 python3 tests/test_saves.py
 ```
 
 Set `CXX=clang++` or `CXX=g++` to choose a compiler.
-Set `CHSAVE_TEST_COMPACT=1` to test the optional compact firmware profile.
+The tests use the default limit of one sector per record. Set
+`CHSAVE_TEST_COMPACT=0` to test a limit of 128 sectors per record.
 
 Tests compile the actual journal, FAT lookup and CHGame adapter. They check
 process restarts, FAT16/FAT32, partitions, fragmented files, unrelated data

@@ -4,11 +4,21 @@
 #pragma GCC optimize("Oz")
 #endif
 #include "Journal.h"
-#include "detail/Allocate.h"
+#include "detail/Format.h"
 #include <string.h>
 
 namespace chsave {
 namespace {
+inline uint32_t crcUpdate(uint32_t crc, const uint8_t *p, unsigned size) {
+    while (size--) {
+        crc ^= *p++;
+        for (unsigned i = 0; i < 8; ++i)
+            crc = (crc >> 1) ^ (0xedb88320u & (0u - (crc & 1)));
+    }
+    return crc;
+}
+
+
 // Header fields are aligned in the caller's checked scratch buffer.
 #if defined(__GNUC__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 uint16_t get16(const uint8_t *p) {
@@ -25,7 +35,6 @@ uint32_t get32(const uint8_t *p) { return uint32_t(get16(p)) | uint32_t(get16(p 
 void put16(uint8_t *p, uint16_t n) { p[0] = n; p[1] = n >> 8; }
 void put32(uint8_t *p, uint32_t n) { put16(p, n); put16(p + 2, n >> 16); }
 #endif
-using detail::crcUpdate;
 bool blank(const uint8_t *p) {
     for (unsigned i = 0; i < 512; ++i) if (p[i] != 0xff) return false;
     return true;
@@ -35,6 +44,27 @@ bool newer(uint32_t a, uint32_t b) {
 }
 constexpr uint32_t RECORD_TAG = 0x33565343u; // CSV3
 } // namespace
+
+void detail::initializeSector(uint32_t index, uint8_t *b, void *context) {
+    auto &initial = *static_cast<InitialFile *>(context);
+    const uint32_t slots = MAX_SLOT_SECTORS == 1 ? 1 : initial.sectors;
+    if (index > slots) {
+        memset(b, 0xff, 512);
+        return;
+    }
+    if (!index) {
+        memcpy(b, "CHSAVE2", 8);
+        put16(b + 8, initial.id.size());
+        put16(b + 10, slots);
+        memcpy(b + 16, initial.id.text(), initial.id.size());
+    } else {
+        // An empty valid record makes the first interrupted save retryable.
+        if (index == 1) put32(b, RECORD_TAG);
+    }
+    const uint32_t crc = MAX_SLOT_SECTORS == 1 || !index ? ~0u : initial.crc;
+    if (!index || index == slots) put32(b + 508, ~crcUpdate(crc, b, 508));
+    else initial.crc = crcUpdate(crc, b, 512);
+}
 
 Journal::Journal(Storage &storage, void *scratch, size_t scratchBytes)
     : storage_(storage), scratch_(static_cast<uint8_t *>(scratch)), scratchBytes_(scratchBytes) {}
@@ -77,8 +107,9 @@ bool Journal::latest(int &slot, uint32_t &generation) {
     bool empty = true;
     slot = -1;
     generation = 0;
-    uint8_t *b = scratch_ + 512;
     for (unsigned i = 0; i < 2; ++i) {
+        // With one sector per record, both verified records fit in scratch.
+        uint8_t *b = scratch_ + (MAX_SLOT_SECTORS == 1 ? i * 512 : 512);
         uint32_t crc = ~0u, gen = 0;
         unsigned length = ~0u;
         for (unsigned block = 0; block < sectors(); ++block) {
@@ -111,6 +142,13 @@ bool Journal::load(const Id &gameId, uint8_t schema, void *data, uint16_t size, 
     uint32_t generation;
     if (!latest(slot, generation)) return false;
     if (slot < 0 || status_ == Status::Empty) { status_ = Status::Empty; return false; }
+    if (MAX_SLOT_SECTORS == 1) {
+        const uint8_t *record = scratch_ + slot * 512;
+        if (record[10] != schema || get16(record + 8) != size) { status_ = Status::Incompatible; return false; }
+        memcpy(data, record + 16, size);
+        if (flags) *flags = record[11];
+        return true;
+    }
     uint8_t *b = scratch_ + 512, *out = static_cast<uint8_t *>(data);
     uint32_t crc = ~0u;
     unsigned copied = 0;
@@ -147,7 +185,13 @@ bool Journal::store(const Id &gameId, uint8_t schema, const void *data, uint16_t
     if (!latest(slot, generation)) return false;
     const uint8_t *input = static_cast<const uint8_t *>(data);
     uint8_t *b = scratch_, *check = b + 512;
-    if (slot >= 0) {
+    if (MAX_SLOT_SECTORS == 1) {
+        if (slot >= 0) {
+            const uint8_t *record = scratch_ + slot * 512;
+            if (record[10] == schema && get16(record + 8) == size && record[11] == flags &&
+                !memcmp(input, record + 16, size)) return true;
+        }
+    } else if (slot >= 0) {
         bool same = true;
         unsigned compared = 0;
         for (unsigned block = 0; same && block < sectors(); ++block) {

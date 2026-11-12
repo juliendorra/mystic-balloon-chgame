@@ -1,9 +1,8 @@
 CHSave
 Copyright 2026 Julien Dorra
 
-src/detail/Fat.cpp and src/detail/Block.cpp are modified from CHSd
-(Copyright 2026 bateske, MIT), via the CHGame workspace and Mystic Balloon
-save-card adaptation. tests/vendor/fatimg.py is unmodified CHSd test code.
+tests/vendor/fatimg.py is unmodified CHSd test code. CHSave uses the
+separate CHSd fork for FAT and SPI access.
 
 Original CHSd notice:
 

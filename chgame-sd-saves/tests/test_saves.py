@@ -12,7 +12,8 @@ import unittest
 import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
-COMPACT = os.environ.get('CHSAVE_TEST_COMPACT') == '1'
+CHSD = Path(os.environ.get('CHSAVE_CHSD', str(ROOT / 'extras/CHSd'))).resolve()
+COMPACT = os.environ.get('CHSAVE_TEST_COMPACT', '1') == '1'
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'tests/vendor')]
 import prepare
 from fatimg import build_image, FatVolume, set_fat_entry
@@ -44,19 +45,19 @@ class SaveTests(unittest.TestCase):
         common = compiler + ['-std=c++11', '-O1', '-Wall', '-Wextra', '-Werror',
                              '-fsanitize=undefined,bounds', '-fno-sanitize-recover=all',
                              '-I' + str(ROOT / 'src'), '-I' + str(ROOT / 'tests')]
-        if COMPACT:
-            common += ['-DCHSAVE_MAX_SLOT_SECTORS=1']
+        if not COMPACT:
+            common += ['-DCHSAVE_MAX_SECTORS_PER_RECORD=128']
         core = ROOT / 'src/Journal.cpp'
         subprocess.run(common + [str(ROOT / 'tests/core.cpp'), str(core),
                                  '-o', str(cls.folder / 'core')], check=True)
         subprocess.run([str(cls.folder / 'core')], check=True)
+        common += ['-I' + str(CHSD / 'src')]
         sources = [ROOT / 'tests/journal.cpp', core, ROOT / 'src/CHSave.cpp',
-                   ROOT / 'src/detail/Card.cpp', ROOT / 'src/detail/Fat.cpp',
-                   ROOT / 'src/detail/Block.cpp', ROOT / 'src/detail/Host.cpp']
+                   ROOT / 'src/detail/Card.cpp', CHSD / 'src/Fat.cpp', CHSD / 'src/FatWrite.cpp']
         subprocess.run(common + ['-DCHSAVE_HOST'] + list(map(str, sources)) +
                        ['-o', str(cls.exe)], check=True)
         cls.host = cls.folder / 'simulator'
-        subprocess.run(common + ['-DCHSIM'] + list(map(str, sources)) +
+        subprocess.run(common + ['-DCHSIM'] + list(map(str, sources + [CHSD / 'host/sd_host.cpp'])) +
                        ['-o', str(cls.host)], check=True)
 
     @classmethod
@@ -249,12 +250,31 @@ class SaveTests(unittest.TestCase):
             self.assertEqual(target.read_bytes(), prepare.blank(second))
 
     def test_actual_simulator_backend(self):
-        path = self.fixture()
-        self.assertEqual(self.run_save(path, 'store', MAGIC, 123, exe=self.host)[0], 1)
+        path = self.folder / 'shared-simulator.img'
+        build_image(path, {'OTHER.TXT': b'keep me' * 100}, fs='fat16', spc=1, fragment={'OTHER.TXT': 2})
+        self.assertEqual(self.run_save(path, 'asset-store', MAGIC, 123, exe=self.host)[0], 1)
         self.assertEqual(self.run_save(path, exe=self.host)[:3], (1, 123, 7))
 
+    def test_nonmirrored_fat32_and_truncated_partition_never_written(self):
+        path = self.fixture(fs='fat32', mbr=False)
+        raw = bytearray(path.read_bytes())
+        raw[40] |= 0x80
+        path.write_bytes(raw)
+        self.assertEqual(self.run_save(path, 'store', MAGIC, 123)[-1], UNSUPPORTED)
+        self.assertEqual(path.read_bytes(), raw)
+        path = self.fixture()
+        raw = bytearray(path.read_bytes())
+        struct.pack_into('<I', raw, 446 + 12, 32)
+        path.write_bytes(raw)
+        self.assertEqual(self.run_save(path, 'store', MAGIC, 123)[-1], UNSUPPORTED)
+        self.assertEqual(path.read_bytes(), raw)
+
     def test_first_save_creates_file_without_preparation(self):
-        for fs, mbr, spc in [('fat16', False, 1), ('fat16', True, 4),
+        seed = bytearray(512)
+        struct.pack_into('<I', seed, 0, prepare.RECORD_TAG)
+        struct.pack_into('<I', seed, 508, zlib.crc32(seed[:508]))
+        expected = prepare.descriptor(MAGIC, 1) + seed + record(123)
+        for fs, mbr, spc in [('fat16', False, 1), ('fat16', True, 2), ('fat16', True, 4),
                              ('fat32', False, 1), ('fat32', True, 4)]:
             with self.subTest(fs=fs, mbr=mbr, spc=spc):
                 path=self.folder/'new-card.img'
@@ -266,8 +286,7 @@ class SaveTests(unittest.TestCase):
                 self.assertEqual(self.run_save(path,'store',MAGIC,123)[-1],READY)
                 self.assertEqual(self.run_save(path)[:3],(1,123,7))
                 with FatVolume(path) as volume:
-                    prepare.validate(volume.read_file(NAME),MAGIC)
-                    self.assertEqual(len(volume.read_file(NAME)),1536)
+                    self.assertEqual(volume.read_file(NAME),expected)
                     self.assertEqual(volume.read_file('OTHER.TXT'),b'keep me'*100)
                 with path.open('rb') as f:
                     f.seek(layout.fat_lba*512);first=f.read(layout.fat_sectors*512)
@@ -291,9 +310,13 @@ class SaveTests(unittest.TestCase):
             self.assertEqual(volume.read_file('OTHER.TXT'),b'keep me'*100)
         self.assertEqual(self.run_save(path)[:3],(1,123,7))
         for c in range(2,layout.clusters+2):set_fat_entry(path,layout,c,0xffff)
-        before=path.read_bytes()
-        self.assertEqual(self.run_save(path,'store','com.example.full',123)[-1],NO_SPACE)
-        self.assertEqual(path.read_bytes(),before)
+        for free in (0, 2):
+            with self.subTest(free=free):
+                for c in range(layout.clusters+2-free, layout.clusters+2):
+                    set_fat_entry(path, layout, c, 0)
+                before=path.read_bytes()
+                self.assertEqual(self.run_save(path,'store','com.example.full',123)[-1],NO_SPACE)
+                self.assertEqual(path.read_bytes(),before)
 
     def test_save_directory_extends_on_fat16_and_fat32(self):
         for fs in ('fat16', 'fat32'):
@@ -316,7 +339,40 @@ class SaveTests(unittest.TestCase):
         self.assertEqual(self.run_save(path, 'store', MAGIC, 123)[-1], DAMAGED)
         self.assertEqual(path.read_bytes(), before)
 
-    @unittest.skipIf(COMPACT,'compact firmware supports one-sector slots')
+    @unittest.skipUnless(COMPACT, 'checks the default save size')
+    def test_default_save_size_limit(self):
+        path = self.fixture()
+        self.assertEqual(self.run_save(path, 'large-store', MAGIC, 492, 73), (1, READY))
+        self.assertEqual(self.run_save(path, 'large-load', MAGIC, 492, 73), (1, READY))
+        before = path.read_bytes()
+        self.assertEqual(self.run_save(path, 'large-store', MAGIC, 493, 73), (0, INVALID))
+        self.assertEqual(path.read_bytes(), before)
+
+    @unittest.skipIf(COMPACT, 'requires more than one sector per record')
+    def test_first_two_sector_save_on_fragmented_card(self):
+        size, seed = 772, 73
+        empty = bytearray(1024)
+        struct.pack_into('<I', empty, 0, prepare.RECORD_TAG)
+        struct.pack_into('<I', empty, 1020, zlib.crc32(empty[:1020]))
+        filled = bytearray(1024)
+        struct.pack_into('<IIHBBI', filled, 0, prepare.RECORD_TAG, 1, size, 1, 7, 0)
+        filled[16:16+size] = bytes((i * 17 + seed) & 255 for i in range(size))
+        struct.pack_into('<I', filled, 1020, zlib.crc32(filled[:1020]))
+        for fs, clusters, end in (('fat16', 5000, 0xffff), ('fat32', 65530, 0x0fffffff)):
+            with self.subTest(fs=fs):
+                path = self.folder / 'first-two-sector.img'
+                layout = build_image(path, {'OTHER.TXT': b'keep me'}, fs=fs, spc=1, clusters=clusters)
+                # Force the five-block file to skip occupied clusters.
+                for cluster in (5, 7, 9, 11):
+                    set_fat_entry(path, layout, cluster, end)
+                self.assertEqual(self.run_save(path, 'large-store', MAGIC, size, seed), (1, READY))
+                self.assertEqual(self.run_save(path, 'large-load', MAGIC, size, seed), (1, READY))
+                with FatVolume(path) as volume:
+                    self.assertGreater(len(volume.runs(NAME)), 1)
+                    self.assertEqual(volume.read_file(NAME), prepare.descriptor(MAGIC, 2) + empty + filled)
+                    self.assertEqual(volume.read_file('OTHER.TXT'), b'keep me')
+
+    @unittest.skipIf(COMPACT,'requires more than one sector per record')
     def test_first_large_save_sizes_file_from_payload(self):
         for size in (493,4096,65516):
             path=self.folder/'first-large.img'
@@ -346,7 +402,17 @@ class SaveTests(unittest.TestCase):
                 for name,data in files.items():self.assertEqual(volume.read_file(name),data)
             if fs=='fat32':self.assertEqual(self.run_save(path)[:3],(1,123,7))
 
-    def check_interrupted_first_save(self, other):
+    def check_interrupted_first_save(self, other, size=None):
+        def store(**faults):
+            if size:
+                return self.run_save(path, 'large-store', MAGIC, size, 123, **faults)
+            return self.run_save(path, 'store', MAGIC, 123, **faults)
+
+        def load():
+            if size:
+                return self.run_save(path, 'large-load', MAGIC, size, 123)
+            return self.run_save(path)
+
         path=self.folder/'creation-cuts.img';trace=self.folder/'writes.txt'
         trace.unlink(missing_ok=True)
         files = {'OTHER.TXT': b'keep me' * 100}
@@ -354,7 +420,7 @@ class SaveTests(unittest.TestCase):
             files[OTHER_NAME] = prepare.blank(OTHER)
         build_image(path, files, fs='fat16', spc=1, clusters=5000)
         baseline=path.read_bytes()
-        self.assertEqual(self.run_save(path,'store',MAGIC,123,CHSAVE_WRITE_LOG=trace)[-1],READY)
+        self.assertEqual(store(CHSAVE_WRITE_LOG=trace)[-1],READY)
         writes=[int(n) for n in trace.read_text().splitlines()]
         original={lba:baseline[lba*512:(lba+1)*512] for lba in writes}
         for index in range(len(writes)):
@@ -362,15 +428,15 @@ class SaveTests(unittest.TestCase):
                 with self.subTest(write=index,prefix=prefix):
                     with path.open('r+b') as f:
                         for lba,raw in original.items():f.seek(lba*512);f.write(raw)
-                    self.assertEqual(self.run_save(path,'store',MAGIC,123,CHSAVE_CUT=index*512+prefix)[0],0)
-                    result=self.run_save(path)
+                    self.assertEqual(store(CHSAVE_CUT=index*512+prefix)[0],0)
+                    result=load()
                     self.assertIn(result[-1],(EMPTY,READY))
                     with FatVolume(path) as volume:
                         for name, data in files.items():
                             self.assertEqual(volume.read_file(name), data)
                     # Restart and retry, including a cut during the first record.
-                    self.assertEqual(self.run_save(path,'store',MAGIC,123)[-1],READY)
-                    self.assertEqual(self.run_save(path)[:3],(1,123,7))
+                    self.assertEqual(store()[-1],READY)
+                    self.assertEqual(load(), (1, READY) if size else (1, 123, 7, READY))
                     # A retry can use different previously free clusters.
                     # Restore the small fixture to exclude leaked unlinked allocations.
                     with path.open('r+b') as f:
@@ -381,7 +447,13 @@ class SaveTests(unittest.TestCase):
             with self.subTest(existing_directory=existing_directory):
                 self.check_interrupted_first_save(existing_directory)
 
-    @unittest.skipIf(COMPACT, 'compact firmware supports one-sector slots')
+    @unittest.skipIf(COMPACT, 'requires more than one sector per record')
+    def test_interrupted_first_two_sector_save_is_retryable(self):
+        for existing_directory in (False, True):
+            with self.subTest(existing_directory=existing_directory):
+                self.check_interrupted_first_save(existing_directory, size=772)
+
+    @unittest.skipIf(COMPACT, 'requires more than one sector per record')
     def test_larger_variable_payloads_and_reserved_capacity(self):
         for fs, mbr, spc, fragment in [('fat16', False, 1, True), ('fat32', True, 4, True)]:
             raw = prepare.blank(MAGIC, 4096)[512:]
@@ -403,7 +475,7 @@ class SaveTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 prepare.prepare(folder, ['com.example.big'], capacity=9000)
 
-    @unittest.skipIf(COMPACT, 'compact firmware supports one-sector slots')
+    @unittest.skipIf(COMPACT, 'requires more than one sector per record')
     def test_maximum_payload(self):
         path = self.fixture(first=prepare.blank(MAGIC, prepare.MAX_DATA)[512:])
         self.assertEqual(self.run_save(path, 'large-store', MAGIC, 65516, 23)[0], 1)
@@ -412,7 +484,7 @@ class SaveTests(unittest.TestCase):
         self.assertEqual(self.run_save(path, 'large-store', MAGIC, 65517, 23)[0], 0)
         self.assertEqual(path.read_bytes(), before)
 
-    @unittest.skipIf(COMPACT, 'compact firmware supports one-sector slots')
+    @unittest.skipIf(COMPACT, 'requires more than one sector per record')
     def test_multisector_interrupted_writes(self):
         path = self.fixture(first=b'\xff' * 2048)
         self.assertEqual(self.run_save(path, 'large-store', MAGIC, 700, 1)[0], 1)

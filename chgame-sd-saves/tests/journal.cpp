@@ -1,5 +1,6 @@
 #include "CHSave.h"
-#include "detail/Block.h"
+#include <Fat.h>
+#include <SdWrite.h>
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
@@ -11,7 +12,7 @@ uint8_t *gfx_chunkScratch() { return scratch; }
 void gfx_wait() {}
 
 #ifdef CHSAVE_HOST
-namespace chsave { namespace block {
+namespace sd {
 bool init() {
     const char *path = getenv("CHSAVE_CARD_IMAGE");
     FILE *file = path ? fopen(path, "rb") : nullptr;
@@ -52,8 +53,23 @@ bool write(uint32_t lba, const uint8_t *src) {
     ok = !fclose(file) && ok;
     return ok && size == 512;
 }
-} }
+}
+#else
+void sim_advance(uint32_t) {}
 #endif
+
+// Use the regular asset API on both sides of a CHSave write.
+static void verifyAsset() {
+    fat::Run runs[4];
+    unsigned n = fat::open("OTHER   TXT", runs, 4, scratch);
+    assert(n);
+    const char asset[] = "keep me";
+    for (unsigned i = 0; i < 2; ++i) {
+        assert(fat::read(runs, n, i, scratch));
+        for (unsigned j = 0; j < 512 && i * 512 + j < 700; ++j)
+            assert(scratch[j] == asset[(i * 512 + j) % 7]);
+    }
+}
 
 struct Data { uint32_t score; uint8_t prefs[32]; };
 int main(int argc, char **argv) {
@@ -79,7 +95,9 @@ int main(int argc, char **argv) {
         printf("%u %u\n", ok, unsigned(saves.status()));
         return 0;
     }
-    if (!strcmp(argv[1], "store")) {
+    bool checkAsset = !strcmp(argv[1], "asset-store");
+    if (checkAsset) verifyAsset();
+    if (!strcmp(argv[1], "store") || checkAsset) {
         assert(argc >= 4);
         data.score = strtoul(argv[3], nullptr, 10);
         memset(data.prefs, data.score & 255, sizeof data.prefs);
@@ -89,5 +107,6 @@ int main(int argc, char **argv) {
         if (ok) for (auto byte : data.prefs) assert(byte == (data.score & 255));
         else assert(data.score == 999 && flags == 99);
     }
+    if (checkAsset) verifyAsset();
     printf("%u %u %u %u\n", ok, data.score, flags, unsigned(saves.status()));
 }

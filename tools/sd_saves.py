@@ -48,8 +48,8 @@ def overlay():
 
 def allocation_fat(text):
     # Keep the mounted geometry once; the allocator shares this reader.
-    text='''#if __has_include(<chsave/detail/Allocate.h>)
-#include <chsave/detail/Allocate.h>
+    text='''#if __has_include(<chgame/Allocate.h>)
+#include <chgame/Allocate.h>
 #define CHGAME_AUTO_SAVES 1
 #endif
 '''+text
@@ -87,14 +87,7 @@ def _overlay():
     # to reuse the SDK asset driver's SPI state and host card fixtures.
     shutil.copytree(PUBLIC/'src',dest/'src/chsave')
     for name in ('LICENSE','NOTICE'):shutil.copy2(PUBLIC/name,dest/'src/chsave'/name)
-    # Current games all fit one sector per record. Build the public
-    # library's supported compact profile to stay within Rev0's flash.
-    config=dest/'src/chsave/Config.h'
-    config.write_text('#define CHSAVE_MAX_SLOT_SECTORS 1\n'+config.read_text())
     (dest/'src/CHSave.h').write_text('#pragma once\n#include "chsave/CHSave.h"\n')
-    (dest/'src/chsave/detail/Host.cpp').unlink()
-    (dest/'src/chsave/detail/Block.cpp').unlink()
-    (dest/'src/chsave/detail/Fat.cpp').unlink()
     (dest/'src/chsave/detail/Card.cpp').unlink()
     (dest/'src/chsave/detail/WorkspaceStorage.cpp').write_text('''// Workspace adapter: share CHSd with asset streaming instead of linking
 // a second FAT parser. The journal implementation is the public library.
