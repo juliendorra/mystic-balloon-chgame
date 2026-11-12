@@ -73,7 +73,11 @@ def main():
     assert asset_bytes((GAME / "bitmaps.h").read_text()) == expected["arrays"], "upstream graphics/levels changed"
     print(f"PASS: all {len(expected['arrays'])} original bitmap/level arrays match upstream", flush=True)
     exe = build_runner(GAME / "tools/tests/port_test.cpp", GAME / "out/tests/port_test")
-    subprocess.run([str(exe)], check=True)
+    # The native test mounts and removes its own cards, including a no-card case.
+    env = os.environ.copy()
+    env.pop("CHGAME_SAVE_CARD", None)
+    env.pop("CHGAME_SAVE_TEMPLATE", None)
+    subprocess.run([str(exe)], env=env, check=True)
 
 
 if __name__ == "__main__":

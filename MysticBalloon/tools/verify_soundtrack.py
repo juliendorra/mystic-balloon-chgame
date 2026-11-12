@@ -3,6 +3,7 @@
 from pathlib import Path
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -10,7 +11,10 @@ import wave
 from import_soundtrack import score_header
 
 GAME=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(GAME.parent/'CHGame/tools/chsim'))
+SDK = Path(os.environ.get("CHGAME_ROOT", GAME.parent / "CHGame"))
+if not (SDK / "tools/chsim").is_dir():
+    SDK = GAME.parent / ".deps/CHGame"
+sys.path.insert(0, str(SDK / "tools/chsim"))
 from chsim import find_cxx
 OUT=GAME/'out/soundtrack'
 OUT.mkdir(parents=True,exist_ok=True)
@@ -45,7 +49,7 @@ inline uint8_t TCCR4A,TCCR4B,TCCR4C,OCR4A,OCR4C,OCR4D;
 ''')
 source=GAME/'tools/tests/soundtrack_test.cpp'
 flags=find_cxx()+['-std=c++17','-O1','-g','-fsanitize=undefined','-fno-sanitize-recover=all',
-                 f'-I{GAME.parent/"CHGame/platform/board/arduino/CHGame/libraries/CHGame/src"}']
+                 f'-I{SDK/"platform/board/arduino/CHGame/libraries/CHGame/src"}']
 commands=[flags+['-DATM_REFERENCE',f'-I{stage}',str(source),'-o',str(OUT/'reference_test')],
           flags+['-DCHMB_AUDIO_TEST',f'-I{GAME}',str(source),str(GAME/'Audio.cpp'),'-o',str(OUT/'native_test')]]
 traces=[]
