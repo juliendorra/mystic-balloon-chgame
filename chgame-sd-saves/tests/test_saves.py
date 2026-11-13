@@ -79,6 +79,19 @@ class SaveTests(unittest.TestCase):
                                           *map(str, args)], env=env, text=True)
         return tuple(map(int, output.split()))
 
+    def test_compact_saves_and_general_files_share_a_card(self):
+        for fs in ('fat16', 'fat32'):
+            with self.subTest(fs=fs):
+                path = self.folder / 'mixed.img'
+                build_image(path, {'OTHER.TXT': b'unchanged'}, fs=fs, spc=1)
+                self.assertEqual(self.run_save(path, 'mixed-store'), (1, READY))
+                self.assertEqual(self.run_save(path)[:2], (1, 999))
+                with FatVolume(path) as volume:
+                    prepare.validate(volume.read_file(NAME), MAGIC)
+                    expected = b''.join(bytes([value]) * 512 for value in range(1, 9))
+                    self.assertEqual(volume.read_file('SAVES/ASSET.BIN'), expected)
+                    self.assertEqual(volume.read_file('OTHER.TXT'), b'unchanged')
+
     def test_fat_restart_fragmentation_isolation_and_unchanged_writes(self):
         for fs, mbr, spc, fragment in [('fat16', False, 1, True), ('fat16', True, 4, False),
                                       ('fat32', False, 1, True), ('fat32', True, 4, False)]:

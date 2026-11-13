@@ -46,7 +46,6 @@ using namespace detail;
 namespace {
 
 // Validate the BPB and keep the geometry used for both reads and writes.
-template<bool Writable>
 bool bpb(const uint8_t *b, uint32_t base, uint32_t limit) {
     uint32_t spc = b[13], sh = 0, nf = b[16];
     while ((1u << sh) < spc) sh++;
@@ -64,7 +63,7 @@ bool bpb(const uint8_t *b, uint32_t base, uint32_t limit) {
     uint32_t root = rootSecs ? base + rsvd + nf * fsz : u32at(b + 44), active = 0;
     if (!rootSecs) {
         if (root < 2 || root >= n + 2 || root >= 0x0ffffff0u) return false;
-        if (!Writable && (b[40] & 0x80)) {
+        if (b[40] & 0x80) {
             active = b[40] & 15;
             if (active >= nf) return false;
         }
@@ -74,7 +73,9 @@ bool bpb(const uint8_t *b, uint32_t base, uint32_t limit) {
     v.root = root;
     v.rootSecs = rootSecs;
     v.shift = sh;
-    v.end = n + 2;
+    // Reserved cluster numbers can never appear in a chain or allocation.
+    const uint32_t reserved = rootSecs ? 0xfff0u : 0x0ffffff0u;
+    v.end = n + 2 < reserved ? n + 2 : reserved;
     return true;
 }
 
@@ -139,7 +140,6 @@ int32_t lookup(uint32_t dir, const uint8_t *name, File &f, uint8_t *b, uint32_t 
     return exact ? E_CHAIN : E_NOTFOUND;
 }
 
-template<bool Writable>
 int8_t mountVolume(uint8_t *b) {
     v.end = 0;
     uint32_t base = 0, limit = UINT32_MAX;
@@ -147,13 +147,7 @@ int8_t mountVolume(uint8_t *b) {
         if (!sd::read(base, b)) return E_READ;
         if (u16at(b + 510) != 0xAA55) return E_NOFS;
         if (le32(b + 3) == 0x41465845u) return E_EXFAT;       // OEM name "EXFAT   "
-        if ((b[0] == 0xEB || b[0] == 0xE9) && bpb<Writable>(b, base, limit)) {
-            if (Writable && !v.rootSecs && (b[40] & 0x80)) {
-                v.end = 0;
-                return E_NOFS;
-            }
-            return OK;
-        }
+        if ((b[0] == 0xEB || b[0] == 0xE9) && bpb(b, base, limit)) return OK;
         if (pass) return E_NOFS;
         // LBA 0 is not a usable boot sector: read it as an MBR and take the
         // first FAT partition. With none, a type 07 one (exFAT, or NTFS)
@@ -169,8 +163,15 @@ int8_t mountVolume(uint8_t *b) {
 }
 }  // namespace
 
-int8_t mount(uint8_t *b) { return mountVolume<false>(b); }
-int8_t mountWritable(uint8_t *b) { return mountVolume<true>(b); }
+int8_t mount(uint8_t *b) { return mountVolume(b); }
+int8_t mountWritable(uint8_t *b) {
+    int8_t rc = mount(b);
+    if (!rc && !v.rootSecs && (b[40] & 0x80)) {
+        v.end = 0;
+        return E_NOFS;
+    }
+    return rc;
+}
 
 int8_t findExact(const File &dir, const char name[11], bool folder, File &f, uint8_t *b) {
     if (!v.end) return E_NOTFOUND;

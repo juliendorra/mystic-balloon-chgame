@@ -9,7 +9,9 @@ to write sectors. Neither is needed for asset reads; the CHGame linker
 drops both write and allocation code when unused. All calls share SPI1
 with the display: call them after `gfx_wait()`.
 
-The fork uses the same mount and FAT traversal for assets and saves. The
+The compact and general writers share mounting, directory handling and
+verified writes. A compact-only build links the bounded cluster allocator.
+Games can also use `fat::createFile()` for larger files. The
 writer rejects non-mirrored FAT32, checks FAT copies before changing them,
 and verifies writes before publishing a new directory entry.
 

@@ -85,26 +85,13 @@ class Allocator {
         }
         return OK;
     }
-    // Keep one scanner for both passes of the general allocator.
-#if defined(__GNUC__)
-    __attribute__((noinline))
-#endif
-    int32_t findFree(uint32_t c) {
-        for (; valid(c); ++c) {
-            int32_t n = get(c);
-            if (n < 0) return n;
-            if (!n) return c;
-        }
-        return E_NOSPACE;
-    }
     int8_t allocateSmall(unsigned count, uint32_t *clusters) {
-        // Cache the free clusters so the file writer can skip the FAT walk.
         uint32_t *out = clusters;
-        uint32_t *end = clusters + count;
+        const uint32_t *end = clusters + count;
         for (uint32_t c = 2; out != end && valid(c); ++c) {
-            int32_t n = get(c);
-            if (n < 0) return n;
-            if (!n) *out++ = c;
+            int32_t value = get(c);
+            if (value < 0) return value;
+            if (!value) *out++ = c;
         }
         if (out != end) return E_NOSPACE;
         int8_t rc = invalidateHints();
@@ -116,37 +103,35 @@ class Allocator {
         }
         return OK;
     }
+    int32_t allocateOne() {
+        uint32_t cluster;
+        int8_t rc = allocateSmall(1, &cluster);
+        return rc ? rc : int32_t(cluster);
+    }
     int32_t allocate(unsigned count) {
-        // Preflight available space, then link only enough free clusters.
-        // The chain is not visible in a directory until initialized.
-        int32_t first = findFree(2);
-        if (first < 0) return first;
-        int32_t c = first;
-        for (unsigned needed = 1; needed < count; ++needed) {
-            c = findFree(c + 1);
-            if (c < 0) return c;
+        // First verify there is room, then link only the requested clusters.
+        // The new chain stays unpublished until its contents are verified.
+        unsigned available = 0;
+        uint32_t end = 2;
+        for (; available < count && valid(end); ++end) {
+            int32_t value = get(end);
+            if (value < 0) return value;
+            available += value == 0;
         }
+        if (available != count) return E_NOSPACE;
         int8_t rc = invalidateHints();
         if (rc) return rc;
-        c = first;
-        while (--count) {
-            int32_t next = findFree(c + 1);
-            if (next < 0) return next == E_NOSPACE ? E_WRITE : next;
-            if (!set(c, next)) return E_WRITE;
-            c = next;
+        uint32_t head = 0;
+        for (uint32_t c = end; count && c > 2;) {
+            int32_t value = get(--c);
+            if (value < 0) return value;
+            if (value) continue;
+            if (!set(c, head ? head : 0x0fffffffu)) return E_WRITE;
+            head = c;
+            --count;
         }
-        return set(c, 0x0fffffffu) ? first : E_WRITE;
+        return count ? E_WRITE : int32_t(head);
     }
-    template<bool Compact>
-    int8_t allocateDirectoryCluster(uint32_t &cluster) {
-        // Use the same allocator for directories and files in each profile.
-        if (Compact) return allocateSmall(1, &cluster);
-        int32_t first = allocate(1);
-        if (first < 0) return first;
-        cluster = first;
-        return OK;
-    }
-    template<bool Compact>
 #if defined(__GNUC__) && !defined(__clang__)
     __attribute__((noinline, noclone))
 #endif
@@ -159,9 +144,8 @@ class Allocator {
             if (!remaining) {
                 if (fixedRoot) return E_NOSPACE;
                 if (cluster && endOfChain(link)) {
-                    uint32_t added;
-                    int8_t rc = allocateDirectoryCluster<Compact>(added);
-                    if (rc) return rc;
+                    int32_t added = allocateOne();
+                    if (added < 0) return added;
                     if (!initializeDirectory(added, false) || !set(cluster, added)) return E_WRITE;
                     link = added;
                 }
@@ -232,13 +216,13 @@ class Allocator {
         b[offset] = name[0];
         return write(sector) ? OK : E_WRITE;
     }
-    template<bool Compact>
     int8_t makeDirectory(const char *name, uint32_t &parent) {
         uint32_t sector; unsigned offset;
-        int8_t status = reserve<Compact>(v.rootSecs ? 0 : v.root, sector, offset);
+        int8_t status = reserve(v.rootSecs ? 0 : v.root, sector, offset);
         if (status != OK) return status;
-        status = allocateDirectoryCluster<Compact>(parent);
-        if (status != OK) return status;
+        int32_t added = allocateOne();
+        if (added < 0) return added;
+        parent = added;
         if (!initializeDirectory(parent, true)) return E_WRITE;
         return publish(sector, offset, name, 0x10, parent, 0);
     }
@@ -255,17 +239,18 @@ public:
             }
         }
     }
-    template<unsigned CachedClusters>
-    int8_t create(const char *folder, const char *name, uint32_t blocks,
-                  InitSector init, void *context) {
-        constexpr bool Compact = CachedClusters != 0;
+    struct EntrySlot { uint32_t sector; unsigned offset; };
+#if defined(__GNUC__) && !defined(__clang__)
+    __attribute__((noinline))
+#endif
+    int8_t findSlot(const char *folder, const char *name, EntrySlot &slot) {
         File dir{v.rootSecs ? 0 : v.root, 0}, f;
         int8_t rc;
         if (folder) {
             rc = findExact(dir, folder, true, f, b);
             cached = ~0u;
             if (rc == E_NOTFOUND) {
-                if ((rc = makeDirectory<Compact>(folder, dir.cluster))) return rc;
+                if ((rc = makeDirectory(folder, dir.cluster))) return rc;
             } else {
                 if (rc) return rc;
                 dir = f;
@@ -274,18 +259,27 @@ public:
         rc = findExact(dir, name, false, f, b);
         cached = ~0u;
         if (rc != E_NOTFOUND) return rc ? rc : E_EXISTS;
-        uint32_t dirSector; unsigned dirOffset;
-        if ((rc = reserve<Compact>(dir.cluster, dirSector, dirOffset))) return rc;
+        return reserve(dir.cluster, slot.sector, slot.offset);
+    }
+
+    template<bool Compact>
+    int8_t create(const char *folder, const char *name, uint32_t blocks,
+                  InitSector init, void *context) {
+        EntrySlot slot;
+        int8_t rc = findSlot(folder, name, slot);
+        if (rc) return rc;
         const uint32_t mask = (1u << v.shift) - 1;
         const unsigned count = (blocks + mask) >> v.shift;
-        uint32_t clusters[Compact ? CachedClusters : 1], head;
+        uint32_t clusters[Compact ? 5 : 1];
+        uint32_t head;
         if (Compact) {
-            if ((rc = allocateSmall(count, clusters))) return rc;
+            rc = allocateSmall(count, clusters);
+            if (rc) return rc;
             head = clusters[0];
         } else {
-            int32_t first = allocate(count);
-            if (first < 0) return first;
-            head = first;
+            int32_t allocated = allocate(count);
+            if (allocated < 0) return allocated;
+            head = allocated;
         }
         uint32_t cluster = head;
         for (uint32_t i = 0; i < blocks; ++i) {
@@ -301,7 +295,7 @@ public:
             if (init) init(i, b, context);
             if (!write(clusLba(cluster) + (i & mask))) return E_WRITE;
         }
-        return publish(dirSector, dirOffset, name, 0x20, head, blocks * 512u);
+        return publish(slot.sector, slot.offset, name, 0x20, head, blocks * 512u);
     }
 };
 
@@ -322,14 +316,12 @@ int8_t createFile(const char *folder, const char name[11], uint32_t blocks,
     if (!validName<false>(name) || (folder && !validName<false>(folder)) ||
         !blocks || blocks > UINT32_MAX / 512) return E_CHAIN;
     int8_t rc = mountWritable(scratch);
-    return rc ? rc : Allocator(scratch).create<0>(folder, name, blocks, init, context);
+    return rc ? rc : Allocator(scratch).create<false>(folder, name, blocks, init, context);
 }
 
 int8_t createThreeBlockFile(const char *folder, const char name[11],
                            InitSector init, void *context, uint8_t *scratch) {
-    if (!validName<true>(name) || !validName<true>(folder)) return E_CHAIN;
-    int8_t rc = mountWritable(scratch);
-    return rc ? rc : Allocator(scratch).create<3>(folder, name, 3, init, context);
+    return createSmallFile(folder, name, 3, init, context, scratch);
 }
 
 int8_t createSmallFile(const char *folder, const char name[11], uint32_t blocks,
@@ -337,6 +329,6 @@ int8_t createSmallFile(const char *folder, const char name[11], uint32_t blocks,
     if (!blocks || blocks > 5 || !validName<true>(name) || !validName<true>(folder))
         return E_CHAIN;
     int8_t rc = mountWritable(scratch);
-    return rc ? rc : Allocator(scratch).create<5>(folder, name, blocks, init, context);
+    return rc ? rc : Allocator(scratch).create<true>(folder, name, blocks, init, context);
 }
 }  // namespace fat

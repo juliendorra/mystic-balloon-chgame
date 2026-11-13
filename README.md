@@ -160,4 +160,4 @@ The ATM soundtrack gains DC removal, more output gain and bounded peak compressi
 
 ## SD saves
 
-Uses [CHSave 0.5](https://github.com/juliendorra/chgame-sd-saves). New saves are created automatically in `/SAVES/N0KYRDE5.SAV`.
+Uses [CHSave 0.6.1](https://github.com/juliendorra/chgame-sd-saves). New saves are created automatically in `/SAVES/N0KYRDE5.SAV`.

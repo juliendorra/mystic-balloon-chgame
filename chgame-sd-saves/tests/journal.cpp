@@ -1,5 +1,6 @@
 #include "CHSave.h"
 #include <Fat.h>
+#include <FatWrite.h>
 #include <SdWrite.h>
 #include <cassert>
 #include <cstdio>
@@ -80,6 +81,17 @@ int main(int argc, char **argv) {
     Data data{999, {}};
     uint8_t flags = 99;
     bool ok;
+    if (!strcmp(argv[1], "mixed-store")) {
+        const auto init = [](uint32_t index, uint8_t *sector, void *) {
+            memset(sector, index + 1, 512);
+        };
+        assert(sd::init());
+        assert(fat::createFile("SAVES      ", "ASSET   BIN", 8, init, nullptr, scratch) == fat::OK);
+        memset(data.prefs, data.score & 255, sizeof data.prefs);
+        ok = saves.store(gameId, 1, data);
+        printf("%u %u\n", ok, unsigned(saves.status()));
+        return 0;
+    }
     if (!strncmp(argv[1], "large-", 6)) {
         assert(argc >= 5);
         unsigned size = strtoul(argv[3], nullptr, 10);

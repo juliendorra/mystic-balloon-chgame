@@ -27,7 +27,7 @@ inline uint32_t u16at(const uint8_t *p) { return le16(p); }
 inline uint32_t u32at(const uint8_t *p) { return le32(p); }
 #endif
 inline bool valid(uint32_t c) {
-    return c >= 2 && c < v.end && c < (v.rootSecs ? 0xfff0u : 0x0ffffff0u);
+    return c >= 2 && c < v.end;
 }
 inline uint32_t clusLba(uint32_t c) { return v.data + ((c - 2) << v.shift); }
 inline bool endOfChain(uint32_t value) { return value >= (v.rootSecs ? 0xfff8u : 0x0ffffff8u); }

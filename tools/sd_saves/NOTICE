@@ -1,7 +1,0 @@
-The generated SDK overlay derives from CHGame and CHSd (Copyright 2026
-bateske, MIT) and Mystic Balloon's private CHSd adaptation (MIT; see
-MysticBalloon/SAVE-CARD-LICENSE). Their license/notice files are retained
-in the generated libraries. The specialized root lookup in FatSave.inc
-adapts CHSd's root-directory and cluster-chain traversal for a fixed-size
-save file. The journal, provisioning and validation code is workspace code.
-The PPOT font and game artwork retain their existing licenses unchanged.

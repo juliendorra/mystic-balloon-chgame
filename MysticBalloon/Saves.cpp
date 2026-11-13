@@ -43,9 +43,9 @@ public:
 static TestJournal testJournal;
 #endif
 static bool sharedLoad(Store &out) {
-    gfx_wait();
 #ifdef CHSIM
     if(getenv("CHMB_SAVE_CARD")) {
+        gfx_wait();
         chsave::Journal journal(testJournal,gfx_chunkScratch(),1024);
         bool ok=journal.load(SAVE_ID,VERSION,&out,sizeof out,nullptr);
         sharedStatus=journal.status();return ok;
@@ -56,9 +56,9 @@ static bool sharedLoad(Store &out) {
     sharedStatus=journal.status();return ok;
 }
 static bool sharedStore(const Store &value) {
-    gfx_wait();
 #ifdef CHSIM
     if(getenv("CHMB_SAVE_CARD")) {
+        gfx_wait();
         chsave::Journal journal(testJournal,gfx_chunkScratch(),1024);
         bool ok=journal.store(SAVE_ID,VERSION,&value,sizeof value,0);
         sharedStatus=journal.status();return ok;
