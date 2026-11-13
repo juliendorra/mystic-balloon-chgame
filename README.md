@@ -7,11 +7,11 @@ port** of TEAM a.r.g.'s **Mystic Balloon**.
 Explore all 39 original levels with the original physics, bright
 red/yellow/blue balloons and a continuous splash illustration.
 
-**[Download version 1.4.7](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.4.7)**:
-[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.7/MysticBalloon-1.4.7.chgame)
-or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.7/MysticBalloon-1.4.7-rev0.bin).
+**[Download version 1.4.8](https://github.com/juliendorra/mystic-balloon-chgame/releases/tag/v1.4.8)**:
+[.chgame package (recommended)](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.8/MysticBalloon-1.4.8.chgame)
+or [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.8/MysticBalloon-1.4.8-rev0.bin).
 The release includes USB and SD-card installation instructions and
-[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.7/SHA256SUMS.txt).
+[SHA-256 checksums](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.8/SHA256SUMS.txt).
 No compiling needed.
 
 Version **1.4.1** restores **RESTART LEVEL** to the START pause menu,
@@ -56,8 +56,8 @@ your current run. [Controls and game rules](MysticBalloon/README.md).
 
 ## Install
 
-Download the [.chgame package](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.7/MysticBalloon-1.4.7.chgame)
-and install it using the CHGame cart tools. The [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.7/MysticBalloon-1.4.7-rev0.bin)
+Download the [.chgame package](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.8/MysticBalloon-1.4.8.chgame)
+and install it using the CHGame cart tools. The [.bin firmware](https://github.com/juliendorra/mystic-balloon-chgame/releases/download/v1.4.8/MysticBalloon-1.4.8-rev0.bin)
 is available for direct USB flashing to CHGame Rev0. Both contain the same
 normal release firmware.
 
